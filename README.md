@@ -41,20 +41,20 @@ var locationPicker = LocationPicker.init('map', {
 
 ## Methods
 
-#### LocationPicker.init(elementId, pluginOptions, mapOptions)
+### LocationPicker.init(elementId, pluginOptions, mapOptions)
 
 Returns a reference to the LocationPicker object
 
-##### `elementId`: 
+#### `elementId`: 
 The ID of the HTML element you want to initialize the plugin on.
 
-##### `pluginOptions`: 
+#### `pluginOptions`: 
 
 Options specific for this plugin
 
 The only supported option for now is `setCurrentPosition` which specifies if you want the plugin to automatically try and detect and set the marker to the the current user's location _(defaults to true)_.
 
-##### `mapOptions`:
+#### `mapOptions`:
 
 You can set any specific google maps option here.
 
@@ -62,17 +62,17 @@ For a list of all the available options please visit:
 
 https://developers.google.com/maps/documentation/javascript/reference#MapOptions
 
-#### LocationPicker.getMarkerPosition()
+### LocationPicker.getMarkerPosition()
 
 Returns an object that contains the lat and lng of the currently selected position.
 
 ## Properties
 
-#### LocationPicker.element 
+### LocationPicker.element 
 
 A reference to the element the plugin was initialized on.
 
-#### LocationPicker.map
+### LocationPicker.map
 
 A reference to the Google Map object
 
