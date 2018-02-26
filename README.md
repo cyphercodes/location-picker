@@ -14,7 +14,7 @@ An open source location picker plugin written with plain javascript using Google
 
 ### Import libraries from HTML:
 
-```
+```html
 <link rel="stylesheet" href="../src/location-picker.css">
 <script type="text/javascript" src="https://maps.googleapis.com/maps/api/js?key=AIzaSyC5Jrp9PtHe0WapppUzxbIpMDWMAcV3qE4"></script>
 <script src="../src/location-picker.js"></script>
@@ -22,7 +22,7 @@ An open source location picker plugin written with plain javascript using Google
 
 ### Add element in HTML with a unique id:
 
-```
+```html
 #map {
     width: 100%;
     height: 480px;
@@ -31,7 +31,7 @@ An open source location picker plugin written with plain javascript using Google
 ```
 
 ### Initialize the LocationPicker plugin:
-```
+```javascript
 var locationPicker = LocationPicker.init('map', {
     setCurrentPosition: true, // You can omit this, defaults to true
 }, {
@@ -45,7 +45,7 @@ var locationPicker = LocationPicker.init('map', {
 
 Returns a reference to the LocationPicker object
 
-#####`elementId`: 
+##### `elementId`: 
 The ID of the HTML element you want to initialize the plugin on.
 
 ##### `pluginOptions`: 
@@ -79,7 +79,7 @@ A reference to the Google Map object
 
 ## Full Example
 
-```
+```html
 <!DOCTYPE html>
 <html lang="en">
 <head>
