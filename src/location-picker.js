@@ -21,6 +21,10 @@
             console.log(elementId);
             self.element = document.getElementById(elementId);
             self.map = new google.maps.Map(self.element, options);
+            self.element.className += ' location-picker';
+            var node = document.createElement("div");
+            node.className = "centerMarker";
+            self.element.appendChild(node);
             setMarker();
             return self;
         };
@@ -33,18 +37,18 @@
                         lng: position.coords.longitude
                     };
                     self.map.setCenter(pos);
-                    if (self.marker === false) {
-                        self.marker = new google.maps.Marker({
-                            position: pos,
-                            map: self.map,
-                            draggable: true
-                        });
-                        // google.maps.event.addListener(marker, 'dragend', function (event) {
-                        //     markerLocation();
-                        // });
-                    } else {
-                        self.marker.setPosition(pos);
-                    }
+                    // if (self.marker === false) {
+                    //     self.marker = new google.maps.Marker({
+                    //         position: pos,
+                    //         map: self.map,
+                    //         draggable: true
+                    //     });
+                    //     // google.maps.event.addListener(marker, 'dragend', function (event) {
+                    //     //     markerLocation();
+                    //     // });
+                    // } else {
+                    //     self.marker.setPosition(pos);
+                    // }
                     // markerLocation();
                 }, function () {
                     // handleLocationError(true, infoWindow, map.getCenter());
