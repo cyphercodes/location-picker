@@ -13,7 +13,7 @@
         var options = {
             center: centerOfMap,
             zoom: 15,
-            gestureHandling: 'auto'
+            // gestureHandling: 'auto'
         };
 
 
