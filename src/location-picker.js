@@ -5,31 +5,65 @@
         var self = {
             element: null,
             map: null,
-            marker: false
         };
 
-        var centerOfMap = new google.maps.LatLng(20.6737777, -103.4054536);
+        // Set map center
+        var centerOfMap = new google.maps.LatLng(34.4346, 35.8362);
 
-        var options = {
+        // Set default plugin options
+        var defaultOptions = {
+            setCurrentPosition: true
+        };
+
+        // Set default google map options
+        var defaultMapOptions = {
             center: centerOfMap,
-            zoom: 15,
-            // gestureHandling: 'auto'
+            zoom: 15
         };
 
 
-        self.init = function (elementId) {
-            console.log(elementId);
+        self.init = function (elementId, options, mapOptions) {
+
+            // Set plugin options
+            for (var attrname in options) {
+                defaultOptions[attrname] = options[attrname];
+            }
+
+            // Set map options
+            for (var attrname in mapOptions) {
+                defaultMapOptions[attrname] = mapOptions[attrname];
+            }
+
+            // Get & set element reference
             self.element = document.getElementById(elementId);
-            self.map = new google.maps.Map(self.element, options);
-            self.element.className += ' location-picker';
+
+            // Initialize & set map reference
+            self.map = new google.maps.Map(self.element, defaultMapOptions);
+
+            // Add class to the plugin element
+            self.element.classList.add('location-picker');
+
+            // Append CSS centered marker element
             var node = document.createElement("div");
-            node.className = "centerMarker";
+            node.classList.add('centerMarker');
             self.element.appendChild(node);
-            setMarker();
+
+            // Get & set current position if setCurrentPosition was set to true
+            if (typeof(defaultOptions.setCurrentPosition) !== 'undefined' && defaultOptions.setCurrentPosition) {
+                setCurrentPosition();
+            }
             return self;
         };
 
-        var setMarker = function () {
+        // Return the current marker position
+        self.getMarkerPosition = function () {
+            const latLng = self.map.getCenter();
+            return {lat: latLng.lat(), lng: latLng.lng()};
+        };
+
+
+        // Get current location from browser and set map center to current location
+        var setCurrentPosition = function () {
             if (navigator.geolocation) {
                 navigator.geolocation.getCurrentPosition(function (position) {
                     var pos = {
@@ -37,27 +71,13 @@
                         lng: position.coords.longitude
                     };
                     self.map.setCenter(pos);
-                    // if (self.marker === false) {
-                    //     self.marker = new google.maps.Marker({
-                    //         position: pos,
-                    //         map: self.map,
-                    //         draggable: true
-                    //     });
-                    //     // google.maps.event.addListener(marker, 'dragend', function (event) {
-                    //     //     markerLocation();
-                    //     // });
-                    // } else {
-                    //     self.marker.setPosition(pos);
-                    // }
-                    // markerLocation();
                 }, function () {
-                    // handleLocationError(true, infoWindow, map.getCenter());
+                    console.log('Could not determine your location...');
                 });
             } else {
-                // Si el navegador no soprta la geolocalización
-                // handleLocationError(false, infoWindow, map.getCenter());
+                console.log('Your browser does not support Geolocation.');
             }
-        }
+        };
 
 
         return self;
