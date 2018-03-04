@@ -4,6 +4,7 @@ import sourceMaps from 'rollup-plugin-sourcemaps'
 import camelCase from 'lodash.camelcase'
 import typescript from 'rollup-plugin-typescript2'
 import postcss from 'rollup-plugin-postcss'
+import cssnano from 'cssnano'
 
 const pkg = require('./package.json')
 
@@ -23,7 +24,9 @@ export default {
   },
   plugins: [
     postcss({
-      plugins: []
+      plugins: [
+        cssnano(),
+      ],
     }),
     // Compile TypeScript files
     typescript({useTsconfigDeclarationDir: true}),
