@@ -29,7 +29,7 @@ An open source location picker plugin written with plain javascript using Google
 <div id="map"></div>
 ```
 
-### Initialize the LocationPicker plugin:
+### Initialize the locationPicker plugin:
 ```javascript
 var locationPicker = new locationPicker('map', {
     setCurrentPosition: true, // You can omit this, defaults to true
@@ -42,7 +42,7 @@ var locationPicker = new locationPicker('map', {
 
 ### locationPicker(elementId, pluginOptions, mapOptions)
 
-Returns a reference to the LocationPicker object
+Returns a reference to the locationPicker object
 
 #### `elementId`: 
 The ID of the HTML element you want to initialize the plugin on.
@@ -61,13 +61,13 @@ For a list of all the available options please visit:
 
 https://developers.google.com/maps/documentation/javascript/reference#MapOptions
 
-### ;ocationPicker.getMarkerPosition()
+### locationPicker.getMarkerPosition()
 
 Returns an object that contains the lat and lng of the currently selected position.
 
 ## Properties
 
-### ;ocationPicker.element 
+### locationPicker.element 
 
 A reference to the element the plugin was initialized on.
 
@@ -108,7 +108,7 @@ A reference to the Google Map object
   var onClickPositionView = document.getElementById('onClickPositionView');
   var onIdlePositionView = document.getElementById('onIdlePositionView');
 
-  // Initialize LocationPicker plugin
+  // Initialize locationPicker plugin
   var lp = new locationPicker('map', {
     setCurrentPosition: true, // You can omit this, defaults to true
   }, {
