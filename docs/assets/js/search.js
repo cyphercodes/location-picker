@@ -1,0 +1,3 @@
+ï»¿var typedoc = typedoc || {};
+            typedoc.search = typedoc.search || {};
+            typedoc.search.data = {"kinds":{"128":"Class","2048":"Method"},"rows":[{"id":0,"kind":128,"name":"DummyClass","url":"classes/dummyclass.html","classes":"tsd-kind-class"},{"id":1,"kind":2048,"name":"echoTest","url":"classes/dummyclass.html#echotest","classes":"tsd-kind-method tsd-parent-kind-class tsd-is-static","parent":"DummyClass"}]};
