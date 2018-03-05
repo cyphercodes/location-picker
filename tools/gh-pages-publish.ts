@@ -20,7 +20,7 @@ let ghToken = process.env.GH_TOKEN
 echo("Deploying docs!!!")
 cd("docs")
 touch(".nojekyll")
-exec("cp ../example example")
+exec("cp ../example example -r")
 exec("git init")
 exec("git add .")
 exec('git config user.name "Rayan Salhab"')
