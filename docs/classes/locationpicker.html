@@ -3,7 +3,7 @@
 <head>
 	<meta charset="utf-8">
 	<meta http-equiv="X-UA-Compatible" content="IE=edge">
-	<title>location-picker | location-picker</title>
+	<title>LocationPicker | location-picker</title>
 	<meta name="description" content="">
 	<meta name="viewport" content="width=device-width, initial-scale=1">
 	<style type="text/css">/*! normalize.css v1.1.3 | MIT License | git.io/normalize */
@@ -879,7 +879,7 @@ img { max-width: 100%; }
 		<div class="container">
 			<div class="table-wrap">
 				<div class="table-cell">
-					<strong><a href="index.html">location-picker</a></strong>
+					<strong><a href="../index.html">location-picker</a></strong>
 				</div>
 				<div class="table-cell" id="tsd-widgets">
 					<div id="tsd-filter">
@@ -909,137 +909,166 @@ img { max-width: 100%; }
 </header>
 <nav class="tsd-navigation secondary">
 	<ul>
-		<li class=" tsd-kind-class">
-			<a href="classes/locationpicker.html" class="tsd-kind-icon">Location<wbr>Picker</a>
+		<li class="current tsd-kind-class">
+			<a href="locationpicker.html" class="tsd-kind-icon">Location<wbr>Picker</a>
+			<ul>
+				<li class=" tsd-kind-constructor tsd-parent-kind-class">
+					<a href="locationpicker.html#constructor" class="tsd-kind-icon">constructor</a>
+				</li>
+				<li class=" tsd-kind-property tsd-parent-kind-class">
+					<a href="locationpicker.html#element" class="tsd-kind-icon">element</a>
+				</li>
+				<li class=" tsd-kind-property tsd-parent-kind-class">
+					<a href="locationpicker.html#map" class="tsd-kind-icon">map</a>
+				</li>
+				<li class=" tsd-kind-method tsd-parent-kind-class">
+					<a href="locationpicker.html#getmarkerposition" class="tsd-kind-icon">get<wbr>Marker<wbr>Position</a>
+				</li>
+				<li class=" tsd-kind-method tsd-parent-kind-class">
+					<a href="locationpicker.html#setcurrentposition" class="tsd-kind-icon">set<wbr>Current<wbr>Position</a>
+				</li>
+			</ul>
 		</li>
 		<li class=" tsd-kind-interface">
-			<a href="interfaces/locationpickeroptions.html" class="tsd-kind-icon">Location<wbr>Picker<wbr>Options</a>
+			<a href="../interfaces/locationpickeroptions.html" class="tsd-kind-icon">Location<wbr>Picker<wbr>Options</a>
 		</li>
 	</ul>
 </nav>
 <div class="container container-main">
 	<div class="content-wrap">
-		<div class="tsd-panel tsd-typography">
-			<p><a href="https://github.com/ellerbrock/open-source-badges/"><img src="https://badges.frapsoft.com/os/v2/open-source.svg?v=103" alt="Open Source Love"></a></p>
-			<h1 id="location-picker-javascript-plugin">Location Picker Javascript Plugin</h1>
-			<p>An open source location picker plugin written with plain javascript using Google Maps v3.</p>
-			<p><a href="https://cyphercodes.github.io/location-picker/example/">LIVE DEMO</a></p>
-			<h2 id="requirements">Requirements</h2>
-			<ul>
-				<li>Google Maps v3</li>
+		<section class="tsd-panel tsd-hierarchy">
+			<h3>Hierarchy</h3>
+			<ul class="tsd-hierarchy">
+				<li>
+					<span class="target">LocationPicker</span>
+				</li>
 			</ul>
-			<h2 id="usage">Usage</h2>
-			<h3 id="import-libraries-from-html-">Import libraries from HTML:</h3>
-			<pre><code class="lang-html"><span class="hljs-tag">&lt;<span class="hljs-name">script</span> <span class="hljs-attr">type</span>=<span class="hljs-string">"text/javascript"</span> <span class="hljs-attr">src</span>=<span class="hljs-string">"https://maps.googleapis.com/maps/api/js?key={ENTER YOUR KEY}"</span>&gt;</span><span class="undefined"></span><span class="hljs-tag">&lt;/<span class="hljs-name">script</span>&gt;</span>
-<span class="hljs-tag">&lt;<span class="hljs-name">script</span> <span class="hljs-attr">src</span>=<span class="hljs-string">"dist/location-picker.umd.js"</span>&gt;</span><span class="undefined"></span><span class="hljs-tag">&lt;/<span class="hljs-name">script</span>&gt;</span>
-</code></pre>
-			<h3 id="add-element-in-html-with-a-unique-id-">Add element in HTML with a unique id:</h3>
-			<pre><code class="lang-html">#map {
-    width: 100%;
-    height: 480px;
-}
-<span class="hljs-tag">&lt;<span class="hljs-name">div</span> <span class="hljs-attr">id</span>=<span class="hljs-string">"map"</span>&gt;</span><span class="hljs-tag">&lt;/<span class="hljs-name">div</span>&gt;</span>
-</code></pre>
-			<h3 id="initialize-the-locationpicker-plugin-">Initialize the locationPicker plugin:</h3>
-			<pre><code class="lang-javascript"><span class="hljs-keyword">var</span> locationPicker = <span class="hljs-keyword">new</span> locationPicker(<span class="hljs-string">'map'</span>, {
-    <span class="hljs-attr">setCurrentPosition</span>: <span class="hljs-literal">true</span>, <span class="hljs-comment">// You can omit this, defaults to true</span>
-}, {
-    <span class="hljs-attr">zoom</span>: <span class="hljs-number">15</span> <span class="hljs-comment">// You can set any google map options here, zoom defaults to 15</span>
-});
-</code></pre>
-			<h2 id="methods">Methods</h2>
-			<h3 id="locationpicker-elementid-pluginoptions-mapoptions-">locationPicker(elementId, pluginOptions, mapOptions)</h3>
-			<p>Returns a reference to the locationPicker object</p>
-			<h4 id="elementid-"><code>elementId</code>:</h4>
-			<p>The ID of the HTML element you want to initialize the plugin on.</p>
-			<h4 id="pluginoptions-"><code>pluginOptions</code>:</h4>
-			<p>Options specific for this plugin</p>
-			<p>The only supported option for now is <code>setCurrentPosition</code> which specifies if you want the plugin to automatically try and detect and set the marker to the the current user&#39;s location <em>(defaults to true)</em>.</p>
-			<h4 id="mapoptions-"><code>mapOptions</code>:</h4>
-			<p>You can set any specific google maps option here.</p>
-			<p>For a list of all the available options please visit: </p>
-			<p><a href="https://developers.google.com/maps/documentation/javascript/reference#MapOptions">https://developers.google.com/maps/documentation/javascript/reference#MapOptions</a></p>
-			<h3 id="locationpicker-getmarkerposition-">locationPicker.getMarkerPosition()</h3>
-			<p>Returns an object that contains the lat and lng of the currently selected position.</p>
-			<h2 id="properties">Properties</h2>
-			<h3 id="locationpicker-element">locationPicker.element</h3>
-			<p>A reference to the element the plugin was initialized on.</p>
-			<h3 id="locationpicker-map">locationPicker.map</h3>
-			<p>A reference to the Google Map object</p>
-			<h2 id="full-example">Full Example</h2>
-			<pre><code class="lang-html"><span class="hljs-meta">&lt;!DOCTYPE html&gt;</span>
-<span class="hljs-tag">&lt;<span class="hljs-name">html</span> <span class="hljs-attr">lang</span>=<span class="hljs-string">"en"</span>&gt;</span>
-<span class="hljs-tag">&lt;<span class="hljs-name">head</span>&gt;</span>
-  <span class="hljs-tag">&lt;<span class="hljs-name">meta</span> <span class="hljs-attr">charset</span>=<span class="hljs-string">"UTF-8"</span>&gt;</span>
-  <span class="hljs-tag">&lt;<span class="hljs-name">title</span>&gt;</span>Example<span class="hljs-tag">&lt;/<span class="hljs-name">title</span>&gt;</span>
-  <span class="hljs-tag">&lt;<span class="hljs-name">script</span> <span class="hljs-attr">type</span>=<span class="hljs-string">"text/javascript"</span>
-          <span class="hljs-attr">src</span>=<span class="hljs-string">"https://maps.googleapis.com/maps/api/js?key=AIzaSyC5Jrp9PtHe0WapppUzxbIpMDWMAcV3qE4"</span>&gt;</span><span class="undefined"></span><span class="hljs-tag">&lt;/<span class="hljs-name">script</span>&gt;</span>
-  <span class="hljs-tag">&lt;<span class="hljs-name">script</span> <span class="hljs-attr">src</span>=<span class="hljs-string">"../dist/location-picker.umd.js"</span>&gt;</span><span class="undefined"></span><span class="hljs-tag">&lt;/<span class="hljs-name">script</span>&gt;</span>
-  <span class="hljs-tag">&lt;<span class="hljs-name">style</span> <span class="hljs-attr">type</span>=<span class="hljs-string">"text/css"</span>&gt;</span><span class="css">
-    <span class="hljs-selector-id">#map</span> {
-      <span class="hljs-attribute">width</span>: <span class="hljs-number">100%</span>;
-      <span class="hljs-attribute">height</span>: <span class="hljs-number">480px</span>;
-    }
-  </span><span class="hljs-tag">&lt;/<span class="hljs-name">style</span>&gt;</span>
-<span class="hljs-tag">&lt;/<span class="hljs-name">head</span>&gt;</span>
-
-<span class="hljs-tag">&lt;<span class="hljs-name">body</span>&gt;</span>
-<span class="hljs-tag">&lt;<span class="hljs-name">div</span> <span class="hljs-attr">id</span>=<span class="hljs-string">"map"</span>&gt;</span><span class="hljs-tag">&lt;/<span class="hljs-name">div</span>&gt;</span>
-<span class="hljs-tag">&lt;<span class="hljs-name">br</span>&gt;</span>
-<span class="hljs-tag">&lt;<span class="hljs-name">button</span> <span class="hljs-attr">id</span>=<span class="hljs-string">"confirmPosition"</span>&gt;</span>Confirm Position<span class="hljs-tag">&lt;/<span class="hljs-name">button</span>&gt;</span>
-<span class="hljs-tag">&lt;<span class="hljs-name">br</span>&gt;</span>
-<span class="hljs-tag">&lt;<span class="hljs-name">p</span>&gt;</span>On idle position: <span class="hljs-tag">&lt;<span class="hljs-name">span</span> <span class="hljs-attr">id</span>=<span class="hljs-string">"onIdlePositionView"</span>&gt;</span><span class="hljs-tag">&lt;/<span class="hljs-name">span</span>&gt;</span><span class="hljs-tag">&lt;/<span class="hljs-name">p</span>&gt;</span>
-<span class="hljs-tag">&lt;<span class="hljs-name">p</span>&gt;</span>On click position: <span class="hljs-tag">&lt;<span class="hljs-name">span</span> <span class="hljs-attr">id</span>=<span class="hljs-string">"onClickPositionView"</span>&gt;</span><span class="hljs-tag">&lt;/<span class="hljs-name">span</span>&gt;</span><span class="hljs-tag">&lt;/<span class="hljs-name">p</span>&gt;</span>
-<span class="hljs-tag">&lt;<span class="hljs-name">script</span>&gt;</span><span class="javascript">
-  <span class="hljs-comment">// Get element references</span>
-  <span class="hljs-keyword">var</span> confirmBtn = <span class="hljs-built_in">document</span>.getElementById(<span class="hljs-string">'confirmPosition'</span>);
-  <span class="hljs-keyword">var</span> onClickPositionView = <span class="hljs-built_in">document</span>.getElementById(<span class="hljs-string">'onClickPositionView'</span>);
-  <span class="hljs-keyword">var</span> onIdlePositionView = <span class="hljs-built_in">document</span>.getElementById(<span class="hljs-string">'onIdlePositionView'</span>);
-
-  <span class="hljs-comment">// Initialize locationPicker plugin</span>
-  <span class="hljs-keyword">var</span> lp = <span class="hljs-keyword">new</span> locationPicker(<span class="hljs-string">'map'</span>, {
-    <span class="hljs-attr">setCurrentPosition</span>: <span class="hljs-literal">true</span>, <span class="hljs-comment">// You can omit this, defaults to true</span>
-  }, {
-    <span class="hljs-attr">zoom</span>: <span class="hljs-number">15</span> <span class="hljs-comment">// You can set any google map options here, zoom defaults to 15</span>
-  });
-
-  <span class="hljs-comment">// Listen to button onclick event</span>
-  confirmBtn.onclick = <span class="hljs-function"><span class="hljs-keyword">function</span> (<span class="hljs-params"></span>) </span>{
-    <span class="hljs-comment">// Get current location and show it in HTML</span>
-    <span class="hljs-keyword">var</span> location = lp.getMarkerPosition();
-    onClickPositionView.innerHTML = <span class="hljs-string">'The chosen location is '</span> + location.lat + <span class="hljs-string">','</span> + location.lng;
-  };
-
-  <span class="hljs-comment">// Listen to map idle event, listening to idle event more accurate than listening to ondrag event</span>
-  google.maps.event.addListener(lp.map, <span class="hljs-string">'idle'</span>, <span class="hljs-function"><span class="hljs-keyword">function</span> (<span class="hljs-params">event</span>) </span>{
-    <span class="hljs-comment">// Get current location and show it in HTML</span>
-    <span class="hljs-keyword">var</span> location = lp.getMarkerPosition();
-    onIdlePositionView.innerHTML = <span class="hljs-string">'The chosen location is '</span> + location.lat + <span class="hljs-string">','</span> + location.lng;
-  });
-</span><span class="hljs-tag">&lt;/<span class="hljs-name">script</span>&gt;</span>
-
-<span class="hljs-tag">&lt;/<span class="hljs-name">body</span>&gt;</span>
-<span class="hljs-tag">&lt;/<span class="hljs-name">html</span>&gt;</span>
-</code></pre>
-		</div>
-		<div style="position:relative;"><a name="typedoc-main-index" class="tsd-anchor"></a></div>
+		</section>
 		<section class="tsd-panel-group tsd-index-group">
 			<h2>Index</h2>
 			<section class="tsd-panel tsd-index-panel">
 				<div class="tsd-index-content">
 					<section class="tsd-index-section ">
-						<h3>Classes</h3>
+						<h3>Constructors</h3>
 						<ul class="tsd-index-list">
-							<li class="tsd-kind-class"><a href="classes/locationpicker.html" class="tsd-kind-icon">Location<wbr>Picker</a></li>
+							<li class="tsd-kind-constructor tsd-parent-kind-class"><a href="locationpicker.html#constructor" class="tsd-kind-icon">constructor</a></li>
 						</ul>
 					</section>
 					<section class="tsd-index-section ">
-						<h3>Interfaces</h3>
+						<h3>Properties</h3>
 						<ul class="tsd-index-list">
-							<li class="tsd-kind-interface"><a href="interfaces/locationpickeroptions.html" class="tsd-kind-icon">Location<wbr>Picker<wbr>Options</a></li>
+							<li class="tsd-kind-property tsd-parent-kind-class"><a href="locationpicker.html#element" class="tsd-kind-icon">element</a></li>
+							<li class="tsd-kind-property tsd-parent-kind-class"><a href="locationpicker.html#map" class="tsd-kind-icon">map</a></li>
+						</ul>
+					</section>
+					<section class="tsd-index-section ">
+						<h3>Methods</h3>
+						<ul class="tsd-index-list">
+							<li class="tsd-kind-method tsd-parent-kind-class"><a href="locationpicker.html#getmarkerposition" class="tsd-kind-icon">get<wbr>Marker<wbr>Position</a></li>
+							<li class="tsd-kind-method tsd-parent-kind-class"><a href="locationpicker.html#setcurrentposition" class="tsd-kind-icon">set<wbr>Current<wbr>Position</a></li>
 						</ul>
 					</section>
 				</div>
+			</section>
+		</section>
+		<section class="tsd-panel-group tsd-member-group ">
+			<h2>Constructors</h2>
+			<section class="tsd-panel tsd-member tsd-kind-constructor tsd-parent-kind-class">
+				<a name="constructor" class="tsd-anchor"></a>
+				<h3>constructor</h3>
+				<ul class="tsd-signatures tsd-kind-constructor tsd-parent-kind-class">
+					<li class="tsd-signature tsd-kind-icon">new <wbr>Location<wbr>Picker<span class="tsd-signature-symbol">(</span>elementId<span class="tsd-signature-symbol">: </span><span class="tsd-signature-type">string</span>, options<span class="tsd-signature-symbol">?: </span><a href="../interfaces/locationpickeroptions.html" class="tsd-signature-type">LocationPickerOptions</a>, mapOptions<span class="tsd-signature-symbol">?: </span><span class="tsd-signature-type">MapOptions</span><span class="tsd-signature-symbol">)</span><span class="tsd-signature-symbol">: </span><a href="locationpicker.html" class="tsd-signature-type">LocationPicker</a></li>
+				</ul>
+				<ul class="tsd-descriptions">
+					<li class="tsd-description">
+						<aside class="tsd-sources">
+							<ul>
+								<li>Defined in <a href="https://github.com/cyphercodes/location-picker/blob/6cf354d/src/location-picker.ts#L8">location-picker.ts:8</a></li>
+							</ul>
+						</aside>
+						<h4 class="tsd-parameters-title">Parameters</h4>
+						<ul class="tsd-parameters">
+							<li>
+								<h5>elementId: <span class="tsd-signature-type">string</span></h5>
+							</li>
+							<li>
+								<h5><span class="tsd-flag ts-flagDefault value">Default value</span> options: <a href="../interfaces/locationpickeroptions.html" class="tsd-signature-type">LocationPickerOptions</a><span class="tsd-signature-symbol"> =&nbsp;{}</span></h5>
+							</li>
+							<li>
+								<h5><span class="tsd-flag ts-flagDefault value">Default value</span> mapOptions: <span class="tsd-signature-type">MapOptions</span><span class="tsd-signature-symbol"> =&nbsp;{}</span></h5>
+							</li>
+						</ul>
+						<h4 class="tsd-returns-title">Returns <a href="locationpicker.html" class="tsd-signature-type">LocationPicker</a></h4>
+					</li>
+				</ul>
+			</section>
+		</section>
+		<section class="tsd-panel-group tsd-member-group ">
+			<h2>Properties</h2>
+			<section class="tsd-panel tsd-member tsd-kind-property tsd-parent-kind-class">
+				<a name="element" class="tsd-anchor"></a>
+				<h3>element</h3>
+				<div class="tsd-signature tsd-kind-icon">element<span class="tsd-signature-symbol">:</span> <span class="tsd-signature-type">HTMLElement</span><span class="tsd-signature-symbol"> | </span><span class="tsd-signature-type">null</span></div>
+				<aside class="tsd-sources">
+					<ul>
+						<li>Defined in <a href="https://github.com/cyphercodes/location-picker/blob/6cf354d/src/location-picker.ts#L7">location-picker.ts:7</a></li>
+					</ul>
+				</aside>
+			</section>
+			<section class="tsd-panel tsd-member tsd-kind-property tsd-parent-kind-class">
+				<a name="map" class="tsd-anchor"></a>
+				<h3>map</h3>
+				<div class="tsd-signature tsd-kind-icon">map<span class="tsd-signature-symbol">:</span> <span class="tsd-signature-type">Map</span></div>
+				<aside class="tsd-sources">
+					<ul>
+						<li>Defined in <a href="https://github.com/cyphercodes/location-picker/blob/6cf354d/src/location-picker.ts#L8">location-picker.ts:8</a></li>
+					</ul>
+				</aside>
+			</section>
+		</section>
+		<section class="tsd-panel-group tsd-member-group ">
+			<h2>Methods</h2>
+			<section class="tsd-panel tsd-member tsd-kind-method tsd-parent-kind-class">
+				<a name="getmarkerposition" class="tsd-anchor"></a>
+				<h3>get<wbr>Marker<wbr>Position</h3>
+				<ul class="tsd-signatures tsd-kind-method tsd-parent-kind-class">
+					<li class="tsd-signature tsd-kind-icon">get<wbr>Marker<wbr>Position<span class="tsd-signature-symbol">(</span><span class="tsd-signature-symbol">)</span><span class="tsd-signature-symbol">: </span><span class="tsd-signature-type">object</span></li>
+				</ul>
+				<ul class="tsd-descriptions">
+					<li class="tsd-description">
+						<aside class="tsd-sources">
+							<ul>
+								<li>Defined in <a href="https://github.com/cyphercodes/location-picker/blob/6cf354d/src/location-picker.ts#L59">location-picker.ts:59</a></li>
+							</ul>
+						</aside>
+						<h4 class="tsd-returns-title">Returns <span class="tsd-signature-type">object</span></h4>
+						<ul class="tsd-parameters">
+							<li class="tsd-parameter">
+								<h5>lat<span class="tsd-signature-symbol">: </span><span class="tsd-signature-type">number</span></h5>
+							</li>
+							<li class="tsd-parameter">
+								<h5>lng<span class="tsd-signature-symbol">: </span><span class="tsd-signature-type">number</span></h5>
+							</li>
+						</ul>
+					</li>
+				</ul>
+			</section>
+			<section class="tsd-panel tsd-member tsd-kind-method tsd-parent-kind-class">
+				<a name="setcurrentposition" class="tsd-anchor"></a>
+				<h3>set<wbr>Current<wbr>Position</h3>
+				<ul class="tsd-signatures tsd-kind-method tsd-parent-kind-class">
+					<li class="tsd-signature tsd-kind-icon">set<wbr>Current<wbr>Position<span class="tsd-signature-symbol">(</span><span class="tsd-signature-symbol">)</span><span class="tsd-signature-symbol">: </span><span class="tsd-signature-type">void</span></li>
+				</ul>
+				<ul class="tsd-descriptions">
+					<li class="tsd-description">
+						<aside class="tsd-sources">
+							<ul>
+								<li>Defined in <a href="https://github.com/cyphercodes/location-picker/blob/6cf354d/src/location-picker.ts#L40">location-picker.ts:40</a></li>
+							</ul>
+						</aside>
+						<h4 class="tsd-returns-title">Returns <span class="tsd-signature-type">void</span></h4>
+					</li>
+				</ul>
 			</section>
 		</section>
 		<footer class="with-border-bottom">

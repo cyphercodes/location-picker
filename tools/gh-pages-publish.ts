@@ -1,5 +1,5 @@
-const { cd, exec, echo, touch } = require("shelljs")
-const { readFileSync } = require("fs")
+const {cd, exec, echo, touch} = require("shelljs")
+const {readFileSync} = require("fs")
 const url = require("url")
 
 let repoUrl
@@ -20,6 +20,7 @@ let ghToken = process.env.GH_TOKEN
 echo("Deploying docs!!!")
 cd("docs")
 touch(".nojekyll")
+exec("cp ../example example")
 exec("git init")
 exec("git add .")
 exec('git config user.name "Rayan Salhab"')

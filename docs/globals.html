@@ -910,168 +910,117 @@ img { max-width: 100%; }
 <nav class="tsd-navigation secondary">
 	<ul>
 		<li class=" tsd-kind-class">
-			<a href="classes/dummyclass.html" class="tsd-kind-icon">Dummy<wbr>Class</a>
+			<a href="classes/locationpicker.html" class="tsd-kind-icon">Location<wbr>Picker</a>
+		</li>
+		<li class=" tsd-kind-interface">
+			<a href="interfaces/locationpickeroptions.html" class="tsd-kind-icon">Location<wbr>Picker<wbr>Options</a>
 		</li>
 	</ul>
 </nav>
 <div class="container container-main">
 	<div class="content-wrap">
 		<div class="tsd-panel tsd-typography">
-			<h1 id="typescript-library-starter">TypeScript library starter</h1>
-			<p><a href="https://github.com/prettier/prettier"><img src="https://img.shields.io/badge/styled_with-prettier-ff69b4.svg" alt="styled with prettier"></a>
-				<a href="https://greenkeeper.io/"><img src="https://badges.greenkeeper.io/alexjoverm/typescript-library-starter.svg" alt="Greenkeeper badge"></a>
-				<a href="https://travis-ci.org/alexjoverm/typescript-library-starter"><img src="https://img.shields.io/travis/alexjoverm/typescript-library-starter.svg" alt="Travis"></a>
-				<a href="https://coveralls.io/github/alexjoverm/typescript-library-starter"><img src="https://img.shields.io/coveralls/alexjoverm/typescript-library-starter.svg" alt="Coveralls"></a>
-				<a href="https://david-dm.org/alexjoverm/typescript-library-starter?type=dev"><img src="https://david-dm.org/alexjoverm/typescript-library-starter/dev-status.svg" alt="Dev Dependencies"></a>
-			<a href="https://paypal.me/AJoverMorales"><img src="https://img.shields.io/badge/donate-paypal-blue.svg" alt="Donate"></a></p>
-			<p>A starter project that makes creating a TypeScript library extremely easy.</p>
-			<p><img src="https://i.imgur.com/opUmHp0.png" alt=""></p>
-			<h3 id="usage">Usage</h3>
-			<pre><code class="lang-bash">git <span class="hljs-built_in">clone</span> https://github.com/alexjoverm/typescript-library-starter.git YOURFOLDERNAME
-<span class="hljs-built_in">cd</span> YOURFOLDERNAME
+			<p><a href="https://github.com/ellerbrock/open-source-badges/"><img src="https://badges.frapsoft.com/os/v2/open-source.svg?v=103" alt="Open Source Love"></a></p>
+			<h1 id="location-picker-javascript-plugin">Location Picker Javascript Plugin</h1>
+			<p>An open source location picker plugin written with plain javascript using Google Maps v3.</p>
+			<p><a href="https://cyphercodes.github.io/location-picker/example/">LIVE DEMO</a></p>
+			<h2 id="requirements">Requirements</h2>
+			<ul>
+				<li>Google Maps v3</li>
+			</ul>
+			<h2 id="usage">Usage</h2>
+			<h3 id="import-libraries-from-html-">Import libraries from HTML:</h3>
+			<pre><code class="lang-html"><span class="hljs-tag">&lt;<span class="hljs-name">script</span> <span class="hljs-attr">type</span>=<span class="hljs-string">"text/javascript"</span> <span class="hljs-attr">src</span>=<span class="hljs-string">"https://maps.googleapis.com/maps/api/js?key={ENTER YOUR KEY}"</span>&gt;</span><span class="undefined"></span><span class="hljs-tag">&lt;/<span class="hljs-name">script</span>&gt;</span>
+<span class="hljs-tag">&lt;<span class="hljs-name">script</span> <span class="hljs-attr">src</span>=<span class="hljs-string">"dist/location-picker.umd.js"</span>&gt;</span><span class="undefined"></span><span class="hljs-tag">&lt;/<span class="hljs-name">script</span>&gt;</span>
+</code></pre>
+			<h3 id="add-element-in-html-with-a-unique-id-">Add element in HTML with a unique id:</h3>
+			<pre><code class="lang-html">#map {
+    width: 100%;
+    height: 480px;
+}
+<span class="hljs-tag">&lt;<span class="hljs-name">div</span> <span class="hljs-attr">id</span>=<span class="hljs-string">"map"</span>&gt;</span><span class="hljs-tag">&lt;/<span class="hljs-name">div</span>&gt;</span>
+</code></pre>
+			<h3 id="initialize-the-locationpicker-plugin-">Initialize the locationPicker plugin:</h3>
+			<pre><code class="lang-javascript"><span class="hljs-keyword">var</span> locationPicker = <span class="hljs-keyword">new</span> locationPicker(<span class="hljs-string">'map'</span>, {
+    <span class="hljs-attr">setCurrentPosition</span>: <span class="hljs-literal">true</span>, <span class="hljs-comment">// You can omit this, defaults to true</span>
+}, {
+    <span class="hljs-attr">zoom</span>: <span class="hljs-number">15</span> <span class="hljs-comment">// You can set any google map options here, zoom defaults to 15</span>
+});
+</code></pre>
+			<h2 id="methods">Methods</h2>
+			<h3 id="locationpicker-elementid-pluginoptions-mapoptions-">locationPicker(elementId, pluginOptions, mapOptions)</h3>
+			<p>Returns a reference to the locationPicker object</p>
+			<h4 id="elementid-"><code>elementId</code>:</h4>
+			<p>The ID of the HTML element you want to initialize the plugin on.</p>
+			<h4 id="pluginoptions-"><code>pluginOptions</code>:</h4>
+			<p>Options specific for this plugin</p>
+			<p>The only supported option for now is <code>setCurrentPosition</code> which specifies if you want the plugin to automatically try and detect and set the marker to the the current user&#39;s location <em>(defaults to true)</em>.</p>
+			<h4 id="mapoptions-"><code>mapOptions</code>:</h4>
+			<p>You can set any specific google maps option here.</p>
+			<p>For a list of all the available options please visit: </p>
+			<p><a href="https://developers.google.com/maps/documentation/javascript/reference#MapOptions">https://developers.google.com/maps/documentation/javascript/reference#MapOptions</a></p>
+			<h3 id="locationpicker-getmarkerposition-">locationPicker.getMarkerPosition()</h3>
+			<p>Returns an object that contains the lat and lng of the currently selected position.</p>
+			<h2 id="properties">Properties</h2>
+			<h3 id="locationpicker-element">locationPicker.element</h3>
+			<p>A reference to the element the plugin was initialized on.</p>
+			<h3 id="locationpicker-map">locationPicker.map</h3>
+			<p>A reference to the Google Map object</p>
+			<h2 id="full-example">Full Example</h2>
+			<pre><code class="lang-html"><span class="hljs-meta">&lt;!DOCTYPE html&gt;</span>
+<span class="hljs-tag">&lt;<span class="hljs-name">html</span> <span class="hljs-attr">lang</span>=<span class="hljs-string">"en"</span>&gt;</span>
+<span class="hljs-tag">&lt;<span class="hljs-name">head</span>&gt;</span>
+  <span class="hljs-tag">&lt;<span class="hljs-name">meta</span> <span class="hljs-attr">charset</span>=<span class="hljs-string">"UTF-8"</span>&gt;</span>
+  <span class="hljs-tag">&lt;<span class="hljs-name">title</span>&gt;</span>Example<span class="hljs-tag">&lt;/<span class="hljs-name">title</span>&gt;</span>
+  <span class="hljs-tag">&lt;<span class="hljs-name">script</span> <span class="hljs-attr">type</span>=<span class="hljs-string">"text/javascript"</span>
+          <span class="hljs-attr">src</span>=<span class="hljs-string">"https://maps.googleapis.com/maps/api/js?key=AIzaSyC5Jrp9PtHe0WapppUzxbIpMDWMAcV3qE4"</span>&gt;</span><span class="undefined"></span><span class="hljs-tag">&lt;/<span class="hljs-name">script</span>&gt;</span>
+  <span class="hljs-tag">&lt;<span class="hljs-name">script</span> <span class="hljs-attr">src</span>=<span class="hljs-string">"../dist/location-picker.umd.js"</span>&gt;</span><span class="undefined"></span><span class="hljs-tag">&lt;/<span class="hljs-name">script</span>&gt;</span>
+  <span class="hljs-tag">&lt;<span class="hljs-name">style</span> <span class="hljs-attr">type</span>=<span class="hljs-string">"text/css"</span>&gt;</span><span class="css">
+    <span class="hljs-selector-id">#map</span> {
+      <span class="hljs-attribute">width</span>: <span class="hljs-number">100%</span>;
+      <span class="hljs-attribute">height</span>: <span class="hljs-number">480px</span>;
+    }
+  </span><span class="hljs-tag">&lt;/<span class="hljs-name">style</span>&gt;</span>
+<span class="hljs-tag">&lt;/<span class="hljs-name">head</span>&gt;</span>
 
-<span class="hljs-comment"># Run npm install and write your library name when asked. That's all!</span>
-npm install
+<span class="hljs-tag">&lt;<span class="hljs-name">body</span>&gt;</span>
+<span class="hljs-tag">&lt;<span class="hljs-name">div</span> <span class="hljs-attr">id</span>=<span class="hljs-string">"map"</span>&gt;</span><span class="hljs-tag">&lt;/<span class="hljs-name">div</span>&gt;</span>
+<span class="hljs-tag">&lt;<span class="hljs-name">br</span>&gt;</span>
+<span class="hljs-tag">&lt;<span class="hljs-name">button</span> <span class="hljs-attr">id</span>=<span class="hljs-string">"confirmPosition"</span>&gt;</span>Confirm Position<span class="hljs-tag">&lt;/<span class="hljs-name">button</span>&gt;</span>
+<span class="hljs-tag">&lt;<span class="hljs-name">br</span>&gt;</span>
+<span class="hljs-tag">&lt;<span class="hljs-name">p</span>&gt;</span>On idle position: <span class="hljs-tag">&lt;<span class="hljs-name">span</span> <span class="hljs-attr">id</span>=<span class="hljs-string">"onIdlePositionView"</span>&gt;</span><span class="hljs-tag">&lt;/<span class="hljs-name">span</span>&gt;</span><span class="hljs-tag">&lt;/<span class="hljs-name">p</span>&gt;</span>
+<span class="hljs-tag">&lt;<span class="hljs-name">p</span>&gt;</span>On click position: <span class="hljs-tag">&lt;<span class="hljs-name">span</span> <span class="hljs-attr">id</span>=<span class="hljs-string">"onClickPositionView"</span>&gt;</span><span class="hljs-tag">&lt;/<span class="hljs-name">span</span>&gt;</span><span class="hljs-tag">&lt;/<span class="hljs-name">p</span>&gt;</span>
+<span class="hljs-tag">&lt;<span class="hljs-name">script</span>&gt;</span><span class="javascript">
+  <span class="hljs-comment">// Get element references</span>
+  <span class="hljs-keyword">var</span> confirmBtn = <span class="hljs-built_in">document</span>.getElementById(<span class="hljs-string">'confirmPosition'</span>);
+  <span class="hljs-keyword">var</span> onClickPositionView = <span class="hljs-built_in">document</span>.getElementById(<span class="hljs-string">'onClickPositionView'</span>);
+  <span class="hljs-keyword">var</span> onIdlePositionView = <span class="hljs-built_in">document</span>.getElementById(<span class="hljs-string">'onIdlePositionView'</span>);
+
+  <span class="hljs-comment">// Initialize locationPicker plugin</span>
+  <span class="hljs-keyword">var</span> lp = <span class="hljs-keyword">new</span> locationPicker(<span class="hljs-string">'map'</span>, {
+    <span class="hljs-attr">setCurrentPosition</span>: <span class="hljs-literal">true</span>, <span class="hljs-comment">// You can omit this, defaults to true</span>
+  }, {
+    <span class="hljs-attr">zoom</span>: <span class="hljs-number">15</span> <span class="hljs-comment">// You can set any google map options here, zoom defaults to 15</span>
+  });
+
+  <span class="hljs-comment">// Listen to button onclick event</span>
+  confirmBtn.onclick = <span class="hljs-function"><span class="hljs-keyword">function</span> (<span class="hljs-params"></span>) </span>{
+    <span class="hljs-comment">// Get current location and show it in HTML</span>
+    <span class="hljs-keyword">var</span> location = lp.getMarkerPosition();
+    onClickPositionView.innerHTML = <span class="hljs-string">'The chosen location is '</span> + location.lat + <span class="hljs-string">','</span> + location.lng;
+  };
+
+  <span class="hljs-comment">// Listen to map idle event, listening to idle event more accurate than listening to ondrag event</span>
+  google.maps.event.addListener(lp.map, <span class="hljs-string">'idle'</span>, <span class="hljs-function"><span class="hljs-keyword">function</span> (<span class="hljs-params">event</span>) </span>{
+    <span class="hljs-comment">// Get current location and show it in HTML</span>
+    <span class="hljs-keyword">var</span> location = lp.getMarkerPosition();
+    onIdlePositionView.innerHTML = <span class="hljs-string">'The chosen location is '</span> + location.lat + <span class="hljs-string">','</span> + location.lng;
+  });
+</span><span class="hljs-tag">&lt;/<span class="hljs-name">script</span>&gt;</span>
+
+<span class="hljs-tag">&lt;/<span class="hljs-name">body</span>&gt;</span>
+<span class="hljs-tag">&lt;/<span class="hljs-name">html</span>&gt;</span>
 </code></pre>
-			<p><strong>Start coding!</strong> <code>package.json</code> and entry files are already set up for you, so don&#39;t worry about linking to your main file, typings, etc. Just keep those files with the same name.</p>
-			<h3 id="features">Features</h3>
-			<ul>
-				<li>Zero-setup. After running <code>npm install</code> things will setup for you :wink:</li>
-				<li><strong><a href="https://rollupjs.org/">RollupJS</a></strong> for multiple optimized bundles following the <a href="http://2ality.com/2017/04/setting-up-multi-platform-packages.html">standard convention</a> and <a href="https://alexjoverm.github.io/2017/03/06/Tree-shaking-with-Webpack-2-TypeScript-and-Babel/">Tree-shaking</a></li>
-				<li>Tests, coverage and interactive watch mode using <strong><a href="http://facebook.github.io/jest/">Jest</a></strong></li>
-				<li><strong><a href="https://github.com/prettier/prettier">Prettier</a></strong> and <strong><a href="https://palantir.github.io/tslint/">TSLint</a></strong> for code formatting and consistency</li>
-				<li><strong>Docs automatic generation and deployment</strong> to <code>gh-pages</code>, using <strong><a href="http://typedoc.org/">TypeDoc</a></strong></li>
-				<li>Automatic types <code>(*.d.ts)</code> file generation</li>
-				<li><strong><a href="https://travis-ci.org">Travis</a></strong> integration and <strong><a href="https://coveralls.io/">Coveralls</a></strong> report</li>
-				<li>(Optional) <strong>Automatic releases and changelog</strong>, using <a href="https://github.com/semantic-release/semantic-release">Semantic release</a>, <a href="https://github.com/commitizen/cz-cli">Commitizen</a>, <a href="https://github.com/conventional-changelog/conventional-changelog">Conventional changelog</a> and <a href="https://github.com/typicode/husky">Husky</a> (for the git hooks)</li>
-			</ul>
-			<h3 id="importing-library">Importing library</h3>
-			<p>You can import the generated bundle to use the whole library generated by this starter:</p>
-			<pre><code class="lang-javascript"><span class="hljs-keyword">import</span> myLib <span class="hljs-keyword">from</span> <span class="hljs-string">'mylib'</span>
-</code></pre>
-			<p>Additionally, you can import the transpiled modules from <code>dist/lib</code> in case you have a modular library:</p>
-			<pre><code class="lang-javascript"><span class="hljs-keyword">import</span> something <span class="hljs-keyword">from</span> <span class="hljs-string">'mylib/dist/lib/something'</span>
-</code></pre>
-			<h3 id="npm-scripts">NPM scripts</h3>
-			<ul>
-				<li><code>npm t</code>: Run test suite</li>
-				<li><code>npm start</code>: Run <code>npm run build</code> in watch mode</li>
-				<li><code>npm run test:watch</code>: Run test suite in <a href="http://facebook.github.io/jest/docs/cli.html#watch">interactive watch mode</a></li>
-				<li><code>npm run test:prod</code>: Run linting and generate coverage</li>
-				<li><code>npm run build</code>: Generate bundles and typings, create docs</li>
-				<li><code>npm run lint</code>: Lints code</li>
-				<li><code>npm run commit</code>: Commit using conventional commit style (<a href="https://github.com/typicode/husky">husky</a> will tell you to use it if you haven&#39;t :wink:)</li>
-			</ul>
-			<h3 id="excluding-peerdependencies">Excluding peerDependencies</h3>
-			<p>On library development, one might want to set some peer dependencies, and thus remove those from the final bundle. You can see in <a href="https://rollupjs.org/#peer-dependencies">Rollup docs</a> how to do that.</p>
-			<p>Good news: the setup is here for you, you must only include the dependency name in <code>external</code> property within <code>rollup.config.js</code>. For example, if you want to exclude <code>lodash</code>, just write there <code>external: [&#39;lodash&#39;]</code>.</p>
-			<h3 id="automatic-releases">Automatic releases</h3>
-			<p><em><strong>Prerequisites</strong>: you need to create/login accounts and add your project to:</em></p>
-			<ul>
-				<li><a href="https://www.npmjs.com/">npm</a></li>
-				<li><a href="https://travis-ci.org">Travis CI</a></li>
-				<li><a href="https://coveralls.io">Coveralls</a></li>
-			</ul>
-			<p><em><strong>Prerequisite for Windows</strong>: Semantic-release uses
-					<strong><a href="https://github.com/nodejs/node-gyp">node-gyp</a></strong> so you will need to
-					install
-					<a href="https://github.com/felixrieseberg/windows-build-tools">Microsoft&#39;s windows-build-tools</a>
-			using this command:</em></p>
-			<pre><code class="lang-bash">npm install --global --production windows-build-tools
-</code></pre>
-			<h4 id="setup-steps">Setup steps</h4>
-			<p>Follow the console instructions to install semantic release and run it (answer NO to &quot;Do you want a <code>.travis.yml</code> file with semantic-release setup?&quot;).</p>
-			<p><em>Note: make sure you&#39;ve setup <code>repository.url</code> in your <code>package.json</code> file</em></p>
-			<pre><code class="lang-bash">npm install -g semantic-release-cli
-semantic-release-cli setup
-<span class="hljs-comment"># IMPORTANT!! Answer NO to "Do you want a `.travis.yml` file with semantic-release setup?" question. It is already prepared for you :P</span>
-</code></pre>
-			<p>From now on, you&#39;ll need to use <code>npm run commit</code>, which is a convenient way to create conventional commits.</p>
-			<p>Automatic releases are possible thanks to <a href="https://github.com/semantic-release/semantic-release">semantic release</a>, which publishes your code automatically on <a href="https://github.com/">github</a> and <a href="https://www.npmjs.com/">npm</a>, plus generates automatically a changelog. This setup is highly influenced by <a href="https://egghead.io/courses/how-to-write-an-open-source-javascript-library">Kent C. Dodds course on egghead.io</a></p>
-			<h3 id="git-hooks">Git Hooks</h3>
-			<p>There is already set a <code>precommit</code> hook for formatting your code with Prettier :nail_care:</p>
-			<p>By default, there are two disabled git hooks. They&#39;re set up when you run the <code>npm run semantic-release-prepare</code> script. They make sure:</p>
-			<ul>
-				<li>You follow a <a href="https://github.com/conventional-changelog/conventional-changelog">conventional commit message</a></li>
-				<li>Your build is not going to fail in <a href="https://travis-ci.org">Travis</a> (or your CI server), since it&#39;s runned locally before <code>git push</code></li>
-			</ul>
-			<p>This makes more sense in combination with <a href="#automatic-releases">automatic releases</a></p>
-			<h3 id="faq">FAQ</h3>
-			<h4 id="array-prototype-from-promise-map-is-undefined-"><code>Array.prototype.from</code>, <code>Promise</code>, <code>Map</code>... is undefined?</h4>
-			<p>TypeScript or Babel only provides down-emits on syntactical features (<code>class</code>, <code>let</code>, <code>async/await</code>...), but not on functional features (<code>Array.prototype.find</code>, <code>Set</code>, <code>Promise</code>...), . For that, you need Polyfills, such as <a href="https://github.com/zloirock/core-js"><code>core-js</code></a> or <a href="https://babeljs.io/docs/usage/polyfill/"><code>babel-polyfill</code></a> (which extends <code>core-js</code>).</p>
-			<p>For a library, <code>core-js</code> plays very nicely, since you can import just the polyfills you need:</p>
-			<pre><code class="lang-javascript"><span class="hljs-keyword">import</span> <span class="hljs-string">"core-js/fn/array/find"</span>
-<span class="hljs-keyword">import</span> <span class="hljs-string">"core-js/fn/string/includes"</span>
-<span class="hljs-keyword">import</span> <span class="hljs-string">"core-js/fn/promise"</span>
-...
-</code></pre>
-			<h4 id="what-is-npm-install-doing-on-first-run-">What is <code>npm install</code> doing on first run?</h4>
-			<p>It runs the script <code>tools/init</code> which sets up everything for you. In short, it:</p>
-			<ul>
-				<li>Configures RollupJS for the build, which creates the bundles</li>
-				<li>Configures <code>package.json</code> (typings file, main file, etc)</li>
-				<li>Renames main src and test files</li>
-			</ul>
-			<h4 id="what-if-i-don-t-want-git-hooks-automatic-releases-or-semantic-release-">What if I don&#39;t want git-hooks, automatic releases or semantic-release?</h4>
-			<p>Then you may want to:</p>
-			<ul>
-				<li>Remove <code>commitmsg</code>, <code>postinstall</code> scripts from <code>package.json</code>. That will not use those git hooks to make sure you make a conventional commit</li>
-				<li>Remove <code>npm run semantic-release</code> from <code>.travis.yml</code></li>
-			</ul>
-			<h4 id="what-if-i-don-t-want-to-use-coveralls-or-report-my-coverage-">What if I don&#39;t want to use coveralls or report my coverage?</h4>
-			<p>Remove <code>npm run report-coverage</code> from <code>.travis.yml</code></p>
-			<h2 id="resources">Resources</h2>
-			<ul>
-				<li><a href="https://dev.to/alexjoverm/write-a-library-using-typescript-library-starter">Write a library using TypeScript library starter</a> by <a href="https://github.com/alexjoverm/">@alexjoverm</a></li>
-				<li><a href="https://egghead.io/lessons/typescript-create-a-typescript-library-using-typescript-library-starter">📺 Create a TypeScript Library using typescript-library-starter</a> by <a href="https://github.com/alexjoverm/">@alexjoverm</a></li>
-				<li><a href="https://blog.tonysneed.com/2017/09/15/introducing-typescript-library-starter-lite/">Introducing TypeScript Library Starter Lite</a> by <a href="https://github.com/tonysneed">@tonysneed</a></li>
-			</ul>
-			<h2 id="projects-using-typescript-library-starter">Projects using <code>typescript-library-starter</code></h2>
-			<p>Here are some projects that use <code>typescript-library-starter</code>:</p>
-			<ul>
-				<li><a href="https://github.com/lifenautjoe/noel">NOEL - A universal, human-centric, replayable event emitter</a></li>
-			</ul>
-			<h2 id="credits">Credits</h2>
-			<p>Made with :heart: by <a href="https://twitter.com/alexjoverm">@alexjoverm</a> and all these wonderful contributors (<a href="https://github.com/kentcdodds/all-contributors#emoji-key">emoji key</a>):</p>
-			<!-- ALL-CONTRIBUTORS-LIST:START - Do not remove or modify this section -->
-			<table>
-				<thead>
-					<tr>
-						<th style="text-align:center"><a href="https://www.linkedin.com/in/ciro-ivan-agulló-guarinos-42109376"><img src="https://avatars.githubusercontent.com/u/6052309?v=3" width="100px;"/><br /><sub>Ciro</sub></a><br /><a href="https://github.com/alexjoverm/typescript-library-starter/commits?author=k1r0s" title="Code">💻</a> <a href="#tool-k1r0s" title="Tools">🔧</a></th>
-						<th style="text-align:center"><a href="https://blog.mariusschulz.com"><img src="https://avatars.githubusercontent.com/u/947523?v=3" width="100px;"/><br /><sub>Marius Schulz</sub></a><br /><a href="https://github.com/alexjoverm/typescript-library-starter/commits?author=mariusschulz" title="Documentation">📖</a></th>
-						<th style="text-align:center"><a href="https://github.com/alextrastero"><img src="https://avatars.githubusercontent.com/u/4152819?v=3" width="100px;"/><br /><sub>Alexander Odell</sub></a><br /><a href="https://github.com/alexjoverm/typescript-library-starter/commits?author=alextrastero" title="Documentation">📖</a></th>
-						<th style="text-align:center"><a href="https://github.com/superamadeus"><img src="https://avatars1.githubusercontent.com/u/8728882?v=3" width="100px;"/><br /><sub>Ryan Ham</sub></a><br /><a href="https://github.com/alexjoverm/typescript-library-starter/commits?author=superamadeus" title="Code">💻</a></th>
-						<th style="text-align:center"><a href="https://consiiii.me"><img src="https://avatars1.githubusercontent.com/u/8458838?v=3" width="100px;"/><br /><sub>Chi</sub></a><br /><a href="https://github.com/alexjoverm/typescript-library-starter/commits?author=ChinW" title="Code">💻</a> <a href="#tool-ChinW" title="Tools">🔧</a> <a href="https://github.com/alexjoverm/typescript-library-starter/commits?author=ChinW" title="Documentation">📖</a></th>
-						<th style="text-align:center"><a href="https://github.com/mattmazzola"><img src="https://avatars2.githubusercontent.com/u/2856501?v=3" width="100px;"/><br /><sub>Matt Mazzola</sub></a><br /><a href="https://github.com/alexjoverm/typescript-library-starter/commits?author=mattmazzola" title="Code">💻</a> <a href="#tool-mattmazzola" title="Tools">🔧</a></th>
-						<th style="text-align:center"><a href="http://leefrost.github.io"><img src="https://avatars0.githubusercontent.com/u/2664047?v=3" width="100px;"/><br /><sub>Sergii Lischuk</sub></a><br /><a href="https://github.com/alexjoverm/typescript-library-starter/commits?author=Leefrost" title="Code">💻</a></th>
-					</tr>
-				</thead>
-				<tbody>
-					<tr>
-						<td style="text-align:center"><a href="http;//opendirective.com"><img src="https://avatars1.githubusercontent.com/u/618922?v=3" width="100px;"/><br /><sub>Steve Lee</sub></a><br /><a href="#tool-SteveALee" title="Tools">🔧</a></td>
-						<td style="text-align:center"><a href="http://flaviocorpa.com"><img src="https://avatars0.githubusercontent.com/u/5127501?v=3" width="100px;"/><br /><sub>Flavio Corpa</sub></a><br /><a href="https://github.com/alexjoverm/typescript-library-starter/commits?author=kutyel" title="Code">💻</a></td>
-						<td style="text-align:center"><a href="https://github.com/foreggs"><img src="https://avatars2.githubusercontent.com/u/22561997?v=3" width="100px;"/><br /><sub>Dom</sub></a><br /><a href="#tool-foreggs" title="Tools">🔧</a></td>
-						<td style="text-align:center"><a href="http://alexbcoles.com"><img src="https://avatars1.githubusercontent.com/u/755?v=4" width="100px;"/><br /><sub>Alex Coles</sub></a><br /><a href="https://github.com/alexjoverm/typescript-library-starter/commits?author=myabc" title="Documentation">📖</a></td>
-						<td style="text-align:center"><a href="https://github.com/davidkpiano"><img src="https://avatars2.githubusercontent.com/u/1093738?v=4" width="100px;"/><br /><sub>David Khourshid</sub></a><br /><a href="#tool-davidkpiano" title="Tools">🔧</a></td>
-						<td style="text-align:center"><a href="https://aarongarciah.com"><img src="https://avatars0.githubusercontent.com/u/7225802?v=4" width="100px;"/><br /><sub>Aarón García Hervás</sub></a><br /><a href="https://github.com/alexjoverm/typescript-library-starter/commits?author=aarongarciah" title="Documentation">📖</a></td>
-						<td style="text-align:center"><a href="https://www.stuajnht.co.uk"><img src="https://avatars2.githubusercontent.com/u/13683986?v=4" width="100px;"/><br /><sub>Jonathan Hart</sub></a><br /><a href="https://github.com/alexjoverm/typescript-library-starter/commits?author=stuajnht" title="Code">💻</a></td>
-					</tr>
-					<tr>
-						<td style="text-align:center"><a href="https://github.com/Xndr7"><img src="https://avatars0.githubusercontent.com/u/13509204?v=4" width="100px;"/><br /><sub>Sanjiv Lobo</sub></a><br /><a href="https://github.com/alexjoverm/typescript-library-starter/commits?author=Xndr7" title="Documentation">📖</a></td>
-						<td style="text-align:center"><a href="http://conceptualcode.com"><img src="https://avatars3.githubusercontent.com/u/180963?v=4" width="100px;"/><br /><sub>Aaron Reisman</sub></a><br /><a href="https://github.com/alexjoverm/typescript-library-starter/commits?author=lifeiscontent" title="Code">💻</a></td>
-						<td style="text-align:center"><a href="https://github.com/sAleksovski"><img src="https://avatars3.githubusercontent.com/u/7473800?v=4" width="100px;"/><br /><sub>Stefan Aleksovski</sub></a><br /><a href="https://github.com/alexjoverm/typescript-library-starter/commits?author=sAleksovski" title="Code">💻</a></td>
-						<td style="text-align:center"><a href="https://github.com/devpeerapong"><img src="https://avatars2.githubusercontent.com/u/8853426?v=4" width="100px;"/><br /><sub>dev.peerapong</sub></a><br /><a href="https://github.com/alexjoverm/typescript-library-starter/commits?author=devpeerapong" title="Code">💻</a></td>
-						<td style="text-align:center"><a href="http://twitter.com/Racing5372"><img src="https://avatars0.githubusercontent.com/u/22260722?v=4" width="100px;"/><br /><sub>Aaron Groome</sub></a><br /><a href="https://github.com/alexjoverm/typescript-library-starter/commits?author=Racing5372" title="Documentation">📖</a></td>
-						<td style="text-align:center"><a href="https://github.com/kid-sk"><img src="https://avatars1.githubusercontent.com/u/32557482?v=4" width="100px;"/><br /><sub>kid-sk</sub></a><br /><a href="https://github.com/alexjoverm/typescript-library-starter/commits?author=kid-sk" title="Documentation">📖</a></td>
-						<td style="text-align:center"><a href="http://about.me/andreagot"><img src="https://avatars0.githubusercontent.com/u/1503089?v=4" width="100px;"/><br /><sub>Andrea Gottardi</sub></a><br /><a href="https://github.com/alexjoverm/typescript-library-starter/commits?author=AndreaGot" title="Documentation">📖</a></td>
-					</tr>
-					<tr>
-						<td style="text-align:center"><a href="http://TechiesEyes.com"><img src="https://avatars3.githubusercontent.com/u/1375860?v=4" width="100px;"/><br /><sub>Yogendra Sharma</sub></a><br /><a href="https://github.com/alexjoverm/typescript-library-starter/commits?author=Yogendra0Sharma" title="Documentation">📖</a></td>
-					</tr>
-				</tbody>
-			</table>
-			<!-- ALL-CONTRIBUTORS-LIST:END -->
-			<p>This project follows the <a href="https://github.com/kentcdodds/all-contributors">all-contributors</a> specification. Contributions of any kind are welcome!</p>
 		</div>
 		<section class="tsd-panel-group tsd-index-group">
 			<h2>Index</h2>
@@ -1080,7 +1029,13 @@ semantic-release-cli setup
 					<section class="tsd-index-section ">
 						<h3>Classes</h3>
 						<ul class="tsd-index-list">
-							<li class="tsd-kind-class"><a href="classes/dummyclass.html" class="tsd-kind-icon">Dummy<wbr>Class</a></li>
+							<li class="tsd-kind-class"><a href="classes/locationpicker.html" class="tsd-kind-icon">Location<wbr>Picker</a></li>
+						</ul>
+					</section>
+					<section class="tsd-index-section ">
+						<h3>Interfaces</h3>
+						<ul class="tsd-index-list">
+							<li class="tsd-kind-interface"><a href="interfaces/locationpickeroptions.html" class="tsd-kind-icon">Location<wbr>Picker<wbr>Options</a></li>
 						</ul>
 					</section>
 				</div>
