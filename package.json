@@ -1,6 +1,6 @@
 {
   "name": "location-picker",
-  "version": "0.0.0",
+  "version": "0.0.0-development",
   "description": "",
   "keywords": [],
   "main": "dist/location-picker.umd.js",
@@ -12,7 +12,7 @@
   "author": "Rayan Salhab <rayansalhab@hotmail.com>",
   "repository": {
     "type": "git",
-    "url": ""
+    "url": "https://github.com/cyphercodes/location-picker.git"
   },
   "license": "MIT",
   "engines": {
@@ -27,7 +27,10 @@
     "commit": "git-cz",
     "semantic-release": "semantic-release",
     "semantic-release-prepare": "ts-node tools/semantic-release-prepare",
-    "precommit": "lint-staged"
+    "precommit": "lint-staged",
+    "prepush": "npm run build",
+    "commitmsg": "validate-commit-msg",
+    "travis-deploy-once": "travis-deploy-once"
   },
   "lint-staged": {
     "src/**/*.ts": [
@@ -72,7 +75,8 @@
     "tslint-config-standard": "^7.0.0",
     "typedoc": "^0.10.0",
     "typescript": "^2.6.2",
-    "validate-commit-msg": "^2.12.2"
+    "validate-commit-msg": "^2.12.2",
+    "travis-deploy-once": "^4.3.4"
   },
   "dependencies": {
     "@types/googlemaps": "^3.30.7"
