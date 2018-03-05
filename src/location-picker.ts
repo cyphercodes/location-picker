@@ -7,7 +7,7 @@ export default class LocationPicker {
   element: HTMLElement | null
   map: Map
 
-  constructor(elementId: string, options: LocationPickerOptions, mapOptions: MapOptions) {
+  constructor(elementId: string, options: LocationPickerOptions = {}, mapOptions: MapOptions = {}) {
     let mO: MapOptions = {
       center: new google.maps.LatLng(34.4346, 35.8362),
       zoom: 15
@@ -63,5 +63,5 @@ export default class LocationPicker {
 }
 
 export interface LocationPickerOptions {
-  setCurrentPosition: boolean
+  setCurrentPosition?: boolean
 }
