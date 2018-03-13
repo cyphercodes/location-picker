@@ -2,29 +2,49 @@
 
 # Location Picker Javascript Plugin
 
-An open source location picker plugin written with plain javascript using Google Maps v3.
+An open source location picker plugin using Google Maps v3 that works with all JavaScript flavors!
 
 [LIVE DEMO](https://cyphercodes.github.io/location-picker/example/)
+
+[DOCUMENTATION](https://cyphercodes.github.io/location-picker/docs/)
 
 ## Requirements
 
 * Google Maps v3
 
-## Usage
+## Installation
+
+```
+npm install location-picker --save
+```
 
 ### Import libraries using HTML:
 
-#### From `node_modules`:
+**From `node_modules`:**
 ```html
 <script type="text/javascript" src="https://maps.googleapis.com/maps/api/js?key={ENTER YOUR KEY}"></script>
-<script src="../node_modules/dist/location-picker.min.js"></script>
+<script src="../node_modules/location-picker/dist/location-picker.min.js"></script>
 ```
 
-#### From CDN:
+**From CDN:**
 ```html
 <script type="text/javascript" src="https://maps.googleapis.com/maps/api/js?key={ENTER YOUR KEY}"></script>
 <script src="https://unpkg.com/location-picker/dist/location-picker.min.js"></script>
 ```
+
+### Import using Typescript or Angular
+
+```typescript
+import LocationPicker from "location-picker";
+```
+
+### Import using npm
+
+``` javascript
+var locationPicker = require("location-picker")
+```
+
+## Usage
 
 ### Add element in HTML with a unique id:
 
@@ -83,8 +103,9 @@ A reference to the element the plugin was initialized on.
 A reference to the Google Map object
 
 
-## Full Example
+## Examples
 
+### HTML Full Example
 ```html
 <!DOCTYPE html>
 <html lang="en">
@@ -92,7 +113,7 @@ A reference to the Google Map object
   <meta charset="UTF-8">
   <title>Example</title>
   <script type="text/javascript"
-          src="https://maps.googleapis.com/maps/api/js?key=AIzaSyC5Jrp9PtHe0WapppUzxbIpMDWMAcV3qE4"></script>
+          src="https://maps.googleapis.com/maps/api/js?key={{ENTER YOUR KEY}}"></script>
   <script src="https://unpkg.com/location-picker/dist/location-picker.min.js"></script>
   <style type="text/css">
     #map {
@@ -139,4 +160,52 @@ A reference to the Google Map object
 
 </body>
 </html>
+```
+
+### Angular Example
+
+1. Import Google maps:
+
+One example could be adding in `index.html`:
+```html
+<script type="text/javascript" src="https://maps.googleapis.com/maps/api/js?key={{ENTER YOUR KEY}}"></script>
+```
+
+2. Add map element and button in HTML:
+
+```html
+<div id="map"></div>
+<button (click)="setLocation()">Submit Location</button>
+```
+
+3. Add this CSS:
+
+```css
+#map {
+    width: 100%;
+    height: 480px;
+}
+```
+
+4. In component:
+
+```typescript
+import {Component} from '@angular/core';
+import LocationPicker from "location-picker";
+
+@Component({
+  selector: 'page-location',
+  templateUrl: 'location.html'
+})
+export class LocationPage implements OnInit {
+   lp: LocationPicker;
+   
+   ngOnInit(){
+     this.lp = new LocationPicker('map');
+   }
+   
+   setLocation() {
+      console.log(this.lp.getMarkerPosition());
+   }
+}
 ```
