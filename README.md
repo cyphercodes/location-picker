@@ -38,9 +38,9 @@ npm install location-picker --save
 import LocationPicker from "location-picker";
 ```
 
-### Import using npm
+### Import using CommonJS / Node:
 
-``` javascript
+```javascript
 var locationPicker = require("location-picker")
 ```
 
@@ -57,8 +57,20 @@ var locationPicker = require("location-picker")
 ```
 
 ### Initialize the locationPicker plugin:
+
+#### Plain JavaScript:
 ```javascript
 var locationPicker = new locationPicker('map', {
+    setCurrentPosition: true, // You can omit this, defaults to true
+}, {
+    zoom: 15 // You can set any google map options here, zoom defaults to 15
+});
+```
+
+#### Angular:
+
+```typescript
+let lp = new LocationPicker('map',{
     setCurrentPosition: true, // You can omit this, defaults to true
 }, {
     zoom: 15 // You can set any google map options here, zoom defaults to 15
@@ -164,21 +176,21 @@ A reference to the Google Map object
 
 ### Angular Example
 
-1. Import Google maps:
+* Import Google maps:
 
 One example could be adding in `index.html`:
 ```html
 <script type="text/javascript" src="https://maps.googleapis.com/maps/api/js?key={{ENTER YOUR KEY}}"></script>
 ```
 
-2. Add map element and button in HTML:
+* Add map element and button in HTML:
 
 ```html
 <div id="map"></div>
 <button (click)="setLocation()">Submit Location</button>
 ```
 
-3. Add this CSS:
+* Add this CSS:
 
 ```css
 #map {
@@ -187,7 +199,7 @@ One example could be adding in `index.html`:
 }
 ```
 
-4. In component:
+* Component:
 
 ```typescript
 import {Component} from '@angular/core';
