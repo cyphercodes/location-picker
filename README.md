@@ -12,11 +12,18 @@ An open source location picker plugin written with plain javascript using Google
 
 ## Usage
 
-### Import libraries from HTML:
+### Import libraries using HTML:
 
+#### From `node_modules`:
 ```html
 <script type="text/javascript" src="https://maps.googleapis.com/maps/api/js?key={ENTER YOUR KEY}"></script>
-<script src="dist/location-picker.umd.js"></script>
+<script src="../node_modules/dist/location-picker.min.js"></script>
+```
+
+#### From CDN:
+```html
+<script type="text/javascript" src="https://maps.googleapis.com/maps/api/js?key={ENTER YOUR KEY}"></script>
+<script src="https://unpkg.com/location-picker/dist/location-picker.min.js"></script>
 ```
 
 ### Add element in HTML with a unique id:
@@ -86,7 +93,7 @@ A reference to the Google Map object
   <title>Example</title>
   <script type="text/javascript"
           src="https://maps.googleapis.com/maps/api/js?key=AIzaSyC5Jrp9PtHe0WapppUzxbIpMDWMAcV3qE4"></script>
-  <script src="../dist/location-picker.umd.js"></script>
+  <script src="https://unpkg.com/location-picker/dist/location-picker.min.js"></script>
   <style type="text/css">
     #map {
       width: 100%;
