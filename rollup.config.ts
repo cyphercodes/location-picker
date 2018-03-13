@@ -44,7 +44,7 @@ export default [{
 }, {
   input: `src/${libraryName}.ts`,
   output: [
-    {file: 'dist/' + pkg.name + '.min.js', name: camelCase(libraryName), format: 'umd'},
+    {file: pkg.min, name: camelCase(libraryName), format: 'umd'},
   ],
   sourcemap: false,
   // Indicate here external modules you don't wanna include in your bundle (i.e.: 'lodash')
