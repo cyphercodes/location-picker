@@ -1,4 +1,4 @@
-const {cd, exec, echo, touch} = require("shelljs")
+const {cd, exec, echo, touch, mkdir} = require("shelljs")
 const {readFileSync} = require("fs")
 const url = require("url")
 
@@ -17,9 +17,12 @@ let parsedUrl = url.parse(repoUrl)
 let repository = (parsedUrl.host || "") + (parsedUrl.path || "")
 let ghToken = process.env.GH_TOKEN
 
-echo("Deploying docs!!!")
-cd("docs")
-touch(".nojekyll")
+echo("Deploying gh-page!!!")
+mkdir("out")
+cd("out")
+// touch(".nojekyll")
+exec("cp ../README.md README.md")
+exec("cp ../docs docs -r")
 exec("cp ../example example -r")
 exec("git init")
 exec("git add .")
