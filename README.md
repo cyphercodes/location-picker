@@ -1,8 +1,11 @@
+<h1 align="center" style="border-bottom: none;">🗺🎯 location-picker</h1>
+
+<h3 align="center">Easy & quick location picker plugin using Google Maps v3 that works with all JavaScript flavors!</h3>
+
 [![Open Source Love](https://badges.frapsoft.com/os/v2/open-source.svg?v=103)](https://github.com/ellerbrock/open-source-badges/)
+[![semantic-release](https://img.shields.io/badge/%20%20%F0%9F%93%A6%F0%9F%9A%80-semantic--release-e10079.svg)](https://github.com/semantic-release/semantic-release)
 
-# Location Picker Javascript Plugin
-
-An open source location picker plugin using Google Maps v3 that works with all JavaScript flavors!
+**location-picker** allows you to quickly render Google Maps with an overlaying marker providing an easy and quick plug-and-play location picker.  
 
 [LIVE DEMO](https://cyphercodes.github.io/location-picker/example/)
 
