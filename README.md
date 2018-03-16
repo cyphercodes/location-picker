@@ -1,6 +1,6 @@
 <h1 align="center" style="border-bottom: none;">🗺🎯 location-picker</h1>
 
-<h3 align="center">Efficiently allow your user to pick a location!</h3>
+<h3 align="center">Efficiently allow your users to pick a location!</h3>
 
 <p align="center">
   <a href="https://github.com/ellerbrock/open-source-badges/">
