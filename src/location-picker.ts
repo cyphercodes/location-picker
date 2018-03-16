@@ -7,7 +7,11 @@ export default class LocationPicker {
   element: HTMLElement | null
   map: Map
 
-  constructor(elementId: string, options: LocationPickerOptions = {}, mapOptions: MapOptions = {}) {
+  constructor(
+    element: string | HTMLElement,
+    options: LocationPickerOptions = {},
+    mapOptions: MapOptions = {}
+  ) {
     let mO: MapOptions = {
       center: new google.maps.LatLng(34.4346, 35.8362),
       zoom: 15
@@ -20,7 +24,13 @@ export default class LocationPicker {
     Object.assign(mO, mapOptions)
     Object.assign(pO, options)
 
-    this.element = document.getElementById(elementId)
+    // Allow both, a string with the element's id or a direct reference to the element
+    if (element instanceof HTMLElement) {
+      this.element = element
+    } else {
+      this.element = document.getElementById(element)
+    }
+
     this.map = new google.maps.Map(this.element, mO)
 
     // Append CSS centered marker element
