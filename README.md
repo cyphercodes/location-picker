@@ -83,8 +83,8 @@ let lp = new LocationPicker('map',{
 
 Returns a reference to the locationPicker object
 
-#### `elementId`: 
-The ID of the HTML element you want to initialize the plugin on.
+#### `element`: *`string`* | *`HTMLElement`* 
+The ID of the HTML element you want to initialize the plugin on or a direct reference to the HTMLElement.
 
 #### `pluginOptions`: 
 
