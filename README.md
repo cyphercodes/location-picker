@@ -1,8 +1,8 @@
-<h1 align="center" style="border-bottom: none;">🗺🎯 location-picker</h1>
+<h1 align="center" style="border-bottom: none; text-align: center">🗺🎯 location-picker</h1>
 
-<h3 align="center">Efficiently allow your users to pick a location!</h3>
+<h3 align="center" style="text-align: center">Efficiently allow your users to pick a location!</h3>
 
-<p align="center">
+<p align="center" style="text-align: center">
   <a href="https://github.com/ellerbrock/open-source-badges/">
     <img src="https://badges.frapsoft.com/os/v2/open-source.svg?v=103" alt="Open Source Love">
   </a>
