@@ -3,12 +3,18 @@
 <h3 align="center" style="text-align: center">Efficiently allow your users to pick a location!</h3>
 
 <p align="center" style="text-align: center">
+  <a href="https://travis-ci.org/cyphercodes/location-picker">
+    <img alt="Travis" src="https://img.shields.io/travis/cyphercodes/location-picker/master.svg">
+  </a>
   <a href="https://github.com/ellerbrock/open-source-badges/">
     <img src="https://badges.frapsoft.com/os/v2/open-source.svg?v=103" alt="Open Source Love">
   </a>
   <a href="https://github.com/semantic-release/semantic-release">
     <img src="https://img.shields.io/badge/%20%20%F0%9F%93%A6%F0%9F%9A%80-semantic--release-e10079.svg" alt="semantic-release">
   </a>
+   <a href="https://www.npmjs.com/package/location-picker">
+      <img alt="npm latest version" src="https://img.shields.io/npm/v/location-picker.svg">
+    </a>
 </p>
 
 **location-picker** allows you to quickly render Google Maps with an overlaying marker providing an easy and quick plug-and-play location picker. It uses Google Maps v3 and it works with all JavaScript flavors!
