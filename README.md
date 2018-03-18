@@ -99,7 +99,10 @@ The ID of the HTML element you want to initialize the plugin on or a direct refe
 
 Options specific for this plugin
 
-The only supported option for now is `setCurrentPosition` which specifies if you want the plugin to automatically try and detect and set the marker to the the current user's location _(defaults to true)_.
+* `lat`: latitude of initial needed position
+* `lng`: longitude of initial needed position
+* `setCurrentPosition`: specifies if you want the plugin to automatically try and detect and set the marker to the the current user's location. It has no effect if `lat` and `lng` are supplied. _(defaults to true)_
+
 
 #### `mapOptions`:
 
