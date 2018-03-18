@@ -43,7 +43,8 @@ export default class LocationPicker {
       this.element.children[0].appendChild(node)
     }
 
-    if (pO.setCurrentPosition) {
+    // Set center to current position if attribute `setCurrentPosition` is true and no initial position is set
+    if (pO.setCurrentPosition && !pO.lat && !pO.lng) {
       this.setCurrentPosition()
     }
   }
