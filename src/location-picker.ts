@@ -12,17 +12,18 @@ export default class LocationPicker {
     options: LocationPickerOptions = {},
     mapOptions: MapOptions = {}
   ) {
-    let mO: MapOptions = {
-      center: new google.maps.LatLng(34.4346, 35.8362),
-      zoom: 15
-    }
-
     let pO: LocationPickerOptions = {
       setCurrentPosition: true
     }
 
-    Object.assign(mO, mapOptions)
     Object.assign(pO, options)
+
+    let mO: MapOptions = {
+      center: new google.maps.LatLng(pO.lat ? pO.lat : 34.4346, pO.lng ? pO.lng : 35.8362),
+      zoom: 15
+    }
+
+    Object.assign(mO, mapOptions)
 
     // Allow both, a string with the element's id or a direct reference to the element
     if (element instanceof HTMLElement) {
@@ -74,4 +75,6 @@ export default class LocationPicker {
 
 export interface LocationPickerOptions {
   setCurrentPosition?: boolean
+  lat?: number
+  lng?: number
 }
