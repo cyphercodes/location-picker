@@ -2,6 +2,7 @@ import MapOptions = google.maps.MapOptions
 import Map = google.maps.Map
 
 import './location-picker.css'
+import LatLng = google.maps.LatLng
 
 export default class LocationPicker {
   element: HTMLElement | null
@@ -49,6 +50,15 @@ export default class LocationPicker {
     }
   }
 
+  getMarkerPosition() {
+    const latLng = this.map.getCenter()
+    return { lat: latLng.lat(), lng: latLng.lng() }
+  }
+
+  setLocation(lat: number, lng: number) {
+    this.map.setCenter(new google.maps.LatLng(lat, lng))
+  }
+
   setCurrentPosition() {
     if (navigator.geolocation) {
       navigator.geolocation.getCurrentPosition(
@@ -66,11 +76,6 @@ export default class LocationPicker {
     } else {
       console.log('Your browser does not support Geolocation.')
     }
-  }
-
-  getMarkerPosition() {
-    const latLng = this.map.getCenter()
-    return { lat: latLng.lat(), lng: latLng.lng() }
   }
 }
 
