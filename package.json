@@ -55,6 +55,7 @@
     }
   },
   "devDependencies": {
+    "@types/googlemaps": "^3.30.8",
     "@types/node": "^9.4.7",
     "colors": "^1.2.1",
     "commitizen": "^2.9.6",
@@ -86,7 +87,5 @@
     "typescript": "^2.6.2",
     "validate-commit-msg": "^2.12.2"
   },
-  "dependencies": {
-    "@types/googlemaps": "^3.30.7"
-  }
+  "dependencies": {}
 }
