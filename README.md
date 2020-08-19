@@ -108,6 +108,9 @@ Options specific for this plugin
 * `lat`: latitude of initial needed position
 * `lng`: longitude of initial needed position
 * `setCurrentPosition`: specifies if you want the plugin to automatically try and detect and set the marker to the the current user's location. It has no effect if `lat` and `lng` are supplied. _(defaults to true)_
+* `dfLat` : default latitude if `lat` is not defined and setCurrentPosition is false or does not work
+* `dfLng` : default latitude if `lng` is not defined and setCurrentPosition is false or does not work
+
 
 
 #### `mapOptions`:
