@@ -3,9 +3,9 @@
 <h3 align="center" style="text-align: center">Efficiently allow your users to pick a location!</h3>
 
 <p align="center" style="text-align: center">
-  <a href="https://travis-ci.org/cyphercodes/location-picker">
+<!--   <a href="https://travis-ci.org/cyphercodes/location-picker">
     <img alt="Travis" src="https://img.shields.io/travis/cyphercodes/location-picker/master.svg">
-  </a>
+  </a> -->
   <a href="https://github.com/ellerbrock/open-source-badges/">
     <img src="https://badges.frapsoft.com/os/v2/open-source.svg?v=103" alt="Open Source Love">
   </a>
