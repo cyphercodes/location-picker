@@ -20,7 +20,7 @@ export default class LocationPicker {
     Object.assign(pO, options)
 
     let mO: MapOptions = {
-      center: new google.maps.LatLng(pO.lat ? pO.lat : 34.4346, pO.lng ? pO.lng : 35.8362),
+      center: new google.maps.LatLng(pO.lat ? pO.lat : pO.dfLat ? pO.dfLat : 34.4346, pO.lng ? pO.lng : pO.dfLng ? pO.dfLng : 35.8362),
       zoom: 15
     }
 
