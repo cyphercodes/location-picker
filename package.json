@@ -63,7 +63,7 @@
     "@rollup/plugin-typescript": "^12.1.2",
     "@types/google.maps": "^3.58.1",
     "@types/node": "^22.9.0",
-    "@vitest/coverage-v8": "^2.1.5",
+    "@vitest/coverage-v8": "^4.1.4",
     "eslint": "^9.15.0",
     "jsdom": "^25.0.1",
     "prettier": "^3.3.3",
