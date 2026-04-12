@@ -1,22 +1,400 @@
-<!DOCTYPE html>
+<!doctype html>
 <html lang="en">
   <head>
     <meta charset="UTF-8" />
-    <title>location-picker example (ESM)</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>location-picker — demo</title>
     <link rel="stylesheet" href="../dist/location-picker.css" />
     <style>
+      :root {
+        --bg: #f6f7f9;
+        --surface: #ffffff;
+        --surface-2: #fafbfc;
+        --border: #e4e7eb;
+        --text: #0f172a;
+        --text-muted: #64748b;
+        --accent: #2563eb;
+        --accent-hover: #1d4ed8;
+        --accent-contrast: #ffffff;
+        --danger: #dc2626;
+        --success: #16a34a;
+        --shadow-sm: 0 1px 2px rgba(15, 23, 42, 0.04);
+        --shadow-md:
+          0 4px 12px rgba(15, 23, 42, 0.06), 0 1px 3px rgba(15, 23, 42, 0.04);
+        --radius: 12px;
+        --radius-sm: 8px;
+      }
+
+      @media (prefers-color-scheme: dark) {
+        :root {
+          --bg: #0b1020;
+          --surface: #121829;
+          --surface-2: #172037;
+          --border: #263149;
+          --text: #e6ebf5;
+          --text-muted: #94a3b8;
+          --accent: #60a5fa;
+          --accent-hover: #93c5fd;
+          --accent-contrast: #0b1020;
+          --shadow-sm: 0 1px 2px rgba(0, 0, 0, 0.3);
+          --shadow-md:
+            0 6px 16px rgba(0, 0, 0, 0.4), 0 1px 3px rgba(0, 0, 0, 0.3);
+        }
+      }
+
+      * {
+        box-sizing: border-box;
+      }
+
+      html,
+      body {
+        margin: 0;
+        padding: 0;
+      }
+
+      body {
+        font-family:
+          system-ui,
+          -apple-system,
+          'Segoe UI',
+          Roboto,
+          'Helvetica Neue',
+          Arial,
+          'Noto Sans',
+          sans-serif,
+          'Apple Color Emoji',
+          'Segoe UI Emoji';
+        background: var(--bg);
+        color: var(--text);
+        line-height: 1.5;
+        min-height: 100vh;
+        display: flex;
+        flex-direction: column;
+      }
+
+      a {
+        color: var(--accent);
+        text-decoration: none;
+      }
+      a:hover {
+        text-decoration: underline;
+      }
+
+      .container {
+        width: 100%;
+        max-width: 1200px;
+        margin: 0 auto;
+        padding: 0 20px;
+      }
+
+      header.site {
+        padding: 24px 0;
+        border-bottom: 1px solid var(--border);
+        background: var(--surface);
+      }
+
+      .site-inner {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        gap: 16px;
+        flex-wrap: wrap;
+      }
+
+      .brand h1 {
+        margin: 0;
+        font-size: 22px;
+        letter-spacing: -0.01em;
+      }
+      .brand p {
+        margin: 2px 0 0;
+        color: var(--text-muted);
+        font-size: 14px;
+      }
+
+      .gh-link {
+        display: inline-flex;
+        align-items: center;
+        gap: 8px;
+        padding: 8px 14px;
+        border: 1px solid var(--border);
+        border-radius: var(--radius-sm);
+        background: var(--surface-2);
+        color: var(--text);
+        font-size: 14px;
+        font-weight: 500;
+      }
+      .gh-link:hover {
+        text-decoration: none;
+        border-color: var(--accent);
+        color: var(--accent);
+      }
+
+      main {
+        flex: 1;
+        padding: 28px 0 40px;
+      }
+
+      .layout {
+        display: grid;
+        gap: 20px;
+        grid-template-columns: 1fr;
+      }
+
+      @media (min-width: 960px) {
+        .layout {
+          grid-template-columns: minmax(0, 1.6fr) minmax(320px, 1fr);
+        }
+      }
+
+      .card {
+        background: var(--surface);
+        border: 1px solid var(--border);
+        border-radius: var(--radius);
+        box-shadow: var(--shadow-sm);
+        overflow: hidden;
+      }
+
+      .map-card {
+        padding: 8px;
+      }
+
       #map {
         width: 100%;
-        height: 480px;
+        height: 520px;
+        border-radius: calc(var(--radius) - 4px);
+        overflow: hidden;
+      }
+
+      .panel {
+        padding: 20px;
+        display: flex;
+        flex-direction: column;
+        gap: 18px;
+      }
+
+      .panel h2 {
+        margin: 0;
+        font-size: 14px;
+        font-weight: 600;
+        color: var(--text-muted);
+        text-transform: uppercase;
+        letter-spacing: 0.06em;
+      }
+
+      .coords {
+        background: var(--surface-2);
+        border: 1px solid var(--border);
+        border-radius: var(--radius-sm);
+        padding: 14px 16px;
+        display: grid;
+        grid-template-columns: auto 1fr;
+        gap: 6px 14px;
+        font-family:
+          ui-monospace, SFMono-Regular, 'SF Mono', Menlo, Consolas,
+          'Liberation Mono', monospace;
+        font-size: 14px;
+      }
+      .coords .label {
+        color: var(--text-muted);
+      }
+      .coords .val {
+        color: var(--text);
+        overflow-wrap: anywhere;
+      }
+
+      .btn {
+        appearance: none;
+        border: 1px solid var(--border);
+        background: var(--surface-2);
+        color: var(--text);
+        padding: 10px 14px;
+        border-radius: var(--radius-sm);
+        font-size: 14px;
+        font-weight: 500;
+        cursor: pointer;
+        transition:
+          border-color 0.15s ease,
+          background 0.15s ease,
+          transform 0.05s ease;
+        font-family: inherit;
+      }
+      .btn:hover:not(:disabled) {
+        border-color: var(--accent);
+        color: var(--accent);
+      }
+      .btn:active:not(:disabled) {
+        transform: translateY(1px);
+      }
+      .btn:disabled {
+        opacity: 0.6;
+        cursor: not-allowed;
+      }
+      .btn.primary {
+        background: var(--accent);
+        border-color: var(--accent);
+        color: var(--accent-contrast);
+      }
+      .btn.primary:hover:not(:disabled) {
+        background: var(--accent-hover);
+        border-color: var(--accent-hover);
+        color: var(--accent-contrast);
+      }
+
+      .btn-row {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 8px;
+      }
+
+      .preset-grid {
+        display: grid;
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+        gap: 8px;
+      }
+
+      .status {
+        min-height: 18px;
+        font-size: 13px;
+        color: var(--text-muted);
+      }
+      .status.error {
+        color: var(--danger);
+      }
+      .status.success {
+        color: var(--success);
+      }
+
+      .section {
+        display: flex;
+        flex-direction: column;
+        gap: 10px;
+      }
+
+      footer.site {
+        padding: 18px 0;
+        border-top: 1px solid var(--border);
+        background: var(--surface);
+        color: var(--text-muted);
+        font-size: 13px;
+      }
+      .footer-inner {
+        display: flex;
+        justify-content: space-between;
+        gap: 12px;
+        flex-wrap: wrap;
+      }
+
+      .spinner {
+        display: inline-block;
+        width: 12px;
+        height: 12px;
+        border: 2px solid currentColor;
+        border-right-color: transparent;
+        border-radius: 50%;
+        animation: spin 0.7s linear infinite;
+        vertical-align: -2px;
+        margin-right: 6px;
+      }
+      @keyframes spin {
+        to {
+          transform: rotate(360deg);
+        }
       }
     </style>
   </head>
   <body>
-    <div id="map"></div>
-    <br />
-    <button id="confirmPosition">Confirm Position</button>
-    <p>On idle position: <span id="onIdlePositionView"></span></p>
-    <p>On click position: <span id="onClickPositionView"></span></p>
+    <header class="site">
+      <div class="container site-inner">
+        <div class="brand">
+          <h1>location-picker</h1>
+          <p>A tiny, framework-agnostic Google Maps location picker.</p>
+        </div>
+        <a
+          class="gh-link"
+          href="https://github.com/cyphercodes/location-picker"
+          target="_blank"
+          rel="noopener noreferrer"
+          >GitHub &rarr;</a
+        >
+      </div>
+    </header>
+
+    <main>
+      <div class="container layout">
+        <section class="card map-card" aria-label="Map">
+          <div id="map"></div>
+        </section>
+
+        <aside class="card panel" aria-label="Controls">
+          <div class="section">
+            <h2>Selected coordinates</h2>
+            <div class="coords" aria-live="polite">
+              <span class="label">lat</span
+              ><span class="val" id="latView">—</span>
+              <span class="label">lng</span
+              ><span class="val" id="lngView">—</span>
+            </div>
+            <div class="btn-row">
+              <button class="btn primary" id="copyBtn" type="button">
+                Copy coordinates
+              </button>
+            </div>
+            <div class="status" id="copyStatus"></div>
+          </div>
+
+          <div class="section">
+            <h2>Geolocation</h2>
+            <div class="btn-row">
+              <button class="btn" id="myLocBtn" type="button">
+                Use my location
+              </button>
+            </div>
+            <div class="status" id="geoStatus"></div>
+          </div>
+
+          <div class="section">
+            <h2>Presets</h2>
+            <div class="preset-grid" id="presets">
+              <button class="btn" type="button" data-lat="45.5017" data-lng="-73.5673">
+                Montr&eacute;al
+              </button>
+              <button class="btn" type="button" data-lat="40.7128" data-lng="-74.0060">
+                New York
+              </button>
+              <button class="btn" type="button" data-lat="35.6762" data-lng="139.6503">
+                Tokyo
+              </button>
+              <button class="btn" type="button" data-lat="-33.8688" data-lng="151.2093">
+                Sydney
+              </button>
+            </div>
+          </div>
+        </aside>
+      </div>
+    </main>
+
+    <footer class="site">
+      <div class="container footer-inner">
+        <span
+          >Built with
+          <a
+            href="https://github.com/cyphercodes/location-picker"
+            target="_blank"
+            rel="noopener noreferrer"
+            >location-picker v2</a
+          ></span
+        >
+        <span>
+          <a
+            href="https://github.com/cyphercodes/location-picker"
+            target="_blank"
+            rel="noopener noreferrer"
+            >View on GitHub</a
+          >
+        </span>
+      </div>
+    </footer>
 
     <!-- Google Maps JS API. Replace YOUR_API_KEY. -->
     <script
@@ -28,26 +406,93 @@
       // Build first (`npm run build`) so ../dist/index.mjs exists.
       import { LocationPicker } from '../dist/index.mjs';
 
+      const fmt = (n) => (typeof n === 'number' ? n.toFixed(6) : '—');
+      const $ = (id) => document.getElementById(id);
+
+      function setStatus(el, msg, cls = '') {
+        el.textContent = msg;
+        el.className = 'status' + (cls ? ' ' + cls : '');
+      }
+
       window.initApp = function () {
+        const latView = $('latView');
+        const lngView = $('lngView');
+
+        const updateView = (pos) => {
+          if (!pos) return;
+          latView.textContent = fmt(pos.lat);
+          lngView.textContent = fmt(pos.lng);
+        };
+
         const lp = new LocationPicker(
           'map',
           {
-            setCurrentPosition: true,
+            setCurrentPosition: false,
             lat: 45.5017,
             lng: -73.5673,
-            onLocationChange: (pos) => {
-              document.getElementById('onIdlePositionView').textContent =
-                `The chosen location is ${pos.lat},${pos.lng}`;
-            },
+            onLocationChange: (pos) => updateView(pos),
           },
-          { zoom: 15 },
+          { zoom: 13 },
         );
 
-        document.getElementById('confirmPosition').onclick = () => {
+        // Initial render
+        updateView(lp.getMarkerPosition());
+
+        // Expose for DevTools testing.
+        window.lp = lp;
+
+        // Copy coordinates
+        const copyStatus = $('copyStatus');
+        $('copyBtn').addEventListener('click', async () => {
           const { lat, lng } = lp.getMarkerPosition();
-          document.getElementById('onClickPositionView').textContent =
-            `The chosen location is ${lat},${lng}`;
-        };
+          const text = `${fmt(lat)}, ${fmt(lng)}`;
+          try {
+            await navigator.clipboard.writeText(text);
+            setStatus(copyStatus, `Copied "${text}" to clipboard.`, 'success');
+          } catch (err) {
+            setStatus(
+              copyStatus,
+              'Clipboard unavailable — copy manually: ' + text,
+              'error',
+            );
+          }
+          setTimeout(() => setStatus(copyStatus, ''), 2500);
+        });
+
+        // Use my location
+        const geoStatus = $('geoStatus');
+        const myLocBtn = $('myLocBtn');
+        myLocBtn.addEventListener('click', async () => {
+          myLocBtn.disabled = true;
+          const originalLabel = myLocBtn.textContent;
+          myLocBtn.innerHTML =
+            '<span class="spinner" aria-hidden="true"></span>Locating…';
+          setStatus(geoStatus, 'Requesting your location…');
+          try {
+            await lp.setCurrentPosition();
+            updateView(lp.getMarkerPosition());
+            setStatus(geoStatus, 'Centered on your current position.', 'success');
+          } catch (err) {
+            const msg =
+              err && err.message
+                ? err.message
+                : 'Permission denied or geolocation unavailable.';
+            setStatus(geoStatus, msg, 'error');
+          } finally {
+            myLocBtn.disabled = false;
+            myLocBtn.textContent = originalLabel;
+          }
+        });
+
+        // Presets
+        $('presets').addEventListener('click', (e) => {
+          const btn = e.target.closest('button[data-lat]');
+          if (!btn) return;
+          const lat = parseFloat(btn.dataset.lat);
+          const lng = parseFloat(btn.dataset.lng);
+          lp.setLocation(lat, lng);
+          updateView({ lat, lng });
+        });
       };
     </script>
   </body>
