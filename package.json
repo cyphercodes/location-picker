@@ -62,7 +62,7 @@
     "@rollup/plugin-terser": "^0.4.4",
     "@rollup/plugin-typescript": "^12.1.2",
     "@types/google.maps": "^3.58.1",
-    "@types/node": "^22.9.0",
+    "@types/node": "^25.6.0",
     "@vitest/coverage-v8": "^2.1.5",
     "eslint": "^9.15.0",
     "jsdom": "^25.0.1",
