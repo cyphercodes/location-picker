@@ -4,13 +4,21 @@
   "description": "An open source location picker plugin using Google Maps v3 that works with all JavaScript flavors!",
   "keywords": [
     "locationpicker",
+    "location-picker",
     "google-maps",
+    "google-maps-api",
+    "map",
+    "marker",
+    "geolocation",
     "javascript",
     "javascript-plugin",
     "typescript",
     "esm"
   ],
-  "homepage": "https://github.com/cyphercodes/location-picker",
+  "homepage": "https://github.com/cyphercodes/location-picker#readme",
+  "bugs": {
+    "url": "https://github.com/cyphercodes/location-picker/issues"
+  },
   "type": "module",
   "main": "dist/index.cjs",
   "module": "dist/index.mjs",
@@ -33,7 +41,7 @@
   "author": "Rayan Salhab <rayansalhab@hotmail.com>",
   "repository": {
     "type": "git",
-    "url": "https://github.com/cyphercodes/location-picker.git"
+    "url": "git+https://github.com/cyphercodes/location-picker.git"
   },
   "license": "MIT",
   "engines": {
