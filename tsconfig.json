@@ -1,27 +1,23 @@
 {
   "compilerOptions": {
-    "moduleResolution": "node",
-    "target": "es5",
-    "module": "es2015",
-    "lib": [
-      "es2015",
-      "es2016",
-      "es2017",
-      "dom"
-    ],
+    "target": "ES2020",
+    "module": "ESNext",
+    "moduleResolution": "bundler",
+    "lib": ["ES2020", "DOM", "DOM.Iterable"],
     "strict": true,
+    "noImplicitAny": true,
+    "noUncheckedIndexedAccess": true,
+    "esModuleInterop": true,
+    "allowSyntheticDefaultImports": true,
+    "forceConsistentCasingInFileNames": true,
+    "skipLibCheck": true,
     "sourceMap": true,
     "declaration": true,
-    "allowSyntheticDefaultImports": true,
-    "experimentalDecorators": true,
-    "emitDecoratorMetadata": true,
-    "declarationDir": "dist/types",
-    "outDir": "dist/lib",
-    "typeRoots": [
-      "node_modules/@types"
-    ]
+    "declarationMap": true,
+    "isolatedModules": true,
+    "resolveJsonModule": true,
+    "types": ["google.maps", "node"]
   },
-  "include": [
-    "src"
-  ]
+  "include": ["src/**/*.ts"],
+  "exclude": ["node_modules", "dist"]
 }
