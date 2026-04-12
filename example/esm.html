@@ -1,0 +1,60 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <title>location-picker example (ESM via CDN importmap)</title>
+    <link
+      rel="stylesheet"
+      href="https://cdn.jsdelivr.net/npm/location-picker@2/dist/location-picker.css"
+    />
+    <style>
+      #map {
+        width: 100%;
+        height: 480px;
+      }
+    </style>
+
+    <!--
+      Importmap lets the browser resolve the bare specifier "location-picker"
+      to the ESM build on a CDN - no bundler required.
+    -->
+    <script type="importmap">
+      {
+        "imports": {
+          "location-picker": "https://cdn.jsdelivr.net/npm/location-picker@2/dist/index.mjs"
+        }
+      }
+    </script>
+  </head>
+  <body>
+    <div id="map"></div>
+    <p>Position: <span id="pos"></span></p>
+
+    <!-- Google Maps JS API. Replace YOUR_API_KEY. -->
+    <script
+      async
+      src="https://maps.googleapis.com/maps/api/js?key=YOUR_API_KEY&libraries=marker&callback=initApp"
+    ></script>
+
+    <script type="module">
+      import { LocationPicker } from 'location-picker';
+
+      window.initApp = function () {
+        const lp = new LocationPicker(
+          'map',
+          {
+            lat: 45.5017,
+            lng: -73.5673,
+            useAdvancedMarker: true,
+            onLocationChange: (pos) => {
+              document.getElementById('pos').textContent = `${pos.lat}, ${pos.lng}`;
+            },
+          },
+          { zoom: 14, mapId: 'DEMO_MAP_ID' },
+        );
+
+        window.lp = lp;
+      };
+    </script>
+  </body>
+</html>

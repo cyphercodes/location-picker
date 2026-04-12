@@ -1,241 +1,106 @@
-<h1 align="center" style="border-bottom: none; text-align: center">🗺🎯 location-picker</h1>
+# location-picker
 
-<h3 align="center" style="text-align: center">Efficiently allow your users to pick a location!</h3>
+[![CI](https://github.com/cyphercodes/location-picker/actions/workflows/ci.yml/badge.svg)](https://github.com/cyphercodes/location-picker/actions/workflows/ci.yml)
+[![npm version](https://img.shields.io/npm/v/location-picker.svg)](https://www.npmjs.com/package/location-picker)
+[![npm downloads](https://img.shields.io/npm/dm/location-picker.svg)](https://www.npmjs.com/package/location-picker)
+[![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
 
-<p align="center" style="text-align: center">
-<!--   <a href="https://travis-ci.org/cyphercodes/location-picker">
-    <img alt="Travis" src="https://img.shields.io/travis/cyphercodes/location-picker/master.svg">
-  </a> -->
-  <a href="https://github.com/ellerbrock/open-source-badges/">
-    <img src="https://badges.frapsoft.com/os/v2/open-source.svg?v=103" alt="Open Source Love">
-  </a>
-  <a href="https://github.com/semantic-release/semantic-release">
-    <img src="https://img.shields.io/badge/%20%20%F0%9F%93%A6%F0%9F%9A%80-semantic--release-e10079.svg" alt="semantic-release">
-  </a>
-   <a href="https://www.npmjs.com/package/location-picker">
-      <img alt="npm latest version" src="https://img.shields.io/npm/v/location-picker.svg">
-    </a>
-</p>
+An open source location picker plugin using Google Maps v3, written in modern TypeScript, shipped as both ESM and CJS with full type definitions.
 
-**location-picker** allows you to quickly render Google Maps with an overlaying marker providing an easy and quick plug-and-play location picker. It uses Google Maps v3 and it works with all JavaScript flavors!
+> v2 is a modernization release. See the [Migration from v1](#migration-from-v1) section below.
 
-[LIVE DEMO](https://cyphercodes.github.io/location-picker/example/)
+---
 
-[DOCUMENTATION](https://cyphercodes.github.io/location-picker/docs/)
+## Install
 
-## Requirements
-
-* Google Maps v3
-
-## Installation
-
-```
-npm install location-picker --save
+```bash
+npm install location-picker
 ```
 
-### Import libraries using HTML:
-
-**From `node_modules`:**
-```html
-<script type="text/javascript" src="https://maps.googleapis.com/maps/api/js?key={ENTER YOUR KEY}"></script>
-<script src="../node_modules/location-picker/dist/location-picker.min.js"></script>
-```
-
-**From CDN:**
-```html
-<script type="text/javascript" src="https://maps.googleapis.com/maps/api/js?key={ENTER YOUR KEY}"></script>
-<script src="https://unpkg.com/location-picker/dist/location-picker.min.js"></script>
-```
-
-### Import using Typescript or Angular
-
-```typescript
-import LocationPicker from "location-picker";
-```
-
-### Import using CommonJS / Node:
-
-```javascript
-var locationPicker = require("location-picker")
-```
+You also need the Google Maps JavaScript API loaded on your page (either via the classic script tag or the official `@googlemaps/js-api-loader`).
 
 ## Usage
 
-### Add element in HTML with a unique id:
+### ESM (bundlers / modern browsers)
 
-```html
-#map {
-    width: 100%;
-    height: 480px;
-}
-<div id="map"></div>
+```ts
+import { LocationPicker } from 'location-picker';
+import 'location-picker/style.css';
+
+const lp = new LocationPicker(
+  'map',
+  { setCurrentPosition: true, onLocationChange: (p) => console.log(p) },
+  { zoom: 15 },
+);
 ```
 
-### Initialize the locationPicker plugin:
+### CommonJS
 
-#### Plain JavaScript:
-```javascript
-var locationPicker = new locationPicker('map', {
-    setCurrentPosition: true, // You can omit this, defaults to true
-}, {
-    zoom: 15 // You can set any google map options here, zoom defaults to 15
-});
+```js
+const { LocationPicker } = require('location-picker');
+require('location-picker/style.css');
+
+const lp = new LocationPicker('map');
 ```
 
-#### Angular:
+### AdvancedMarkerElement
 
-```typescript
-let lp = new LocationPicker('map',{
-    setCurrentPosition: true, // You can omit this, defaults to true
-}, {
-    zoom: 15 // You can set any google map options here, zoom defaults to 15
-});
+If you load the Google Maps `marker` library, set `useAdvancedMarker: true` and the picker will use `google.maps.marker.AdvancedMarkerElement` instead of the CSS-pin overlay:
+
+```ts
+const lp = new LocationPicker('map', { useAdvancedMarker: true }, { mapId: 'YOUR_MAP_ID' });
 ```
 
-## Methods
+## API
 
-### locationPicker(elementId, pluginOptions, mapOptions)
+### `new LocationPicker(element, options?, mapOptions?)`
 
-Returns a reference to the locationPicker object
+- `element: string | HTMLElement` - element id or DOM node.
+- `options: LocationPickerOptions`:
+  - `setCurrentPosition?: boolean` - default `true`. Skipped if `lat`/`lng` provided.
+  - `lat?: number`, `lng?: number` - initial center.
+  - `useAdvancedMarker?: boolean` - default `false`.
+  - `onLocationChange?: (pos: LatLng) => void` - called on each `idle` event.
+- `mapOptions: google.maps.MapOptions` - forwarded to `new google.maps.Map`.
 
-#### `element`: *`string`* | *`HTMLElement`* 
-The ID of the HTML element you want to initialize the plugin on or a direct reference to the HTMLElement.
+### Methods
 
-#### `pluginOptions`: 
+- `getMarkerPosition(): { lat: number; lng: number }`
+- `setLocation(lat: number, lng: number): void`
+- `setCurrentPosition(): Promise<{ lat: number; lng: number }>` - **breaking in v2**, now returns a Promise.
+- `destroy(): void` - removes listeners and the marker DOM.
 
-Options specific for this plugin
+### Types
 
-* `lat`: latitude of initial needed position
-* `lng`: longitude of initial needed position
-* `setCurrentPosition`: specifies if you want the plugin to automatically try and detect and set the marker to the the current user's location. It has no effect if `lat` and `lng` are supplied. _(defaults to true)_
-
-
-#### `mapOptions`:
-
-You can set any specific google maps option here.
-
-For a list of all the available options please visit: 
-
-https://developers.google.com/maps/documentation/javascript/reference#MapOptions
-
-### locationPicker.getMarkerPosition()
-
-Returns an object that contains the lat and lng of the currently selected position.
-
-## Properties
-
-### locationPicker.element 
-
-A reference to the element the plugin was initialized on.
-
-### locationPicker.map
-
-A reference to the Google Map object
-
-
-## Examples
-
-### HTML Full Example
-```html
-<!DOCTYPE html>
-<html lang="en">
-<head>
-  <meta charset="UTF-8">
-  <title>Example</title>
-  <script type="text/javascript"
-          src="https://maps.googleapis.com/maps/api/js?key={{ENTER YOUR KEY}}"></script>
-  <script src="https://unpkg.com/location-picker/dist/location-picker.min.js"></script>
-  <style type="text/css">
-    #map {
-      width: 100%;
-      height: 480px;
-    }
-  </style>
-</head>
-
-<body>
-<div id="map"></div>
-<br>
-<button id="confirmPosition">Confirm Position</button>
-<br>
-<p>On idle position: <span id="onIdlePositionView"></span></p>
-<p>On click position: <span id="onClickPositionView"></span></p>
-<script>
-  // Get element references
-  var confirmBtn = document.getElementById('confirmPosition');
-  var onClickPositionView = document.getElementById('onClickPositionView');
-  var onIdlePositionView = document.getElementById('onIdlePositionView');
-
-  // Initialize locationPicker plugin
-  var lp = new locationPicker('map', {
-    setCurrentPosition: true, // You can omit this, defaults to true
-  }, {
-    zoom: 15 // You can set any google map options here, zoom defaults to 15
-  });
-
-  // Listen to button onclick event
-  confirmBtn.onclick = function () {
-    // Get current location and show it in HTML
-    var location = lp.getMarkerPosition();
-    onClickPositionView.innerHTML = 'The chosen location is ' + location.lat + ',' + location.lng;
-  };
-
-  // Listen to map idle event, listening to idle event more accurate than listening to ondrag event
-  google.maps.event.addListener(lp.map, 'idle', function (event) {
-    // Get current location and show it in HTML
-    var location = lp.getMarkerPosition();
-    onIdlePositionView.innerHTML = 'The chosen location is ' + location.lat + ',' + location.lng;
-  });
-</script>
-
-</body>
-</html>
+```ts
+import type { LatLng, LocationPickerOptions } from 'location-picker';
 ```
 
-### Angular Example
+## Migration from v1
 
-* Import Google maps:
+| v1                                             | v2                                                                      |
+| ---------------------------------------------- | ----------------------------------------------------------------------- |
+| `import LocationPicker from 'location-picker'` | Still works. Also: `import { LocationPicker } from 'location-picker'`.  |
+| `setCurrentPosition()` returned `void`         | Returns `Promise<LatLng>`. Rejects on failure instead of `console.log`. |
+| UMD / minified UMD bundle                      | Removed. Use ESM (`dist/index.mjs`) or CJS (`dist/index.cjs`).          |
+| `@types/googlemaps`                            | Replaced by `@types/google.maps`.                                       |
+| CSS was bundled automatically                  | Now opt-in: `import 'location-picker/style.css'`.                       |
+| No `destroy()`                                 | `destroy()` available for cleanup (SPAs, HMR).                          |
+| No idle callback                               | `onLocationChange` option.                                              |
+| No AdvancedMarker                              | `useAdvancedMarker: true` opts into `AdvancedMarkerElement`.            |
 
-One example could be adding in `index.html`:
-```html
-<script type="text/javascript" src="https://maps.googleapis.com/maps/api/js?key={{ENTER YOUR KEY}}"></script>
+Node >=18 is required to build/develop the library. Consumers are unaffected.
+
+## Development
+
+```bash
+npm install
+npm run lint
+npm run typecheck
+npm run test
+npm run build
 ```
 
-* Add map element and button in HTML:
+## License
 
-```html
-<div id="map"></div>
-<button (click)="setLocation()">Submit Location</button>
-```
-
-* Add this CSS:
-
-```css
-#map {
-    width: 100%;
-    height: 480px;
-}
-```
-
-* Component:
-
-```typescript
-import {Component} from '@angular/core';
-import LocationPicker from "location-picker";
-
-@Component({
-  selector: 'page-location',
-  templateUrl: 'location.html'
-})
-export class LocationPage implements OnInit {
-   lp: LocationPicker;
-   
-   ngOnInit(){
-     this.lp = new LocationPicker('map');
-   }
-   
-   setLocation() {
-      console.log(this.lp.getMarkerPosition());
-   }
-}
-```
+MIT
