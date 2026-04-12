@@ -59,7 +59,7 @@
     "test:coverage": "vitest run --coverage"
   },
   "devDependencies": {
-    "@rollup/plugin-terser": "^0.4.4",
+    "@rollup/plugin-terser": "^1.0.0",
     "@rollup/plugin-typescript": "^12.1.2",
     "@types/google.maps": "^3.58.1",
     "@types/node": "^22.9.0",
