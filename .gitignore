@@ -11,3 +11,9 @@ compiled
 .rpt2_cache
 docs
 .eslintcache
+
+# Local-only example files (may contain API keys — never commit)
+example/*.local.html
+.env
+.env.*
+
