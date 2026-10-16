@@ -52,7 +52,9 @@ const lib: UserConfig = {
   css: { minify: true },
   clean: true,
   plugins: [dropDtsSourceMapUrl],
-  inputOptions: { preserveEntrySignatures: 'allow-extension' },
+  // Each entry exports exactly its source's names (api.d.ts). Code shared between entries goes to _chunks/ and the
+  // entries become re-export facades; 'allow-extension' would leak internals ($1 aliases, parsePair) from entries.
+  inputOptions: { preserveEntrySignatures: 'strict' },
   // CJS stays a plain exports object: require('location-picker').LocationPicker === .default (CONTRACT §1.3).
   outputOptions: (options, format, { cjsDts }) => ({
     ...options,
