@@ -255,7 +255,8 @@ export class PickerCore {
       (key) => REMOUNT_KEYS.includes(key) && (key != 'marker' || advanced),
     );
     const handle = this.#handle;
-    if (remount) this.#scheduleRemount();
+    // Before the first mount() the new config simply applies at mount.
+    if (remount && this.#mounted) this.#scheduleRemount();
     else if (handle && has('tileUrl', 'attribution', 'maxZoom', 'gestureHandling')) {
       // Not in the MapHandle contract: adapters may swap layers in place through an optional `update`.
       const update: unknown = Reflect.get(handle, 'update');
@@ -501,20 +502,15 @@ export class PickerCore {
     this.#setPhase('loading');
     this.refs.error.hidden = this.refs.fallback.hidden = true;
     this.#refresh();
+    const { provider } = this.#config;
+    this.#rename(typeof provider == 'string' ? provider : provider.name);
     const fail = (cause: unknown): void => {
       if (!signal.aborted) this.#failed(asError(cause, 'ENGINE_LOAD_FAILED'));
     };
     const mountWith = (adapter: ProviderAdapter): void => {
       if (signal.aborted) return;
       this.#adapter = adapter;
-      if (adapter.name != this.#provider && this.#address !== null) {
-        // Google content must not stay next to a non-Google map, and vice versa (ToS §3.2.3(e); §3.2).
-        this.#address = null;
-        this.#addressResult = null;
-        this.#inputs?.write(undefined, null, 'none');
-        this.#emitSnapshot('address');
-      }
-      this.#provider = adapter.name;
+      this.#rename(adapter.name);
       const view = liveView(
         () => (this.#value ? toLatLng(this.#value) : { ...this.#center }),
         () => this.#zoom,
@@ -545,6 +541,17 @@ export class PickerCore {
     } catch (cause) {
       fail(cause);
     }
+  }
+
+  /** A new provider NAME drops the address: Google content must not stay next to a non-Google map, and vice versa (ToS §3.2.3(e); §3.2). */
+  #rename(name: string): void {
+    if (name == this.#provider) return;
+    this.#provider = name;
+    if (this.#address === null && !this.#addressResult) return;
+    this.#address = null;
+    this.#addressResult = null;
+    this.#inputs?.write(undefined, null, 'none');
+    this.#emitSnapshot('address');
   }
 
   #onMounted(

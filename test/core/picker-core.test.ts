@@ -172,14 +172,14 @@ describe('remounts (update)', () => {
     await h.core.ready;
     await new Promise((r) => setTimeout(r, 450));
     expect(h.core.snapshot.address).toBe('G address');
-    const leaflet = createFakeAdapter({ name: 'leaflet' });
+    const leaflet = createFakeAdapter({ name: 'leaflet', loadDelayMs: 30 });
     const photon = vi.fn<Reverse>(async (at) => ({
       ...at,
       label: 'OSM address',
     }));
     leaflet.adapter.geocoder = { pairsWith: ['leaflet', 'maplibre'], reverse: photon };
     h.core.update({ provider: erased(leaflet.adapter) });
-    await flush();
+    await Promise.resolve(); // the remount microtask, long before the new engine loads
     expect(h.core.snapshot.address).toBeNull();
     expect(causes(h)).toContain('address');
     expect(addressDetails(h.log).map((d) => d.address)).toEqual(['G address']);
@@ -194,7 +194,10 @@ describe('remounts (update)', () => {
     h.core.mount();
     await h.core.ready;
     h.core.writeValue({ lat: 1, lng: 2 }, { dirty: true, cause: 'restore', address: 'Kept' });
-    h.core.update({ mapOptions: { b: 2 } });
+    h.core.update({
+      mapOptions: { b: 2 },
+      provider: erased(createFakeAdapter({ name: 'fake' }).adapter),
+    });
     await h.core.ready;
     expect(h.core.snapshot.address).toBe('Kept');
   });
@@ -615,5 +618,19 @@ describe('the MountContext handed to adapters', () => {
     ctx.events.interactionStart();
     expect(errors(h.log)).toHaveLength(1);
     expect(h.states.has('dragging')).toBe(false);
+  });
+});
+
+describe('update() before the first mount()', () => {
+  it('applies the new config at mount without a remount or a replaced ready', async () => {
+    const h = elementCore();
+    const ready = h.core.ready;
+    const other = createFakeAdapter({ name: 'other' });
+    h.core.update({ provider: erased(other.adapter), mapOptions: { c: 3 } });
+    expect(h.core.ready).toBe(ready);
+    h.core.mount();
+    await ready;
+    expect([h.fake.mountCount, other.mountCount]).toEqual([0, 1]);
+    expect(other.ctx?.options.mapOptions).toEqual({ c: 3 });
   });
 });
