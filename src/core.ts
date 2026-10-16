@@ -194,71 +194,8 @@ export interface Messages {
 // Errors
 // ---------------------------------------------------------------------------------------------------------------
 
-/**
- * Stable error codes. `level` (see {@link LocationPickerError.level}) decides how an unhandled `error` event is logged.
- * Default level per code (the `ERROR_TABLE`); the only per-case override is listed in the last column:
- * | level | codes | per-case override |
- * |---|---|---|
- * | `error` (console.error) | TARGET_NOT_FOUND, INVALID_OPTION, ENGINE_MISSING, ENGINE_LOAD_FAILED, API_KEY_MISSING, GOOGLE_AUTH_FAILED, GEOCODER_MISMATCH, GEOCODER_MISSING | INVALID_OPTION for "only one of `lat`/`lng` given" is `warn` |
- * | `warn` (console.warn) | INVALID_VALUE, ENGINE_CSS_MISSING, MAP_ID_REQUIRED, GEOCODER_FAILED, GEOLOCATION_UNSUPPORTED, GEOLOCATION_DENIED, GEOLOCATION_UNAVAILABLE, GEOLOCATION_TIMEOUT | – |
- * | `silent` (never logged) | ABORTED | – |
- * Unknown provider names are INVALID_OPTION at `error`. Console diagnostics (unknown keys, wrong-guess attributes,
- * name/bound-input collisions, a 0-height target, a clamped latitude) are separate `console.warn` lines, never events.
- */
-export type LocationPickerErrorCode =
-  | 'TARGET_NOT_FOUND'
-  | 'INVALID_VALUE'
-  | 'INVALID_OPTION'
-  | 'ENGINE_MISSING'
-  | 'ENGINE_LOAD_FAILED'
-  | 'ENGINE_CSS_MISSING'
-  | 'API_KEY_MISSING'
-  | 'GOOGLE_AUTH_FAILED'
-  | 'MAP_ID_REQUIRED'
-  | 'GEOCODER_MISMATCH'
-  | 'GEOCODER_MISSING'
-  | 'GEOCODER_FAILED'
-  | 'GEOLOCATION_UNSUPPORTED'
-  | 'GEOLOCATION_DENIED'
-  | 'GEOLOCATION_UNAVAILABLE'
-  | 'GEOLOCATION_TIMEOUT'
-  | 'ABORTED';
-
-/**
- * Every thrown error, every promise rejection and every `error` event detail.
- * `message` format: `"[location-picker] <what happened>. Fix: <fix>"`.
- * Geolocation codes come from the numeric `GeolocationPositionError.code` (which is NOT an `Error` instance; it is
- * kept as `cause`).
- * @example
- * try { await picker.locate(); } catch (e) {
- *   if (e instanceof LocationPickerError && e.code === 'GEOLOCATION_DENIED') showHelp(e.fix);
- * }
- */
-export class LocationPickerError extends Error {
-  declare readonly name: 'LocationPickerError';
-  /** Stable, documented code. @example "GEOLOCATION_DENIED" */
-  readonly code: LocationPickerErrorCode;
-  /** One-line, machine-readable remedy for humans and agents. @example 'Add api-key="YOUR_KEY", or load the Google Maps JS API before the picker.' */
-  readonly fix: string;
-  /** How an unhandled `error` event with this error is logged. */
-  readonly level: 'error' | 'warn' | 'silent' = 'error';
-  /** Underlying failure (GeolocationPositionError, script `error` Event, fetch error, AbortSignal reason). */
-  declare readonly cause?: unknown;
-  /**
-   * @param code stable code
-   * @param message human text; the built-in text for `code` when omitted
-   * @param options `fix` (one-line remedy; built-in when omitted) and `cause`
-   */
-  constructor(
-    code: LocationPickerErrorCode,
-    message?: string,
-    options?: { fix?: string; cause?: unknown },
-  ) {
-    super(message ?? code, { cause: options?.cause });
-    this.code = code;
-    this.fix = options?.fix ?? '';
-  }
-}
+export { LocationPickerError, type LocationPickerErrorCode } from './core/errors.js';
+import type { LocationPickerError } from './core/errors.js';
 
 // ---------------------------------------------------------------------------------------------------------------
 // Class options and methods

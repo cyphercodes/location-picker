@@ -89,7 +89,8 @@ function parseUrl(s: string): ParsedLatLng | null {
   return null;
 }
 
-const toNumber = (v: unknown): number =>
+/** Internal: finite-looking numbers and strict decimal strings ("48.85", " -2 "); NaN for anything else ("0x10", "1e3", ""). */
+export const toNumber = (v: unknown): number =>
   typeof v == 'number' ? v : typeof v == 'string' && /^\s*[-+]?[\d.]+\s*$/.test(v) ? +v : NaN;
 
 function readObject(o: object): [number, number] {
