@@ -685,24 +685,35 @@ test.describe('WP2-24 lifecycle', () => {
       '<div id="esm" class="map"></div><div id="cjs" class="map"></div><div id="z1"></div><div id="z2"></div>',
     );
     const result = await page.evaluate(async () => {
-      // dist/core.cjs with a minimal require(): only ./utils.cjs is needed at load (providers load lazily).
-      const [code = '', utils] = await Promise.all(
-        ['/dist/core.cjs', '/dist/utils.cjs'].map(async (url) => (await fetch(url)).text()),
-      );
-      const sources: Record<string, string | undefined> = { './utils.cjs': utils };
-      const require = (specifier: string): unknown => {
-        const source = sources[specifier];
-        if (source === undefined) throw new Error(`not available: ${specifier}`);
-        const exports: unknown = Reflect.get(evaluate(source), 'exports');
-        return exports;
+      // dist/core.cjs through a minimal CommonJS loader: every relative file it (transitively) requires is fetched up
+      // front, except the provider entries, which load lazily and are never reached with an adapter object.
+      const sources = new Map<string, string>();
+      const modules = new Map<string, { exports: object }>();
+      const lazy = /\/(leaflet|google|maplibre)\.cjs$/;
+      const fetchTree = async (url: string): Promise<void> => {
+        if (sources.has(url) || lazy.test(url)) return;
+        sources.set(url, '');
+        const source = await (await fetch(url)).text();
+        sources.set(url, source);
+        const required = [...source.matchAll(/require\("(\.\.?\/[^"]+)"\)/g)];
+        await Promise.all(required.map(([, path = '']) => fetchTree(new URL(path, url).href)));
       };
-      function evaluate(source: string): object {
+      const load = (url: string): object => {
+        const known = modules.get(url);
+        if (known) return known.exports;
+        const source = sources.get(url);
+        if (source === undefined) throw new Error(`not available: ${url}`);
         const module = { exports: {} };
+        modules.set(url, module);
+        const require = (specifier: string): object => load(new URL(specifier, url).href);
         // oxlint-disable-next-line typescript/no-implied-eval -- evaluating the CommonJS build is the point
         new Function('module', 'exports', 'require', source)(module, module.exports, require);
-        return module;
-      }
-      const cjs: typeof Core = Reflect.get(evaluate(code), 'exports');
+        return module.exports;
+      };
+      const entry = new URL('/dist/core.cjs', location.href).href;
+      await fetchTree(entry);
+      load(entry);
+      const cjs: typeof Core = Reflect.get(modules.get(entry) ?? {}, 'exports');
       const { core: esm }: { core: typeof Core } = Reflect.get(window, 'lpModules');
       const lp: Harness = Reflect.get(window, 'lp');
       const provider = lp.adapter;

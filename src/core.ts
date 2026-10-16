@@ -1,6 +1,16 @@
 // location-picker/core: the side-effect-free class entry (CONTRACT §2). The public types live here, verbatim from
-// api.d.ts; the implementations live in ./core/.
-export * from './utils.js';
+// api.d.ts; the implementations live in ./core/. Values come from the implementation modules, never through another
+// public entry (AMENDMENTS A9), so every built entry exports exactly the api.d.ts names.
+export type {
+  CoordinateFormat,
+  FormatLatLngOptions,
+  LatLng,
+  LatLngInput,
+  ParsedLatLng,
+} from './utils.js';
+export { parseLatLng } from './utils/parse.js';
+export { formatLatLng } from './utils/format.js';
+export { isLatLng, normalizeLatLng } from './utils/normalize.js';
 import type { LatLng, LatLngInput } from './utils.js';
 
 export { version } from './core/version.js';
