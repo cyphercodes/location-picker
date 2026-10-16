@@ -38,7 +38,12 @@ import { parseLatLng } from '../utils/parse.js';
 import { BoundInputs } from './bind-inputs.js';
 import { DEFAULTS, REMOUNT_KEYS, readLatLngInput } from './config.js';
 import { UNSET_MARKER_POSITION, warnOnce } from './diagnostics.js';
-import { createError, LocationPickerError, reportError } from './errors.js';
+import {
+  createError,
+  isLocationPickerError,
+  reportError,
+  type LocationPickerError,
+} from './errors.js';
 import { canGeolocate, geolocate } from './geolocation.js';
 import { createMountContext, providerOptions } from './loader.js';
 import { applyTexts, renderOverlay } from './overlay.js';
@@ -97,8 +102,7 @@ const toLatLng = (value: string): LatLng => {
 const asError = (
   cause: unknown,
   code: 'GEOCODER_FAILED' | 'ENGINE_LOAD_FAILED',
-): LocationPickerError =>
-  cause instanceof LocationPickerError ? cause : createError(code, { cause });
+): LocationPickerError => (isLocationPickerError(cause) ? cause : createError(code, { cause }));
 
 type GeolocationText =
   'geolocationDenied' | 'geolocationUnavailable' | 'geolocationTimeout' | 'geolocationUnsupported';
@@ -176,7 +180,7 @@ export class PickerCore {
   #lastDetail: LocationDetail | undefined;
   readonly #timers = new Map<string, ReturnType<typeof setTimeout>>();
   #observer: ResizeObserver | undefined;
-  #visible = true;
+  #visible = false;
   readonly #states = new Set<PickerStateName>();
 
   /** Renders and attaches the overlay synchronously; does NOT start loading (call mount()). */
@@ -1178,6 +1182,9 @@ export class PickerCore {
       }
       this.#visible = visible;
     });
+    // No initial observation fires for an element that is not rendered (display:none): measure now.
+    const { width, height } = this.host.host.getBoundingClientRect();
+    this.#visible = width > 0 && height > 0;
     this.#observer.observe(this.host.host);
   }
 }

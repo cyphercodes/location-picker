@@ -13,8 +13,12 @@ const KEYS: readonly Key[] = ['value', 'lat', 'lng', 'address'];
 /** How a write is announced on the inputs: silent, live (`input`), or a commit (`input` + `change`). */
 export type InputEvents = 'none' | 'input' | 'commit';
 
+/** Structural, so inputs from another realm (an iframe's document) qualify too. */
 const isInput = (node: unknown): node is BoundInput =>
-  node instanceof Element && (node.localName == 'input' || node.localName == 'textarea');
+  typeof node == 'object' &&
+  node !== null &&
+  Reflect.get(node, 'nodeType') === 1 &&
+  /^(input|textarea)$/.test(String(Reflect.get(node, 'localName')));
 
 /** An element, an id (tried first) or a CSS selector, resolved in `root`. */
 export function resolveInputRef(

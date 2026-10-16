@@ -103,15 +103,18 @@ const rebase = (css: string, base: string): string =>
     }
   });
 
+// Structural checks: the rules may come from another realm (a document in an iframe).
+const isStyleRule = (rule: CSSRule): rule is CSSStyleRule => 'selectorText' in rule;
+const isImport = (rule: CSSRule): rule is CSSImportRule => 'styleSheet' in rule;
 const isGrouping = (rule: CSSRule): rule is CSSRule & { readonly cssRules: CSSRuleList } =>
   'cssRules' in rule;
 
 function matching(rules: CSSRuleList, test: RegExp, base: string): string[] {
   const out: string[] = [];
   for (const rule of rules) {
-    if (rule instanceof CSSStyleRule) {
+    if (isStyleRule(rule)) {
       if (test.test(rule.selectorText)) out.push(rebase(rule.cssText, base));
-    } else if (rule instanceof CSSImportRule) {
+    } else if (isImport(rule)) {
       const sheet = rule.styleSheet;
       try {
         if (sheet) out.push(...matching(sheet.cssRules, test, sheet.href ?? base));

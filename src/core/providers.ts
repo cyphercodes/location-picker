@@ -3,7 +3,7 @@
 import type { Geocoder, MapHandle, MountContext, ProviderAdapter, ProviderName } from '../core.js';
 import type * as C from '../internal/contracts.js';
 import type { ResolvedConfig } from '../internal/contracts.js';
-import { createError, LocationPickerError } from './errors.js';
+import { createError, isLocationPickerError, type LocationPickerError } from './errors.js';
 
 export { normalizeProviderName } from './config.js';
 
@@ -11,9 +11,10 @@ export { normalizeProviderName } from './config.js';
  * `ProviderAdapter<T>` is not assignable to `ProviderAdapter` (its geocoder factory takes `MapHandle<T>`), yet the core
  * never depends on the map type: adapters are handled type-erased.
  */
-// oxlint-disable-next-line typescript/no-unsafe-type-assertion -- erasing T is the point
-export const erased = <T>(adapter: ProviderAdapter<T>): ProviderAdapter =>
-  adapter as ProviderAdapter;
+export function erased<T>(adapter: ProviderAdapter<T>): ProviderAdapter {
+  // oxlint-disable-next-line typescript/no-unsafe-type-assertion -- erasing T is the point
+  return adapter as ProviderAdapter;
+}
 
 /** ESM/CJS: dynamic import() of the WP3 entry, calling its factory with no args. Mutable so global.ts and tests can swap loaders. */
 export const BUILTIN_PROVIDERS: Record<ProviderName, () => Promise<ProviderAdapter>> = {
@@ -39,7 +40,7 @@ export const SEARCH_UI: {
 };
 
 const asError = (cause: unknown, spec: string): LocationPickerError =>
-  cause instanceof LocationPickerError
+  isLocationPickerError(cause)
     ? cause
     : createError('ENGINE_LOAD_FAILED', { cause, vars: { url: `location-picker/${spec}` } });
 

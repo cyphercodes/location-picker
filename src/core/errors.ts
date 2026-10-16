@@ -170,6 +170,12 @@ export class LocationPickerError extends Error {
   }
 }
 
+/** Duck-typed, so an error thrown by another copy of the library on the page (ESM + IIFE) qualifies too. */
+export const isLocationPickerError = (value: unknown): value is LocationPickerError =>
+  typeof value == 'object' &&
+  value !== null &&
+  Reflect.get(value, 'name') === 'LocationPickerError';
+
 /** Builds an error from the table: `vars` fill `{name}` placeholders; `level` overrides the default (e.g. lat-only). */
 export function createError(
   code: LocationPickerErrorCode,
