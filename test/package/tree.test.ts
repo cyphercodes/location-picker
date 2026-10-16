@@ -1,7 +1,7 @@
 // WP5-01: `npm run build` produces exactly the CONTRACT §1.2 file set. The snapshot is the npm tarball listing with
 // dist/_chunks/* names collapsed (only chunk names may vary) and sourcemaps left out (scripts/pack-check.mjs checks
 // those per output, since re-export facades and empty placeholders have none).
-import { readdirSync } from 'node:fs';
+import { existsSync, readdirSync } from 'node:fs';
 import { join, relative } from 'node:path';
 import { afterAll, beforeAll, describe, expect, it } from 'vitest';
 import { packProject, skipUnbuilt, type PackedProject } from './packed.js';
@@ -100,4 +100,16 @@ describe.skipIf(skipUnbuilt)('WP5-01: package tree (needs `npm run build`)', () 
     const onDisk = walk('dist').map((file) => relative('.', file).split('\\').join('/'));
     expect(onDisk.filter((file) => !packed.files.includes(file))).toEqual([]);
   });
+
+  // `npm run size` passes --ignore-missing so the combobox row tolerates the chunk's absence before WP3 lands; this
+  // keeps that row from being skipped silently afterwards.
+  it.skipIf(!existsSync('src/search/combobox.ts'))(
+    'the lazy search combobox ships as its own chunk (the size-limit row path)',
+    () => {
+      const chunks = packed.files.filter((file) =>
+        /^dist\/_chunks\/combobox-[^/]+\.mjs$/.test(file),
+      );
+      expect(chunks).toHaveLength(1);
+    },
+  );
 });

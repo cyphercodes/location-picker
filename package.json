@@ -229,7 +229,7 @@
     "test:browser": "vitest run --project browser --configLoader runner",
     "test:e2e": "playwright test",
     "compat": "COMPAT_FULL=1 playwright test",
-    "size": "size-limit",
+    "size": "size-limit --ignore-missing",
     "publint": "publint --strict",
     "attw": "attw --pack . --profile node16",
     "check:package": "node scripts/pack-check.mjs && npm run publint && npm run attw && npm run size",
