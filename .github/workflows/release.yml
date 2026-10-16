@@ -1,0 +1,42 @@
+name: Release
+
+# Publishes to npm with trusted publishing (OIDC): no npm token is stored in this repo.
+# One-time setup on npmjs.com: package settings -> Trusted publisher -> GitHub Actions,
+# owner "cyphercodes", repository "location-picker", workflow "release.yml".
+on:
+  push:
+    tags: ['v*']
+
+permissions:
+  contents: read
+
+concurrency:
+  group: release
+  cancel-in-progress: false
+
+jobs:
+  publish:
+    name: Publish to npm
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      id-token: write # trusted publishing + provenance
+    steps:
+      - uses: actions/checkout@v7
+      - uses: actions/setup-node@v7
+        with:
+          node-version: 24
+          registry-url: https://registry.npmjs.org
+      - name: Use an npm with trusted publishing support
+        run: npm install -g npm@12
+      - run: npm ci
+      - run: npm test
+      - run: npm run build
+      - name: Tag matches package.json version
+        run: test "v$(node -p "require('./package.json').version")" = "$GITHUB_REF_NAME"
+      - name: Frozen v1 file is unchanged
+        run: echo "6f1d8608f70cb77363e6581a3452c8618ca862495e1687467e90192f82dbcef7  dist/location-picker.min.js" | sha256sum -c -
+      - name: Publish
+        run: |
+          if node -p "require('./package.json').version" | grep -q -- '-'; then DIST_TAG=next; else DIST_TAG=latest; fi
+          npm publish --provenance --access public --tag "$DIST_TAG"

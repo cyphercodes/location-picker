@@ -7,6 +7,8 @@
 
 An open source location picker plugin using Google Maps v3, written in modern TypeScript, shipped as both ESM and CJS with full type definitions.
 
+> **2.1.0:** the classic v1 script URL `https://unpkg.com/location-picker/dist/location-picker.min.js` works again (global `locationPicker`), and location-picker is now MIT licensed. MIT applies to all prior versions too.
+
 > v2 is a modernization release. See the [Migration from v1](#migration-from-v1) section below.
 
 ---

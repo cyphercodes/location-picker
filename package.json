@@ -1,6 +1,6 @@
 {
   "name": "location-picker",
-  "version": "2.0.0",
+  "version": "2.1.0",
   "description": "An open source location picker plugin using Google Maps v3 that works with all JavaScript flavors!",
   "keywords": [
     "locationpicker",
@@ -51,6 +51,7 @@
     "clean": "rimraf dist",
     "prebuild": "npm run clean",
     "build": "rollup -c rollup.config.mjs",
+    "postbuild": "node -e \"require('fs').copyFileSync('compat/location-picker.min.js','dist/location-picker.min.js')\"",
     "lint": "eslint .",
     "format": "prettier --write \"src/**/*.{ts,css}\" \"*.{json,md,mjs}\"",
     "typecheck": "tsc --noEmit",
