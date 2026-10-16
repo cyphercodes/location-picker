@@ -2,26 +2,73 @@ name: CI
 
 on:
   push:
-    branches: [master, main]
+    branches: [master, v3]
   pull_request:
-    branches: [master, main]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: ci-${{ github.ref }}
+  cancel-in-progress: true
 
 jobs:
-  build:
+  check:
+    name: Lint, unit, build, package (Node ${{ matrix.node }})
     runs-on: ubuntu-latest
     strategy:
       fail-fast: false
       matrix:
-        node-version: [18, 20, 22]
+        node: [22, 24, 26]
+    env:
+      PLAYWRIGHT_SKIP_BROWSER_DOWNLOAD: '1'
     steps:
-      - uses: actions/checkout@v4
-      - name: Use Node.js ${{ matrix.node-version }}
-        uses: actions/setup-node@v4
+      - uses: actions/checkout@v7
+      - uses: actions/setup-node@v7
         with:
-          node-version: ${{ matrix.node-version }}
+          node-version: ${{ matrix.node }}
           cache: npm
       - run: npm ci
       - run: npm run lint
+      - run: npm run format:check
       - run: npm run typecheck
-      - run: npm run test
+      - run: npm test
       - run: npm run build
+      - name: Frozen v1 artifact matches its source
+        run: node scripts/minify-v1.mjs --check
+      - name: Package file set (CONTRACT §1.2)
+        run: node scripts/pack-check.mjs
+      - run: npm run publint
+      - run: npm run attw
+      - run: npm run size
+      - run: npm run types-matrix
+
+  browser:
+    name: Browser + e2e (Node ${{ matrix.node }})
+    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        node: [22, 24, 26]
+    steps:
+      - uses: actions/checkout@v7
+      - uses: actions/setup-node@v7
+        with:
+          node-version: ${{ matrix.node }}
+          cache: npm
+      - run: npm ci
+      - run: npx playwright install --with-deps
+      - run: npm run build
+      - name: Browser project (Chromium, Firefox, WebKit)
+        run: npm run test:browser
+      - name: E2E, small matrix (3 engines x 375 touch / 1440 mouse)
+        run: npm run test:e2e
+      - uses: actions/upload-artifact@v7
+        if: failure()
+        with:
+          name: test-results-node${{ matrix.node }}
+          path: |
+            test-results/
+            .vitest/attachments/
+          retention-days: 7

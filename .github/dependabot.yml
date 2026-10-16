@@ -5,21 +5,44 @@ updates:
     schedule:
       interval: weekly
     open-pull-requests-limit: 10
-    labels:
-      - dependencies
-      - npm
+    labels: [dependencies, npm]
     commit-message:
       prefix: chore
       include: scope
+    ignore:
+      # Pinned on purpose: the routes serve node_modules/leaflet for the SRI-locked jsDelivr 1.9.4 URLs.
+      - dependency-name: leaflet
+    groups:
+      # Playwright must move as one (its browser builds are tied to the version).
+      playwright:
+        patterns:
+          ['playwright', '@playwright/*', '@vitest/browser-playwright', '@axe-core/playwright']
+      build:
+        patterns: ['tsdown', '@tsdown/*', 'typescript', 'terser', 'acorn', 'esbuild']
+      test:
+        patterns: ['vitest', '@vitest/*', 'jsdom']
+      lint:
+        patterns: ['oxlint', 'oxlint-tsgolint', 'prettier']
+      package-checks:
+        patterns:
+          [
+            'publint',
+            '@arethetypeswrong/*',
+            'size-limit',
+            '@size-limit/*',
+            '@custom-elements-manifest/*',
+          ]
+      types:
+        patterns: ['@types/*']
 
   - package-ecosystem: github-actions
     directory: '/'
     schedule:
       interval: weekly
-    open-pull-requests-limit: 5
-    labels:
-      - dependencies
-      - github-actions
+    labels: [dependencies, github-actions]
     commit-message:
       prefix: chore
       include: scope
+    groups:
+      actions:
+        patterns: ['*']
