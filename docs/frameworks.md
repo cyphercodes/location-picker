@@ -50,7 +50,7 @@ import { useState } from 'react';
 
 export function StoreLocationField({ initial = '' }: { initial?: string }) {
   const [value, setValue] = useState(initial);    // "lat,lng" or ""
-  // Attributes, value and onChange/onInput survive SSR hydration; objects (messages…) and onaddresschange go in a ref (recipe below).
+  // Attributes, value and onChange/onInput survive SSR hydration; objects (messages…) and onaddresschange go in a ref (§3.9).
   return (
     <>
       <label htmlFor="loc">Location</label>
