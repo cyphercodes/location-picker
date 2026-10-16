@@ -1452,6 +1452,146 @@ Open an issue with the `code` and `fix` from the console, how you load the libra
 
 ---
 
+Source: https://github.com/cyphercodes/location-picker/blob/master/docs/errors.md
+
+# Error codes
+
+Every failure is a `LocationPickerError` with a stable `code`, a one-line `fix` and a `level`. Its message reads
+`[location-picker] <what happened>. Fix: <fix>`.
+
+- Failures that are not tied to a returned promise fire a cancelable `error` event (it does not bubble) on the
+  element or the class instance. When no listener calls `preventDefault()` and no `onError` callback exists, it is
+  logged at its `level`.
+- Methods (`locate()`, `geocode()`, `lookupAddress()`) and the `ready` promise reject with the same error instead.
+- `{placeholders}` in a message are filled in with the details of the failure.
+
+The level below is the default for each code; a few cases override it (see
+[`LocationPickerErrorCode`](https://github.com/cyphercodes/location-picker/blob/master/docs/api.md#locationpickererrorcode)).
+
+| Code                                                  | Level    | Fix                                                                                             |
+| ----------------------------------------------------- | -------- | ----------------------------------------------------------------------------------------------- |
+| [`TARGET_NOT_FOUND`](#target_not_found)               | `error`  | Pass an element, an id ("map") or a selector ("#map") that exists when the picker is created.   |
+| [`INVALID_VALUE`](#invalid_value)                     | `warn`   | Pass "lat,lng" (latitude first), e.g. "48.8584,2.2945", or {lat, lng}.                          |
+| [`INVALID_OPTION`](#invalid_option)                   | `error`  | Check the option name and value against the LocationPickerOptions docs.                         |
+| [`ENGINE_MISSING`](#engine_missing)                   | `error`  | Load Leaflet first, pass engine: L, or remove engine-url="none".                                |
+| [`ENGINE_LOAD_FAILED`](#engine_load_failed)           | `error`  | Check the network and the CSP script-src, or self-host the engine and set engine-url.           |
+| [`ENGINE_CSS_MISSING`](#engine_css_missing)           | `warn`   | Load leaflet.css on the page, set engine-css-url, or allow https://cdn.jsdelivr.net.            |
+| [`API_KEY_MISSING`](#api_key_missing)                 | `error`  | Add api-key="YOUR_KEY", or load the Google Maps JS API before the picker.                       |
+| [`GOOGLE_AUTH_FAILED`](#google_auth_failed)           | `error`  | Check the key's HTTP-referrer restrictions, billing, and that Maps JavaScript API is enabled.   |
+| [`MAP_ID_REQUIRED`](#map_id_required)                 | `warn`   | Set map-id (mapId), or use marker="pin".                                                        |
+| [`GEOCODER_MISMATCH`](#geocoder_mismatch)             | `error`  | Use the provider's paired geocoder; Google's terms forbid mixing Google and non-Google content. |
+| [`GEOCODER_MISSING`](#geocoder_missing)               | `error`  | Remove geocoder: false, or pass a geocoder.                                                     |
+| [`GEOCODER_FAILED`](#geocoder_failed)                 | `warn`   | Check the network and the service's rate limits; use your own geocoder in production.           |
+| [`GEOLOCATION_UNSUPPORTED`](#geolocation_unsupported) | `warn`   | Serve the page over HTTPS, and add allow="geolocation" to a containing iframe.                  |
+| [`GEOLOCATION_DENIED`](#geolocation_denied)           | `warn`   | Allow location access in the browser's site settings, or pick the point on the map.             |
+| [`GEOLOCATION_UNAVAILABLE`](#geolocation_unavailable) | `warn`   | Try again (Wi-Fi helps), or pick the point on the map.                                          |
+| [`GEOLOCATION_TIMEOUT`](#geolocation_timeout)         | `warn`   | Try again, or raise geolocation.timeout.                                                        |
+| [`ABORTED`](#aborted)                                 | `silent` | Nothing to fix: the picker was destroyed or a newer request replaced this one.                  |
+
+## `TARGET_NOT_FOUND`
+
+- **Level:** `error` (logged with `console.error` when unhandled)
+- **Message:** no element matches {target}
+- **Fix:** Pass an element, an id ("map") or a selector ("#map") that exists when the picker is created.
+
+## `INVALID_VALUE`
+
+- **Level:** `warn` (logged with `console.warn` when unhandled)
+- **Message:** {value} is not a coordinate
+- **Fix:** Pass "lat,lng" (latitude first), e.g. "48.8584,2.2945", or {lat, lng}.
+
+## `INVALID_OPTION`
+
+- **Level:** `error` (logged with `console.error` when unhandled)
+- **Message:** invalid option {option}
+- **Fix:** Check the option name and value against the LocationPickerOptions docs.
+
+## `ENGINE_MISSING`
+
+- **Level:** `error` (logged with `console.error` when unhandled)
+- **Message:** the map engine is not loaded
+- **Fix:** Load Leaflet first, pass engine: L, or remove engine-url="none".
+
+## `ENGINE_LOAD_FAILED`
+
+- **Level:** `error` (logged with `console.error` when unhandled)
+- **Message:** the map engine could not be loaded from {url}
+- **Fix:** Check the network and the CSP script-src, or self-host the engine and set engine-url.
+
+## `ENGINE_CSS_MISSING`
+
+- **Level:** `warn` (logged with `console.warn` when unhandled)
+- **Message:** the map engine CSS is missing
+- **Fix:** Load leaflet.css on the page, set engine-css-url, or allow https://cdn.jsdelivr.net.
+
+## `API_KEY_MISSING`
+
+- **Level:** `error` (logged with `console.error` when unhandled)
+- **Message:** Google Maps needs an API key
+- **Fix:** Add api-key="YOUR_KEY", or load the Google Maps JS API before the picker.
+
+## `GOOGLE_AUTH_FAILED`
+
+- **Level:** `error` (logged with `console.error` when unhandled)
+- **Message:** Google Maps rejected the API key
+- **Fix:** Check the key's HTTP-referrer restrictions, billing, and that Maps JavaScript API is enabled.
+
+## `MAP_ID_REQUIRED`
+
+- **Level:** `warn` (logged with `console.warn` when unhandled)
+- **Message:** marker="advanced" needs a Google map ID; showing the CSS pin
+- **Fix:** Set map-id (mapId), or use marker="pin".
+
+## `GEOCODER_MISMATCH`
+
+- **Level:** `error` (logged with `console.error` when unhandled)
+- **Message:** this geocoder may not be shown on a {provider} map
+- **Fix:** Use the provider's paired geocoder; Google's terms forbid mixing Google and non-Google content.
+
+## `GEOCODER_MISSING`
+
+- **Level:** `error` (logged with `console.error` when unhandled)
+- **Message:** no geocoder is available
+- **Fix:** Remove geocoder: false, or pass a geocoder.
+
+## `GEOCODER_FAILED`
+
+- **Level:** `warn` (logged with `console.warn` when unhandled)
+- **Message:** the geocoding request failed
+- **Fix:** Check the network and the service's rate limits; use your own geocoder in production.
+
+## `GEOLOCATION_UNSUPPORTED`
+
+- **Level:** `warn` (logged with `console.warn` when unhandled)
+- **Message:** geolocation is not available here
+- **Fix:** Serve the page over HTTPS, and add allow="geolocation" to a containing iframe.
+
+## `GEOLOCATION_DENIED`
+
+- **Level:** `warn` (logged with `console.warn` when unhandled)
+- **Message:** location permission was denied
+- **Fix:** Allow location access in the browser's site settings, or pick the point on the map.
+
+## `GEOLOCATION_UNAVAILABLE`
+
+- **Level:** `warn` (logged with `console.warn` when unhandled)
+- **Message:** the position could not be determined
+- **Fix:** Try again (Wi-Fi helps), or pick the point on the map.
+
+## `GEOLOCATION_TIMEOUT`
+
+- **Level:** `warn` (logged with `console.warn` when unhandled)
+- **Message:** finding the position took too long
+- **Fix:** Try again, or raise geolocation.timeout.
+
+## `ABORTED`
+
+- **Level:** `silent` (never logged)
+- **Message:** the operation was aborted
+- **Fix:** Nothing to fix: the picker was destroyed or a newer request replaced this one.
+
+---
+
 Source: https://github.com/cyphercodes/location-picker/blob/master/docs/ai-agents.md
 
 # AI agents
