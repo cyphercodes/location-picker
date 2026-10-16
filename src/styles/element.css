@@ -1,2 +1,24 @@
-/* placeholder: owned by WP2 (`:host` wrapper + parts, compiled into the element's constructed sheet) */
+/* <location-picker> shadow sheet (CONTRACT §3.1, §3.7): the host box, the [hidden] guard and the slots. */
 @import './picker.css';
+
+:host {
+  display: block;
+  position: relative;
+  block-size: 320px;
+  min-block-size: 200px;
+  isolation: isolate;
+  contain: layout;
+}
+:host([hidden]) {
+  display: none;
+}
+/* Part rules that set display (e.g. grid-centred controls) must never reveal a hidden part. */
+[hidden] {
+  display: none !important;
+}
+::slotted([slot='marker']) {
+  position: absolute;
+  left: 50%;
+  bottom: 1px;
+  translate: -50%;
+}
