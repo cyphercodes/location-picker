@@ -13,11 +13,12 @@ const ENTRIES = ['utils', 'core'];
 const BUILD = `
 import { build } from 'esbuild';
 import { readFile } from 'node:fs/promises';
+import { resolve } from 'node:path';
 const [outdir] = process.argv.slice(1);
 const cssInline = {
   name: 'css-inline',
   setup(b) {
-    b.onResolve({ filter: /\\.css\\?inline$/ }, (a) => ({ path: new URL(a.path.replace('?inline', ''), 'file://' + a.resolveDir + '/').pathname, namespace: 'css' }));
+    b.onResolve({ filter: /\\.css\\?inline$/ }, (a) => ({ path: resolve(a.resolveDir, a.path.replace('?inline', '')), namespace: 'css' }));
     b.onLoad({ filter: /.*/, namespace: 'css' }, async (a) => ({ contents: await readFile(a.path, 'utf8'), loader: 'text' }));
   },
 };
