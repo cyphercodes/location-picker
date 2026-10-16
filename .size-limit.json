@@ -1,0 +1,84 @@
+[
+  {
+    "name": "location-picker/utils (parser + formatter)",
+    "path": "dist/utils.mjs",
+    "import": "*",
+    "limit": "1 kB"
+  },
+  {
+    "name": "location-picker/core: import { LocationPicker }",
+    "path": "dist/core.mjs",
+    "import": "{ LocationPicker }",
+    "limit": "3.5 kB",
+    "ignore": [
+      "./leaflet.mjs",
+      "./google.mjs",
+      "./maplibre.mjs",
+      "./photon.mjs",
+      "./webmcp.mjs",
+      "./_chunks/combobox-*"
+    ]
+  },
+  {
+    "name": "location-picker (root: core + element + define)",
+    "path": "dist/index.mjs",
+    "import": "*",
+    "limit": "5.5 kB",
+    "ignore": [
+      "./leaflet.mjs",
+      "./google.mjs",
+      "./maplibre.mjs",
+      "./photon.mjs",
+      "./webmcp.mjs",
+      "./_chunks/combobox-*"
+    ]
+  },
+  {
+    "name": "leaflet adapter: import { leafletProvider }",
+    "path": "dist/leaflet.mjs",
+    "import": "{ leafletProvider }",
+    "limit": "1.2 kB"
+  },
+  {
+    "name": "google adapter: import { googleProvider }",
+    "path": "dist/google.mjs",
+    "import": "{ googleProvider }",
+    "limit": "2 kB"
+  },
+  {
+    "name": "maplibre adapter: import { maplibreProvider }",
+    "path": "dist/maplibre.mjs",
+    "import": "{ maplibreProvider }",
+    "limit": "0.9 kB"
+  },
+  {
+    "name": "photon: import { photonGeocoder }",
+    "path": "dist/photon.mjs",
+    "import": "{ photonGeocoder }",
+    "limit": "0.6 kB"
+  },
+  {
+    "name": "webmcp: import { registerWebMcpTools }",
+    "path": "dist/webmcp.mjs",
+    "import": "{ registerWebMcpTools }",
+    "limit": "0.7 kB"
+  },
+  {
+    "name": "location-picker.global.js (IIFE, as shipped)",
+    "path": "dist/location-picker.global.js",
+    "disablePlugins": ["@size-limit/esbuild"],
+    "limit": "12.5 kB"
+  },
+  {
+    "name": "location-picker.min.js (frozen v1, as shipped)",
+    "path": "dist/location-picker.min.js",
+    "disablePlugins": ["@size-limit/esbuild"],
+    "limit": "1.8 kB"
+  },
+  {
+    "name": "location-picker.css (as shipped)",
+    "path": "dist/location-picker.css",
+    "disablePlugins": ["@size-limit/esbuild"],
+    "limit": "1 kB"
+  }
+]

@@ -1,0 +1,19 @@
+dist/
+coverage/
+node_modules/
+test-results/
+playwright-report/
+blob-report/
+*.tgz
+package-lock.json
+custom-elements.json
+src/compat/location-picker.min.js
+test/compat/v1.lock
+site/llms-full.txt
+compat/compat.json
+COMPATIBILITY.md
+
+# Legacy files that their owners replace (WP6 removes example/, WP7 rewrites these docs); drop the lines then.
+example/
+CONTRIBUTING.md
+code-of-conduct.md

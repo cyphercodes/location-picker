@@ -1,78 +1,268 @@
 {
   "name": "location-picker",
-  "version": "2.0.0",
-  "description": "An open source location picker plugin using Google Maps v3 that works with all JavaScript flavors!",
-  "keywords": [
-    "locationpicker",
-    "location-picker",
-    "google-maps",
-    "google-maps-api",
-    "map",
-    "marker",
-    "geolocation",
-    "javascript",
-    "javascript-plugin",
-    "typescript",
-    "esm"
-  ],
-  "homepage": "https://github.com/cyphercodes/location-picker#readme",
-  "bugs": {
-    "url": "https://github.com/cyphercodes/location-picker/issues"
-  },
-  "type": "module",
-  "main": "dist/index.cjs",
-  "module": "dist/index.mjs",
-  "types": "dist/index.d.ts",
-  "exports": {
-    ".": {
-      "types": "./dist/index.d.ts",
-      "import": "./dist/index.mjs",
-      "require": "./dist/index.cjs"
-    },
-    "./style.css": "./dist/location-picker.css",
-    "./package.json": "./package.json"
-  },
-  "sideEffects": [
-    "*.css"
-  ],
-  "files": [
-    "dist"
-  ],
-  "author": "Rayan Salhab <rayansalhab@hotmail.com>",
+  "version": "3.0.0-alpha.0",
+  "description": "Tiny, form-ready map location picker: pan a map under a fixed pin to get lat/lng (and an address). Web component + JS API. OpenStreetMap/Leaflet with no API key, Google Maps, MapLibre.",
+  "license": "MIT",
+  "type": "commonjs",
+  "author": "Rayan Salhab",
+  "homepage": "https://cyphercodes.github.io/location-picker/",
   "repository": {
     "type": "git",
     "url": "git+https://github.com/cyphercodes/location-picker.git"
   },
-  "license": "MIT",
-  "engines": {
-    "node": ">=18"
+  "bugs": {
+    "url": "https://github.com/cyphercodes/location-picker/issues"
   },
+  "main": "./dist/index.cjs",
+  "module": "./dist/index.mjs",
+  "types": "./dist/index.d.cts",
+  "unpkg": "./dist/location-picker.global.js",
+  "jsdelivr": "./dist/location-picker.global.js",
+  "customElements": "./custom-elements.json",
+  "sideEffects": [
+    "./dist/index.mjs",
+    "./dist/index.cjs",
+    "./dist/element.mjs",
+    "./dist/element.cjs",
+    "./dist/location-picker.global.js",
+    "./dist/location-picker.min.js",
+    "*.css"
+  ],
+  "exports": {
+    ".": {
+      "import": {
+        "types": "./dist/index.d.mts",
+        "default": "./dist/index.mjs"
+      },
+      "require": {
+        "types": "./dist/index.d.cts",
+        "default": "./dist/index.cjs"
+      }
+    },
+    "./core": {
+      "import": {
+        "types": "./dist/core.d.mts",
+        "default": "./dist/core.mjs"
+      },
+      "require": {
+        "types": "./dist/core.d.cts",
+        "default": "./dist/core.cjs"
+      }
+    },
+    "./element": {
+      "import": {
+        "types": "./dist/element.d.mts",
+        "default": "./dist/element.mjs"
+      },
+      "require": {
+        "types": "./dist/element.d.cts",
+        "default": "./dist/element.cjs"
+      }
+    },
+    "./utils": {
+      "import": {
+        "types": "./dist/utils.d.mts",
+        "default": "./dist/utils.mjs"
+      },
+      "require": {
+        "types": "./dist/utils.d.cts",
+        "default": "./dist/utils.cjs"
+      }
+    },
+    "./leaflet": {
+      "import": {
+        "types": "./dist/leaflet.d.mts",
+        "default": "./dist/leaflet.mjs"
+      },
+      "require": {
+        "types": "./dist/leaflet.d.cts",
+        "default": "./dist/leaflet.cjs"
+      }
+    },
+    "./google": {
+      "import": {
+        "types": "./dist/google.d.mts",
+        "default": "./dist/google.mjs"
+      },
+      "require": {
+        "types": "./dist/google.d.cts",
+        "default": "./dist/google.cjs"
+      }
+    },
+    "./maplibre": {
+      "import": {
+        "types": "./dist/maplibre.d.mts",
+        "default": "./dist/maplibre.mjs"
+      },
+      "require": {
+        "types": "./dist/maplibre.d.cts",
+        "default": "./dist/maplibre.cjs"
+      }
+    },
+    "./photon": {
+      "import": {
+        "types": "./dist/photon.d.mts",
+        "default": "./dist/photon.mjs"
+      },
+      "require": {
+        "types": "./dist/photon.d.cts",
+        "default": "./dist/photon.cjs"
+      }
+    },
+    "./webmcp": {
+      "import": {
+        "types": "./dist/webmcp.d.mts",
+        "default": "./dist/webmcp.mjs"
+      },
+      "require": {
+        "types": "./dist/webmcp.d.cts",
+        "default": "./dist/webmcp.cjs"
+      }
+    },
+    "./style.css": {
+      "types": "./dist/style.css.d.ts",
+      "default": "./dist/location-picker.css"
+    },
+    "./global": {
+      "types": "./dist/global.d.ts",
+      "default": "./dist/location-picker.global.js"
+    },
+    "./v1": {
+      "types": "./dist/location-picker.min.d.ts",
+      "default": "./dist/location-picker.min.js"
+    },
+    "./dist/location-picker.min.js": {
+      "types": "./dist/location-picker.min.d.ts",
+      "default": "./dist/location-picker.min.js"
+    },
+    "./jsx/react": {
+      "types": "./dist/jsx/react.d.ts",
+      "default": "./dist/jsx/empty.js"
+    },
+    "./jsx/preact": {
+      "types": "./dist/jsx/preact.d.ts",
+      "default": "./dist/jsx/empty.js"
+    },
+    "./jsx/solid": {
+      "types": "./dist/jsx/solid.d.ts",
+      "default": "./dist/jsx/empty.js"
+    },
+    "./jsx/vue": {
+      "types": "./dist/jsx/vue.d.ts",
+      "default": "./dist/jsx/empty.js"
+    },
+    "./jsx/svelte": {
+      "types": "./dist/jsx/svelte.d.ts",
+      "default": "./dist/jsx/empty.js"
+    },
+    "./custom-elements.json": "./custom-elements.json",
+    "./package.json": "./package.json"
+  },
+  "files": [
+    "dist",
+    "custom-elements.json",
+    "skills",
+    "README.md",
+    "CHANGELOG.md",
+    "LICENSE"
+  ],
+  "peerDependencies": {
+    "@types/google.maps": ">=3.58",
+    "leaflet": "^1.9.4 || ^2.0.0-0",
+    "maplibre-gl": ">=5"
+  },
+  "peerDependenciesMeta": {
+    "@types/google.maps": {
+      "optional": true
+    },
+    "leaflet": {
+      "optional": true
+    },
+    "maplibre-gl": {
+      "optional": true
+    }
+  },
+  "devEngines": {
+    "runtime": {
+      "name": "node",
+      "version": ">=22.22",
+      "onFail": "error"
+    }
+  },
+  "keywords": [
+    "location-picker",
+    "location",
+    "map-picker",
+    "coordinate-picker",
+    "lat-long",
+    "latitude",
+    "longitude",
+    "latlng",
+    "coordinates",
+    "geolocation",
+    "geocoding",
+    "reverse-geocoding",
+    "address",
+    "pin",
+    "map",
+    "form",
+    "form-control",
+    "form-associated",
+    "web-component",
+    "custom-element",
+    "leaflet",
+    "openstreetmap",
+    "google-maps",
+    "maplibre",
+    "no-api-key",
+    "webmcp",
+    "ai-friendly"
+  ],
   "scripts": {
-    "clean": "rimraf dist",
-    "prebuild": "npm run clean",
-    "build": "rollup -c rollup.config.mjs",
-    "lint": "eslint .",
-    "format": "prettier --write \"src/**/*.{ts,css}\" \"*.{json,md,mjs}\"",
-    "typecheck": "tsc --noEmit",
-    "test": "vitest run",
-    "test:watch": "vitest",
-    "test:coverage": "vitest run --coverage"
+    "build": "tsdown && cem analyze",
+    "build:v1": "node scripts/minify-v1.mjs",
+    "typecheck": "tsc -p tsconfig.json && tsc -p tsconfig.test.json",
+    "lint": "oxlint",
+    "format": "prettier --write .",
+    "format:check": "prettier --check .",
+    "test": "vitest run --project unit",
+    "test:browser": "vitest run --project browser",
+    "test:e2e": "playwright test",
+    "compat": "COMPAT_FULL=1 playwright test",
+    "size": "size-limit",
+    "publint": "publint --strict",
+    "attw": "attw --pack . --profile node16",
+    "check:package": "node scripts/pack-check.mjs && npm run publint && npm run attw && npm run size",
+    "types-matrix": "node -e \"console.log('TODO(WP5): types matrix (types-matrix/run.mjs)')\"",
+    "docs:test": "node -e \"console.log('TODO(WP5): doc snippet tests (scripts/extract-snippets.mjs, e2e/docs.spec.ts)')\""
   },
   "devDependencies": {
-    "@rollup/plugin-terser": "^0.4.4",
-    "@rollup/plugin-typescript": "^12.1.2",
-    "@types/google.maps": "^3.58.1",
-    "@types/node": "^22.9.0",
-    "@vitest/coverage-v8": "^2.1.5",
-    "eslint": "^9.15.0",
-    "jsdom": "^25.0.1",
-    "prettier": "^3.3.3",
-    "rimraf": "^6.0.1",
-    "rollup": "^4.27.4",
-    "rollup-plugin-postcss": "^4.0.2",
-    "tslib": "^2.8.1",
-    "typescript": "^5.6.3",
-    "typescript-eslint": "^8.15.0",
-    "vitest": "^2.1.5"
+    "@arethetypeswrong/cli": "0.18.5",
+    "@axe-core/playwright": "4.14.0",
+    "@custom-elements-manifest/analyzer": "0.11.0",
+    "@playwright/test": "1.63.0",
+    "@size-limit/esbuild": "14.2.0",
+    "@size-limit/file": "14.2.0",
+    "@tsdown/css": "0.23.1",
+    "@types/google.maps": "3.66.7",
+    "@types/leaflet": "1.9.22",
+    "@types/node": "22.20.5",
+    "@vitest/browser-playwright": "5.0.5",
+    "acorn": "8.16.0",
+    "axe-core": "4.14.0",
+    "esbuild": "0.28.2",
+    "jsdom": "30.1.3",
+    "leaflet": "1.9.4",
+    "maplibre-gl": "6.14.0",
+    "oxlint": "1.88.0",
+    "oxlint-tsgolint": "7.0.2004",
+    "playwright": "1.63.0",
+    "prettier": "3.9.10",
+    "publint": "0.3.25",
+    "size-limit": "14.2.0",
+    "terser": "5.51.2",
+    "tsdown": "0.23.1",
+    "typescript": "7.0.2",
+    "vitest": "5.0.5"
   }
 }

@@ -1,23 +1,19 @@
 {
   "compilerOptions": {
-    "target": "ES2020",
-    "module": "ESNext",
+    "target": "es2022",
+    "lib": ["es2023", "dom", "dom.iterable"],
+    "module": "preserve",
     "moduleResolution": "bundler",
-    "lib": ["ES2020", "DOM", "DOM.Iterable"],
     "strict": true,
-    "noImplicitAny": true,
     "noUncheckedIndexedAccess": true,
-    "esModuleInterop": true,
-    "allowSyntheticDefaultImports": true,
-    "forceConsistentCasingInFileNames": true,
-    "skipLibCheck": true,
-    "sourceMap": true,
+    "noImplicitOverride": true,
+    "isolatedDeclarations": true,
     "declaration": true,
-    "declarationMap": true,
     "isolatedModules": true,
-    "resolveJsonModule": true,
-    "types": ["google.maps", "node"]
+    "verbatimModuleSyntax": true,
+    "noEmit": true,
+    "skipLibCheck": false,
+    "types": []
   },
-  "include": ["src/**/*.ts"],
-  "exclude": ["node_modules", "dist"]
+  "include": ["src"]
 }

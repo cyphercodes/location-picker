@@ -1,0 +1,50 @@
+{
+  "$schema": "./node_modules/oxlint/configuration_schema.json",
+  "plugins": ["typescript", "unicorn", "oxc", "import", "vitest"],
+  "categories": {
+    "correctness": "error",
+    "suspicious": "warn",
+    "perf": "warn"
+  },
+  "options": {
+    "typeAware": true
+  },
+  "rules": {
+    "typescript/no-floating-promises": "error",
+    "typescript/no-misused-promises": "error",
+    "typescript/await-thenable": "error",
+    "typescript/no-unnecessary-type-assertion": "warn",
+    "typescript/consistent-type-imports": "error",
+    "import/no-cycle": ["error", { "ignoreTypes": true }],
+    "unicorn/require-module-specifiers": "off"
+  },
+  "overrides": [
+    {
+      "files": ["src/compat/v1.ts"],
+      "rules": {
+        "typescript/no-this-alias": "off",
+        "typescript/no-unsafe-type-assertion": "off"
+      }
+    },
+    {
+      "files": ["src/internal/contracts.ts"],
+      "rules": {
+        "typescript/no-unnecessary-type-arguments": "off"
+      }
+    },
+    {
+      "files": ["src/jsx/empty.js"],
+      "rules": {
+        "unicorn/no-empty-file": "off"
+      }
+    }
+  ],
+  "ignorePatterns": [
+    "dist/**",
+    "coverage/**",
+    "node_modules/**",
+    "example/**",
+    "src/compat/location-picker.min.js",
+    "custom-elements.json"
+  ]
+}

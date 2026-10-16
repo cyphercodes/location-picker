@@ -1,0 +1,7 @@
+/* placeholder: owned by WP2 (class-mode rules, shipped as dist/location-picker.css) */
+@import './picker.css';
+
+location-picker:not(:defined):not([hidden]) {
+  display: block;
+  block-size: 320px;
+}

@@ -1,0 +1,17 @@
+* text=auto eol=lf
+
+# Binary fixtures and the frozen v1 artifact (byte-locked by test/compat/v1.lock): never normalise.
+*.png binary
+src/compat/location-picker.min.js -text linguist-generated
+test/compat/v1.lock -text
+
+# Generated or third-party output: keep it out of diffs and language stats (the repo is TypeScript).
+dist/** linguist-generated
+custom-elements.json linguist-generated
+COMPATIBILITY.md linguist-generated
+compat/compat.json linguist-generated
+site/llms-full.txt linguist-generated
+docs/errors.md linguist-generated
+*.min.js linguist-vendored
+site/** linguist-documentation
+example/** linguist-documentation
