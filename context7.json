@@ -1,0 +1,39 @@
+{
+  "$schema": "https://context7.com/schema/context7.json",
+  "projectTitle": "location-picker",
+  "description": "Form-ready map location picker for the web: pan a map under a fixed pin to get lat/lng (and an address). A <location-picker> web component and a LocationPicker class; OpenStreetMap with no API key, Google Maps, MapLibre.",
+  "excludeFolders": [
+    ".github",
+    "compat",
+    "dist",
+    "e2e",
+    "example",
+    "scripts",
+    "site",
+    "smoke",
+    "src",
+    "test",
+    "types",
+    "types-matrix"
+  ],
+  "excludeFiles": [
+    "AGENTS.md",
+    "CHANGELOG.md",
+    "COMPATIBILITY.md",
+    "CONTRIBUTING.md",
+    "code-of-conduct.md"
+  ],
+  "rules": [
+    "Load v3 with <script src=\"https://cdn.jsdelivr.net/npm/location-picker@3\"></script>; the unpinned /dist/location-picker.min.js URL is the frozen v1 file (global locationPicker, Google only).",
+    "import 'location-picker' defines the <location-picker> element; location-picker/core is the side-effect-free class only.",
+    "Coordinates are latitude first: \"lat,lng\" strings or { lat, lng } objects. Arrays are rejected.",
+    "In forms use name, lat-name/lng-name, or lat-input/lng-input for existing inputs. Put required on <location-picker>, never on hidden inputs.",
+    "In frameworks bind value (a \"lat,lng\" string) and listen to change or input. The lat/lng attributes only set the initial value.",
+    "Read the result from value, valueAsLatLng or the change event detail, not getMarkerPosition(), which returns the view centre while unset.",
+    "OpenStreetMap needs no key. Google Maps is used only with provider=\"google\", api-key, map-id or marker=\"advanced\".",
+    "React 19: use onChange/onInput and lowercase onaddresschange/onready/onerror. After hydrateRoot, set object props and native listeners in a ref callback.",
+    "Search uses Photon on Leaflet/MapLibre and PlaceAutocompleteElement on Google; never show Google results on a non-Google map.",
+    "Errors are LocationPickerError objects with a stable code and a one-line fix; follow the Fix: text in the console message."
+  ],
+  "previousVersions": [{ "tag": "v2.0.0" }, { "tag": "v1.1.1" }]
+}

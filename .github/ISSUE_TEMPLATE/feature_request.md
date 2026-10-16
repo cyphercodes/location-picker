@@ -8,16 +8,17 @@ assignees: ''
 
 ## Problem
 
-What problem are you trying to solve? Is your feature request related to a pain point you've experienced? Please describe.
+What are you trying to do, and what gets in the way today?
 
 ## Proposed solution
 
-Describe the solution you'd like. Include API sketches, example usage, or mockups if helpful.
+Describe the solution you would like. Include an API sketch (attribute, option, method or event), example usage, or
+a mockup if it helps.
 
 ## Alternatives considered
 
-Describe any alternative solutions or workarounds you've considered.
+Workarounds or other approaches you have tried.
 
 ## Additional context
 
-Add any other context, links, or references about the feature request here.
+Your stack (framework, map provider, form library) and any links or references.

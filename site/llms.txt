@@ -1,0 +1,115 @@
+# location-picker
+
+> Tiny, form-ready map location picker: pan a map under a fixed pin to get lat/lng (and an address). Web component `<location-picker>` + JS class `LocationPicker`. OpenStreetMap/Leaflet with no API key by default; Google Maps and MapLibre on request. MIT.
+
+Use it when a form needs one precise point (store or sensor location, delivery pin, venue, report location). Not for drawing shapes, several markers, or full mapping apps.
+
+- Script tag: `<script src="https://cdn.jsdelivr.net/npm/location-picker@3"></script>` defines `<location-picker>` and `window.LocationPicker`.
+- npm: `npm i location-picker`, then `import 'location-picker'` (defines the element). `location-picker/core` is the class only.
+- Forms: `name="loc"` submits `loc=48.85837,2.294481`; `lat-name`/`lng-name` submit separate fields; `lat-input`/`lng-input` fill existing inputs. `required` works; reset and back/forward are handled.
+- Value: `"lat,lng"` string, latitude first, `""` while unset. Every commit fires `input` then `change` with `detail` `{ value, lat, lng, source, zoom, address }`. Setting `el.value` is silent.
+- Options: `search`, `reverse-geocode`, `locate="button"`, `provider="google" api-key="…"`, `center`, `zoom`. Errors carry a `code` and a `fix`.
+- Providers and policies: OSM tiles need visible attribution and use your own tiles for heavy traffic; search uses Photon (fair use); Google results only on Google maps.
+
+```html
+<!doctype html>
+<html lang="en">
+<meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Pick a location</title>
+<script src="https://cdn.jsdelivr.net/npm/location-picker@3"></script>
+<label for="where">Where is it?</label>
+<location-picker id="where" search locate="button" style="height: 400px"></location-picker>
+<p>Picked: <output id="out">nothing yet</output></p>
+<script>
+  document.getElementById('where').addEventListener('change', (e) => {
+    document.getElementById('out').textContent = e.detail.value; // "48.85837,2.294481"; e.detail has lat, lng, source, address
+  });
+</script>
+</html>
+```
+
+**Common mistakes**
+
+- **The unpinned v1 URL.** `https://unpkg.com/location-picker/dist/location-picker.min.js` (and the same path on jsDelivr) is the frozen v1 file forever: global `locationPicker`, Google Maps only, no `<location-picker>` element. For v3, load `https://cdn.jsdelivr.net/npm/location-picker@3` and keep the `@3`.
+- **Latitude first, no arrays.** Values are `"lat,lng"` strings or `{ lat, lng }` objects. Arrays are rejected because GeoJSON uses `[lng, lat]`. A swapped pair with both numbers in range (`"2.2945,48.8584"`) cannot be detected, so check the order.
+- **Choose Google explicitly.** Google Maps is used only with `provider="google"`, `api-key`, `map-id` or `marker="advanced"`. Otherwise the picker uses OpenStreetMap, even when `google.maps` is already loaded on the page.
+- **Put `required` on the picker,** never on hidden bound inputs. A hidden, empty, `required` input blocks the submit as "not focusable".
+- **jQuery `.serialize()` skips custom elements.** Use bound inputs (`lat-input`/`lng-input`) or `new FormData(form)`.
+- **`import 'location-picker'` defines the element.** `location-picker/core` is the class only and defines nothing, so importing only `core` leaves `<location-picker>` blank.
+- **Read results from `value` or `valueAsLatLng`,** not `getMarkerPosition()`. While the picker is unset, `getMarkerPosition()` returns the view centre (for example the 20,0 world view), not a chosen point.
+- **The `lat`/`lng` attributes are the initial value only.** Once the control is dirty (a pan, or the `el.value = ''` that `v-model` and `formControlName` write on mount), changing them is ignored with a warning. Bind `value="lat,lng"` or call `setLocation()`.
+- **React SSR (`hydrateRoot`: Next.js App Router, Remix):** React applies no object props (`messages`, `geocoder`, …) and no lowercase native handlers (`onaddresschange`, `onready`, `onerror`) during hydration. Set them in a ref callback (see the React hydration recipe).
+- **MapLibre CSS is yours to load:** `import 'maplibre-gl/dist/maplibre-gl.css'`, or set `engine-css-url`. The library never fetches MapLibre or its CSS by default.
+- **The stylesheet path is `location-picker/style.css`.** `location-picker/dist/location-picker.css` is not exported. You only need it with `injectStyles: false`.
+
+**Event names per framework.** The class callbacks `onChange`/`onInput`/`onAddressChange`/`onReady`/`onError` are options of the JavaScript class only.
+
+| Framework | `change` | `input` | `addresschange` | `ready` | `error` |
+|---|---|---|---|---|---|
+| Plain JS | `addEventListener('change')` | `'input'` | `'addresschange'` | `'ready'` | `'error'` |
+| React 19 | `onChange` | `onInput` | `onaddresschange` | `onready` | `onerror` (NOT `onError`: React's synthetic `error` never fires for this element; a type error in `jsx/react`) |
+| Vue 3 | `@change` | `@input` | `@addresschange` | `@ready` | `@error` |
+| Angular | `(change)` | `(input)` | `(addresschange)` | `(ready)` | `(error)` |
+| Svelte 5 | `onchange` | `oninput` | `onaddresschange` | `onready` | `onerror` |
+| Solid | `on:change` | `on:input` | `on:addresschange` | `on:ready` | `on:error` |
+| Preact | `onchange` | `oninput` | `onaddresschange` | `onready` | `onerror` |
+
+React's lowercase native handlers are attached on client render only. After `hydrateRoot`, use a ref (React hydration recipe below).
+
+**React hydration recipe.** With `hydrateRoot` (Next.js App Router, Remix), React applies neither object props (`messages`, `mapOptions`, `engine`, `geocoder`, `geolocation`, an adapter-object `provider`) nor the lowercase native handlers to custom elements. Set them in a ref callback; refs are attached on hydration. Attributes, `value` and `onChange`/`onInput` keep working.
+
+```tsx
+'use client';
+import 'location-picker';
+import type {} from 'location-picker/jsx/react';
+import type { AddressDetail } from 'location-picker';
+import { useState } from 'react';
+
+export function AddressField() {
+  const [address, setAddress] = useState<string | null>(null);
+  return (
+    <>
+      <location-picker
+        name="location"
+        reverse-geocode
+        ref={(el) => {
+          if (!el) return;
+          el.messages = { locate: 'Use my position' };
+          const onAddress = (e: CustomEvent<AddressDetail>) => setAddress(e.detail.address);
+          el.addEventListener('addresschange', onAddress);
+          return () => el.removeEventListener('addresschange', onAddress);
+        }}
+      />
+      <p>{address ?? 'No address yet'}</p>
+    </>
+  );
+}
+```
+
+Nominatim is never a default and never appears in these examples; its usage policy (https://operations.osmfoundation.org/policies/nominatim/) forbids client-side autocomplete, so do not suggest it for the search box.
+
+## Docs
+
+- [README](https://github.com/cyphercodes/location-picker/blob/master/README.md): quick start, forms, frameworks, Google Maps, the JS class, attributes, policies
+- [API reference](https://github.com/cyphercodes/location-picker/blob/master/docs/api.md): every export, option, property, method and event, with defaults
+- [Forms](https://github.com/cyphercodes/location-picker/blob/master/docs/forms.md): FormData entries, bound inputs, Laravel/Django progressive enhancement, validation, reset
+- [Frameworks](https://github.com/cyphercodes/location-picker/blob/master/docs/frameworks.md): React/Next.js, Vue/Nuxt, Angular, Svelte, Solid, Preact, Astro, jQuery, htmx
+- [Providers and policies](https://github.com/cyphercodes/location-picker/blob/master/docs/providers.md): Leaflet/OSM tiles, Google Maps, MapLibre, Photon, custom geocoders and engines
+- [Content Security Policy](https://github.com/cyphercodes/location-picker/blob/master/docs/csp.md): CSP recipes per setup
+- [Error codes](https://github.com/cyphercodes/location-picker/blob/master/docs/errors.md): every `code` with its fix
+- [Troubleshooting](https://github.com/cyphercodes/location-picker/blob/master/docs/troubleshooting.md): symptoms, causes, fixes
+- [Migration](https://github.com/cyphercodes/location-picker/blob/master/docs/migration.md): every v1 and v2 API in v3
+
+## Examples
+
+- [Live demo and lat/long finder](https://cyphercodes.github.io/location-picker/): keyless picker, Google tab, copy coordinates
+- [Full demo](https://cyphercodes.github.io/location-picker/example/)
+- [Agent Skill](https://github.com/cyphercodes/location-picker/blob/master/skills/location-picker/SKILL.md): instructions for coding agents, also shipped in the npm package
+
+## Optional
+
+- [llms-full.txt](https://cyphercodes.github.io/location-picker/llms-full.txt): the README and all docs in one file
+- [AI agents and WebMCP](https://github.com/cyphercodes/location-picker/blob/master/docs/ai-agents.md): agent resources and the opt-in WebMCP tools
+- [Compatibility](https://cyphercodes.github.io/location-picker/compat/): generated browser, device and framework test results
+- [Changelog](https://github.com/cyphercodes/location-picker/blob/master/CHANGELOG.md)
+- [npm package](https://www.npmjs.com/package/location-picker)

@@ -6,9 +6,13 @@ labels: bug
 assignees: ''
 ---
 
-## Describe the bug
+## What happened
 
-A clear and concise description of what the bug is.
+A clear description of the problem.
+
+## Console output
+
+Paste every `[location-picker]` line from the browser console, including the error `code` and the `Fix:` text.
 
 ## Steps to reproduce
 
@@ -16,24 +20,22 @@ A clear and concise description of what the bug is.
 2. ...
 3. ...
 
-A minimal reproduction (CodeSandbox, StackBlitz, or a small repo) is hugely appreciated.
+A minimal reproduction (a single HTML page, CodeSandbox, StackBlitz or a small repo) helps the most.
 
-## Expected behavior
+## Expected behaviour
 
 What did you expect to happen?
 
-## Actual behavior
-
-What actually happened? Include any error messages or stack traces.
-
-## Environment
+## Setup
 
 - `location-picker` version:
-- Browser + version (e.g. Chrome 124, Firefox 126, Safari 17):
-- Node.js version (if relevant):
-- Google Maps JS API version / `libraries=` used:
-- OS:
+- How it is loaded: script tag (paste the URL) / npm `import 'location-picker'` / `location-picker/core` / `location-picker/v1`
+- Element (`<location-picker>`) or class (`new LocationPicker(…)`):
+- Provider: `leaflet` (default) / `google` / `maplibre` / custom adapter
+- Framework and version, if any (React, Vue, Angular, Svelte, Laravel, Django, …):
+- Browser and version:
+- Device and operating system:
 
 ## Additional context
 
-Screenshots, console logs, or anything else that might help.
+Screenshots, network errors, your Content Security Policy, or anything else that might help.
