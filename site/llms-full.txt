@@ -78,7 +78,7 @@ Leaflet 1.9.4 is loaded on demand from jsDelivr with Subresource Integrity, only
 - Zooming never changes the value: zoom is anchored at the pin.
 - Every commit fires `input` (final value), then `change`, with `detail.source`: `user`, `api`, `geolocation` or `search`. Live `input` events fire while the user drags.
 - Writing `el.value = '48.8584,2.2945'` is silent (no events), like a native `<input>`.
-- The value string is always latitude first, dot decimal, no spaces, 6 decimals at most: `"48.85837,2.294481"`.
+- The value string is always latitude first, dot decimal, no spaces, rounded to `precision` decimals (6 by default): `"48.85837,2.294481"`.
 
 ## Forms
 
