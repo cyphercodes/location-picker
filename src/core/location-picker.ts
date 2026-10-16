@@ -9,7 +9,6 @@ import type {
   LocationPickerOptions,
   SetLocationOptions,
 } from '../core.js';
-import type { CoreHost } from '../internal/contracts.js';
 import type { LatLng, LatLngInput } from '../utils.js';
 import { readLatLngInput, resolveConfig } from './config.js';
 import { ZERO_HEIGHT, emitDiagnostics, warnOnce } from './diagnostics.js';
@@ -20,24 +19,28 @@ import { version } from './version.js';
 /** Re-constructing on the same target destroys the previous instance (§4.6). */
 const instances = new WeakMap<HTMLElement, { destroy(): void }>();
 
-type Callback = ((...args: never[]) => void) | undefined;
+/** The `on*` option called right before each event (R3). */
+const CALLBACKS = {
+  input: 'onInput',
+  change: 'onChange',
+  addresschange: 'onAddressChange',
+  ready: 'onReady',
+  error: 'onError',
+} as const;
+
+/** Structural, so elements of another realm (an iframe's document) qualify too. */
 const isElement = (node: unknown): node is HTMLElement =>
-  typeof node == 'object' &&
-  node !== null &&
-  Reflect.get(node, 'nodeType') === 1 &&
-  'style' in node;
+  Reflect.get(Object(node), 'nodeType') === 1 && 'style' in Object(node);
 const isRoot = (node: Node): node is Document | ShadowRoot =>
   node.nodeType == 9 || node.nodeType == 11;
 
 function resolveTarget(target: string | HTMLElement): HTMLElement {
   let found: unknown = target;
   if (typeof target == 'string') {
-    const doc = globalThis.document;
-    found = doc?.getElementById(target);
     try {
-      found ??= doc?.querySelector(target);
+      found = document.getElementById(target) ?? document.querySelector(target);
     } catch {
-      // not a selector either
+      found = null; // no document (SSR), or neither an id nor a selector
     }
   }
   if (!isElement(found)) {
@@ -45,28 +48,52 @@ function resolveTarget(target: string | HTMLElement): HTMLElement {
       vars: { target: typeof target == 'string' ? JSON.stringify(target) : 'the given target' },
     });
   }
-  const element = found;
   if (
-    element.localName == 'location-picker' ||
-    typeof Reflect.get(element, 'setLocation') == 'function'
+    found.localName == 'location-picker' ||
+    typeof Reflect.get(found, 'setLocation') == 'function'
   ) {
     throw createError('INVALID_OPTION', {
       message: 'the target is already a <location-picker>',
       fix: 'Use its properties and events directly.',
     });
   }
-  return element;
+  return found;
 }
 
 /** Runs a user callback; an exception is rethrown asynchronously so the picker's own state stays consistent. */
-function call(callback: Callback, detail: unknown): void {
+function call(callback: unknown, detail: unknown): void {
   try {
-    if (callback) Reflect.apply(callback, undefined, [detail]);
+    if (typeof callback == 'function') Reflect.apply(callback, undefined, [detail]);
   } catch (error) {
     queueMicrotask(() => {
       throw error;
     });
   }
+}
+
+// The typed event-listener overloads of api.d.ts, merged in without runtime code (EventTarget implements them).
+// oxlint-disable-next-line typescript/no-unsafe-declaration-merging
+export interface LocationPicker<TMap = unknown> {
+  addEventListener<K extends keyof LocationPickerEventMap<TMap>>(
+    type: K,
+    listener: (this: this, ev: LocationPickerEventMap<TMap>[K]) => unknown,
+    options?: boolean | AddEventListenerOptions,
+  ): void;
+  addEventListener(
+    type: string,
+    listener: EventListenerOrEventListenerObject | null,
+    options?: boolean | AddEventListenerOptions,
+  ): void;
+  removeEventListener<K extends keyof LocationPickerEventMap<TMap>>(
+    type: K,
+    listener: (this: this, ev: LocationPickerEventMap<TMap>[K]) => unknown,
+    options?: boolean | EventListenerOptions,
+  ): void;
+  removeEventListener(
+    type: string,
+    listener: EventListenerOrEventListenerObject | null,
+    options?: boolean | EventListenerOptions,
+  ): void;
 }
 
 /**
@@ -83,6 +110,7 @@ function call(callback: Callback, detail: unknown): void {
  * await picker.ready;
  * const chosen = picker.valueAsLatLng; // null until the user chose a point
  */
+// oxlint-disable-next-line typescript/no-unsafe-declaration-merging
 export class LocationPicker<TMap = unknown> extends EventTarget {
   /** @example LocationPicker.version // "3.0.0" */
   static readonly version: string = version;
@@ -90,11 +118,9 @@ export class LocationPicker<TMap = unknown> extends EventTarget {
   readonly element: HTMLElement;
   readonly #core: PickerCore;
   readonly #options: LocationPickerOptions<TMap>;
-  /** Inline styles and the alias class this picker added to `target`, removed again by destroy(). */
-  readonly #added: { position?: boolean; minBlockSize?: boolean; aliasClass?: boolean } = {};
+  /** Undoes what the constructor added: the alias class and inline styles on `target`, the abort listener. */
+  readonly #undo: (() => void)[] = [];
   #ready: [Promise<unknown>, Promise<this>] | undefined;
-  #abort: (() => void) | undefined;
-  #destroyed = false;
 
   /**
    * @param target an element, an id (`"map"`, tried first) or a CSS selector (`"#map"`). Throws `TARGET_NOT_FOUND`,
@@ -120,7 +146,7 @@ export class LocationPicker<TMap = unknown> extends EventTarget {
     const element = (this.element = resolveTarget(target));
     instances.get(element)?.destroy();
     instances.set(element, this);
-    const o: LocationPickerOptions<TMap> = (this.#options = options ?? {});
+    const o = (this.#options = options ?? {});
     // TMap only types the callbacks and the adapter's map; the resolver never calls them.
     // oxlint-disable-next-line typescript/no-unsafe-type-assertion
     const result = resolveConfig(o as LocationPickerOptions, {
@@ -130,46 +156,47 @@ export class LocationPicker<TMap = unknown> extends EventTarget {
     });
     emitDiagnostics(result.diagnostics);
 
-    const added = this.#added;
-    const view = element.ownerDocument.defaultView;
-    if (!element.classList.contains('location-picker')) {
-      element.classList.add('location-picker');
-      added.aliasClass = true;
+    const { classList, style } = element;
+    const undo = this.#undo;
+    if (!classList.contains('location-picker')) {
+      classList.add('location-picker');
+      undo.push(() => classList.remove('location-picker'));
     }
-    if (
-      !element.style.position &&
-      (view?.getComputedStyle(element).position ?? 'static') == 'static'
-    ) {
-      element.style.setProperty('position', 'relative');
-      added.position = true;
+    const position = element.ownerDocument.defaultView?.getComputedStyle(element).position;
+    if (!style.position && (position ?? 'static') == 'static') {
+      style.position = 'relative';
+      undo.push(() => style.position == 'relative' && style.removeProperty('position'));
     }
     const root = element.getRootNode();
     const styleRoot = isRoot(root) ? root : element.ownerDocument;
-    const host: CoreHost = {
-      mode: 'class',
-      host: element,
-      renderRoot: element,
-      styleRoot,
-      lookupRoot: styleRoot,
-      eventTarget: this,
-      // PickerCore already mirrors every state as an `lp-is-*` class on its own `.lp-base`.
-      setState: (name, on) => this.#core?.refs.base.classList.toggle(`lp-is-${name}`, on),
-      beforeDispatch: (type, detail) => this.#beforeDispatch(type, detail),
-    };
-    const core = (this.#core = new PickerCore(host, result.config));
+    const core = (this.#core = new PickerCore(
+      {
+        mode: 'class',
+        host: element,
+        renderRoot: element,
+        styleRoot,
+        lookupRoot: styleRoot,
+        eventTarget: this,
+        // PickerCore itself mirrors every state as an `lp-is-*` class on its `.lp-base`.
+        setState() {},
+        beforeDispatch: (type, detail) => this.#beforeDispatch(type, detail),
+      },
+      result.config,
+    ));
     // A target that measures 0 px tall while rendered would show nothing (§3.7).
     if (element.getClientRects().length && !element.getBoundingClientRect().height) {
-      element.style.setProperty('min-block-size', '320px');
-      added.minBlockSize = true;
+      style.setProperty('min-block-size', '320px');
+      undo.push(() => style.removeProperty('min-block-size'));
       warnOnce('zero-height', ZERO_HEIGHT);
     }
     for (const error of result.errors) queueMicrotask(() => core.report(error));
     core.mount();
     const signal = o.signal;
     if (signal) {
-      const abort = (this.#abort = (): void => this.destroy());
+      const abort = (): void => this.destroy();
       if (signal.aborted) queueMicrotask(abort);
-      else signal.addEventListener('abort', abort, { once: true });
+      signal.addEventListener('abort', abort, { once: true });
+      undo.push(() => signal.removeEventListener('abort', abort));
     }
   }
 
@@ -250,7 +277,7 @@ export class LocationPicker<TMap = unknown> extends EventTarget {
     return this.#core.config.locate;
   }
   set locateMode(mode: LocateMode) {
-    if (mode == 'off' || mode == 'button' || mode == 'auto') this.#core.update({ locate: mode });
+    if (/^(off|button|auto)$/.test(mode)) this.#core.update({ locate: mode });
   }
 
   /**
@@ -278,10 +305,11 @@ export class LocationPicker<TMap = unknown> extends EventTarget {
     options?: SetLocationOptions,
   ): void {
     const numeric = typeof position == 'number';
-    const read = readLatLngInput(numeric ? { lat: position, lng: lngOrOptions } : position);
-    const value = read.value;
-    if (!value) throw read.error ?? createError('INVALID_VALUE', { vars: { value: '""' } });
-    if (read.diagnostic) emitDiagnostics([read.diagnostic]);
+    const { value, error, diagnostic } = readLatLngInput(
+      numeric ? { lat: position, lng: lngOrOptions } : position,
+    );
+    if (!value) throw error ?? createError('INVALID_VALUE', { vars: { value: '""' } });
+    if (diagnostic) emitDiagnostics([diagnostic]);
     this.#core.setLocation(
       value,
       numeric ? options : typeof lngOrOptions == 'object' ? lngOrOptions : undefined,
@@ -318,62 +346,16 @@ export class LocationPicker<TMap = unknown> extends EventTarget {
   }
   /** Idempotent. Removes the DOM and listeners the picker created, removes the map it created, aborts pending work (pending promises reject with ABORTED). */
   destroy(): void {
-    if (this.#destroyed) return;
-    this.#destroyed = true;
     this.#core.destroy();
-    const element = this.element;
-    if (instances.get(element) === this) instances.delete(element);
-    const added = this.#added;
-    if (added.aliasClass) element.classList.remove('location-picker');
-    if (added.position && element.style.position == 'relative')
-      element.style.removeProperty('position');
-    if (added.minBlockSize) element.style.removeProperty('min-block-size');
-    if (this.#abort) this.#options.signal?.removeEventListener('abort', this.#abort);
-  }
-
-  override addEventListener<K extends keyof LocationPickerEventMap<TMap>>(
-    type: K,
-    listener: (this: this, ev: LocationPickerEventMap<TMap>[K]) => unknown,
-    options?: boolean | AddEventListenerOptions,
-  ): void;
-  override addEventListener(
-    type: string,
-    listener: EventListenerOrEventListenerObject | null,
-    options?: boolean | AddEventListenerOptions,
-  ): void;
-  override addEventListener(
-    type: string,
-    listener: EventListenerOrEventListenerObject | null,
-    options?: boolean | AddEventListenerOptions,
-  ): void {
-    super.addEventListener(type, listener, options);
-  }
-  override removeEventListener<K extends keyof LocationPickerEventMap<TMap>>(
-    type: K,
-    listener: (this: this, ev: LocationPickerEventMap<TMap>[K]) => unknown,
-    options?: boolean | EventListenerOptions,
-  ): void;
-  override removeEventListener(
-    type: string,
-    listener: EventListenerOrEventListenerObject | null,
-    options?: boolean | EventListenerOptions,
-  ): void;
-  override removeEventListener(
-    type: string,
-    listener: EventListenerOrEventListenerObject | null,
-    options?: boolean | EventListenerOptions,
-  ): void {
-    super.removeEventListener(type, listener, options);
+    if (instances.get(this.element) === this) instances.delete(this.element);
+    for (const undo of this.#undo.splice(0)) undo();
   }
 
   #write(input: LatLngInput | null): void {
-    const read = readLatLngInput(input);
-    if (read.error) {
-      const error = read.error;
-      queueMicrotask(() => this.#core.report(error));
-    }
-    if (read.diagnostic) emitDiagnostics([read.diagnostic]);
-    this.#core.writeValue(read.value, { dirty: true, cause: 'write' });
+    const { value, error, diagnostic } = readLatLngInput(input);
+    if (error) queueMicrotask(() => this.#core.report(error));
+    if (diagnostic) emitDiagnostics([diagnostic]);
+    this.#core.writeValue(value, { dirty: true, cause: 'write' });
   }
 
   /** onX callbacks run right before their event; `onError` marks errors as handled (§3.5). */
@@ -382,25 +364,13 @@ export class LocationPicker<TMap = unknown> extends EventTarget {
     detail: LocationPickerEventMap[K]['detail'],
   ): boolean {
     const o = this.#options;
-    const callbacks: Record<keyof LocationPickerEventMap, Callback> = {
-      input: o.onInput,
-      change: o.onChange,
-      addresschange: o.onAddressChange,
-      ready: o.onReady,
-      error: o.onError,
-    };
-    call(callbacks[type], detail);
+    call(o[CALLBACKS[type]], detail);
     if (type == 'change') call(o.onLocationChange, detail);
     // v2 called onLocationChange on its first idle; v3 does so after `ready`, only when a value is set (§4.6).
     const snapshot = this.#core?.snapshot;
     if (type == 'ready' && o.onLocationChange && snapshot?.latLng) {
-      const now: LocationDetail = {
-        ...snapshot.latLng,
-        value: snapshot.value,
-        source: 'api',
-        zoom: snapshot.zoom,
-        address: snapshot.address,
-      };
+      const { latLng, value, zoom, address } = snapshot;
+      const now: LocationDetail = { ...latLng, value, source: 'api', zoom, address };
       queueMicrotask(() => call(o.onLocationChange, now));
     }
     return type == 'error' && !!o.onError;
