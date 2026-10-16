@@ -39,17 +39,18 @@ export function geolocate(options: LocateOptions = {}): Promise<GeolocationPosit
         )
       : undefined;
     signal?.addEventListener('abort', onAbort);
-    navigator.geolocation.getCurrentPosition(
-      (fix) => finish(() => resolve(fix)),
-      (error) =>
-        finish(() =>
-          reject(
-            createError(CODES[error.code] ?? 'GEOLOCATION_UNAVAILABLE', {
-              cause: error,
-            }),
-          ),
-        ),
-      position,
-    );
+    const fail = (cause: unknown, code?: number): void =>
+      finish(() =>
+        reject(createError((code && CODES[code]) || 'GEOLOCATION_UNAVAILABLE', { cause })),
+      );
+    try {
+      navigator.geolocation.getCurrentPosition(
+        (fix) => finish(() => resolve(fix)),
+        (error) => fail(error, error.code),
+        position,
+      );
+    } catch (cause) {
+      fail(cause);
+    }
   });
 }

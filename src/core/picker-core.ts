@@ -101,7 +101,7 @@ const toLatLng = (value: string): LatLng => {
 };
 const asError = (
   cause: unknown,
-  code: 'GEOCODER_FAILED' | 'ENGINE_LOAD_FAILED',
+  code: 'GEOCODER_FAILED' | 'ENGINE_LOAD_FAILED' | 'GEOLOCATION_UNAVAILABLE',
 ): LocationPickerError => (isLocationPickerError(cause) ? cause : createError(code, { cause }));
 
 type GeolocationText =
@@ -368,7 +368,7 @@ export class PickerCore {
       const at = normalizeLatLng({ lat: fix.coords.latitude, lng: fix.coords.longitude });
       return this.#commit(at, 'geolocation', { zoom, accuracy: fix.coords.accuracy });
     } catch (cause) {
-      const error = asError(cause, 'GEOCODER_FAILED');
+      const error = asError(cause, 'GEOLOCATION_UNAVAILABLE');
       if (via != 'method' && error.code != 'ABORTED' && !this.#dead) {
         this.report(error);
         const text = GEOLOCATION_TEXT[error.code];
@@ -721,6 +721,7 @@ export class PickerCore {
 
   #commit(at: LatLng, source: ChangeSource, extra: Extra = {}): LocationDetail {
     const value = this.#canonical(at);
+    const zoom = this.#zoom;
     if (extra.move !== false) this.#view(toLatLng(value), extra.zoom, extra.animate);
     const changed = value != this.#committed;
     if (changed) {
@@ -739,7 +740,7 @@ export class PickerCore {
       this.#dirty = true;
       this.#refresh();
       this.#emitSnapshot('commit');
-    }
+    } else if (this.#zoom != zoom) this.#emitSnapshot('zoom');
     const detail = this.#detail(source, extra, this.#address);
     if (!changed) return detail;
     this.#inputs?.write(value, this.#address, 'commit');

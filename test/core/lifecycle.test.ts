@@ -438,3 +438,16 @@ describe('WP2-18 fallback coordinate input', () => {
     ]);
   });
 });
+
+describe('geolocation failures that are not GeolocationPositionErrors', () => {
+  it('map to GEOLOCATION_UNAVAILABLE, never a geocoder code', async () => {
+    stubGeolocation(() => {
+      throw new TypeError('the API threw');
+    });
+    const { picker } = mountPicker();
+    await expect(picker.locate()).rejects.toMatchObject({
+      code: 'GEOLOCATION_UNAVAILABLE',
+      cause: expect.any(TypeError),
+    });
+  });
+});

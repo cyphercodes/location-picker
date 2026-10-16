@@ -634,3 +634,16 @@ describe('update() before the first mount()', () => {
     expect(other.ctx?.options.mapOptions).toEqual({ c: 3 });
   });
 });
+
+describe('small commit paths', () => {
+  it('setLocation() to the current value with a new zoom only zooms (snapshot "zoom", no events)', async () => {
+    const h = elementCore({ value: '1,2', zoom: 10 });
+    h.core.mount();
+    await h.core.ready;
+    await flush();
+    h.core.setLocation({ lat: 1, lng: 2 }, { zoom: 14 });
+    expect(causes(h).at(-1)).toBe('zoom');
+    expect(h.core.snapshot.zoom).toBe(14);
+    expect(summary(h.log)).toEqual(['ready']);
+  });
+});
