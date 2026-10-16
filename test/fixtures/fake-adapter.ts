@@ -1,5 +1,7 @@
 // CONTRACT §12.6 fake adapter (WP2): an in-memory engine for core, element and provider-orchestration tests. Like
 // Leaflet, setView/setZoom echo move/moveEnd synchronously; user gestures report interactionStart/End around them.
+// Pans must cover at least one screen pixel (256 px tiles) at the current zoom: the core ignores sub-pixel drift, so at
+// the unset default zoom 2 (about 0.35° per pixel) a 0.05° pan commits nothing.
 import type { MapHandle, MountContext, ProviderAdapter } from '../../src/core.js';
 import { createError } from '../../src/core/errors.js';
 import { onFrame } from '../../src/core/picker-core.js';

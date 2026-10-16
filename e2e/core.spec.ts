@@ -462,6 +462,10 @@ test.describe('WP2-24 value semantics on real Leaflet', () => {
       beforeRelease: record,
     });
     await settled(page, 'a');
+    // A transition that is already running finishes even after the preference changes: let the drop end first.
+    await expect
+      .poll(() => page.locator('#a .lp-pin').evaluate((pin) => pin.getAnimations().length))
+      .toBe(0);
     await page.emulateMedia({ reducedMotion: 'reduce' });
     await gesture(page, 'a', input, [await mapCentre(page, 'a')], [{ x: 80, y: 0 }], {
       beforeRelease: record,
