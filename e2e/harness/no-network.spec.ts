@@ -32,3 +32,21 @@ test('serves pinned Leaflet locally with CORS, so SRI passes', async ({ page }) 
   );
   expect(version).toBe('1.9.4');
 });
+
+test('maps location-picker@3 onto the local dist and refuses paths it cannot serve', async ({
+  page,
+  network,
+}) => {
+  await page.goto('/e2e/harness/blank.html');
+  const statuses = await page.evaluate(() =>
+    Promise.all(
+      [
+        'https://cdn.jsdelivr.net/npm/location-picker@3',
+        'https://cdn.jsdelivr.net/npm/location-picker@3/dist/location-picker.min.js',
+        'https://cdn.jsdelivr.net/npm/location-picker@3/+esm',
+      ].map((url) => fetch(url).then((response) => response.status)),
+    ),
+  );
+  expect(statuses).toEqual([200, 200, 404]);
+  expect(network.takeBlocked()).toEqual(['https://cdn.jsdelivr.net/npm/location-picker@3/+esm']);
+});

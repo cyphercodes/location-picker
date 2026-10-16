@@ -1,5 +1,5 @@
 // Checks that the npm tarball contains exactly the CONTRACT §1.2 file set (run after `npm run build`).
-// Only dist/_chunks/* names may vary. Sourcemaps: a JS output that names a map must ship it, with sourcesContent.
+// Only dist/_chunks/* names may vary.
 import { execFileSync } from 'node:child_process';
 import { createHash } from 'node:crypto';
 import { readFileSync } from 'node:fs';
@@ -53,11 +53,17 @@ for (const file of files) {
     problems.push(`unexpected: ${file}`);
 }
 
+// §1.2: every ESM, CJS and IIFE output ships a sourcemap with sourcesContent.
+const NO_MAP = new Set(['dist/location-picker.min.js', 'dist/jsx/empty.js']);
+// Placeholder outputs with no code yet produce no map; drop each line when its owner lands the real entry.
+const PENDING_MAP = new Set([
+  'dist/index.mjs', // WP4 (src/index.ts)
+  'dist/index.cjs', // WP4 (src/index.ts)
+  'dist/location-picker.global.js', // WP4 (src/global.ts)
+]);
 for (const file of files) {
-  if (!/\.(mjs|cjs|js)$/.test(file)) continue;
-  const mapName = /\/\/# sourceMappingURL=(\S+)\s*$/.exec(readFileSync(file, 'utf8'))?.[1];
-  if (!mapName) continue;
-  const mapFile = file.replace(/[^/]+$/, mapName);
+  if (!/\.(mjs|cjs|js)$/.test(file) || NO_MAP.has(file) || PENDING_MAP.has(file)) continue;
+  const mapFile = `${file}.map`;
   if (!files.has(mapFile)) problems.push(`missing sourcemap: ${mapFile}`);
   else if (!JSON.parse(readFileSync(mapFile, 'utf8')).sourcesContent?.length) {
     problems.push(`sourcemap without sourcesContent: ${mapFile}`);

@@ -120,10 +120,21 @@ export async function installRoutes(target: Routable, options: RouteOptions = {}
     }),
   );
 
-  // location-picker@3 (bare) is the IIFE; location-picker@3/dist/* maps onto the local dist/.
+  // location-picker@3 (bare) is the IIFE; location-picker@3/dist/* maps onto the local dist/. Other paths (such as
+  // /+esm, which jsDelivr bundles on the fly) have no local equivalent: 404, recorded so the test fails loudly.
   await target.route(ROUTED_URLS.library, (route) => {
-    const file = /\/dist\/([^?#]+)/.exec(route.request().url())?.[1] ?? 'location-picker.global.js';
-    return fulfillFile(route, DIST, file);
+    const url = route.request().url();
+    const file = /\/dist\/([^?#]+)/.exec(url)?.[1];
+    if (file) return fulfillFile(route, DIST, file);
+    if (/location-picker@[^/]+\/?(?:[?#]|$)/.test(url)) {
+      return fulfillFile(route, DIST, 'location-picker.global.js');
+    }
+    blocked.get(target)?.push(url);
+    return fulfill(route, {
+      status: 404,
+      body: `no local equivalent: ${url}`,
+      contentType: 'text/plain',
+    });
   });
 }
 
