@@ -34,7 +34,7 @@
   inset-block-start: 50%;
   inline-size: calc(var(--lp-pin-size, 44px) * 28 / 44);
   block-size: var(--lp-pin-size, 44px);
-  margin-inline-start: calc(var(--lp-pin-size, 44px) * 28 / 44 / -2);
+  margin-inline-start: calc(var(--lp-pin-size, 44px) * -14 / 44);
   margin-block-start: calc(1px - var(--lp-pin-size, 44px));
   pointer-events: none;
   transition:
@@ -120,13 +120,11 @@
   gap: 8px;
 }
 :where(.lp-locate) {
-  display: grid;
-  place-items: center;
   padding: 0;
 }
 :where(.lp-icon) {
   inline-size: 20px;
-  block-size: 20px;
+  vertical-align: middle;
   fill: none;
   stroke: currentColor;
   stroke-width: 2;
@@ -139,7 +137,7 @@
   translate: -50%;
   padding-inline: 16px;
   background: var(--lp-accent, light-dark(#1d4ed8, #93c5fd));
-  color: light-dark(#fff, #111827);
+  color: light-dark(#fff, #000);
 }
 :where(.lp-search) {
   position: absolute;
@@ -150,23 +148,16 @@
 :where(.lp-hint, .lp-error) {
   position: absolute;
   z-index: 2;
+  inset-block-start: 12px;
   inset-inline: 12px;
   margin-inline: auto;
   inline-size: fit-content;
   padding: 8px 12px;
   border-radius: var(--lp-radius, 8px);
-  text-align: center;
+  background: var(--lp-surface, light-dark(#fff, #1f1f1f));
 }
 :where(.lp-hint) {
-  inset-block-start: 50%;
-  translate: 0 -50%;
-  background: rgb(0 0 0 / 0.75);
-  color: #fff;
   pointer-events: none;
-}
-:where(.lp-error) {
-  inset-block-start: 12px;
-  background: var(--lp-surface, light-dark(#fff, #1f1f1f));
 }
 :where(.lp-fallback) {
   position: absolute;

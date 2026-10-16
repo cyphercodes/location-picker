@@ -176,7 +176,8 @@ export function providerOptions(config: C.ResolvedConfig): ProviderMountOptions 
 
 /**
  * Builds the MountContext handed to adapters (§4); `events` feed back into `core` until `signal` aborts. Takes the
- * real PickerCore (§12.3 types it as the contract class), whose adapter-facing members are not part of §12.1.
+ * real PickerCore (§12.3 types it as the contract class), whose adapter-facing members are not part of §12.1. The
+ * context also carries `messages` (not in the contract) for the cooperative-gesture hint.
  */
 export function createMountContext(
   core: PickerCore,
@@ -193,7 +194,7 @@ export function createMountContext(
     };
   const doc = refs.map.ownerDocument;
   const page = doc.scrollingElement ?? doc.documentElement;
-  return {
+  const ctx: MountContext = {
     container: refs.map,
     root,
     view,
@@ -217,6 +218,8 @@ export function createMountContext(
     showHint: live((text: string) => core.showHint(text)),
     report: live((error) => core.report(error)),
   };
+  // Not in the §12 MountContext: the UI strings, so adapters can show `messages.cooperativeHint`.
+  return Object.assign(ctx, { messages: config.messages });
 }
 
 loadScript satisfies typeof C.loadScript;

@@ -7,6 +7,7 @@ import type {
   LocationPickerOptions,
   SearchContext,
 } from '../../src/core.js';
+import { LocationPickerError } from '../../src/core.js';
 import { resolveConfig } from '../../src/core/config.js';
 import { PickerCore } from '../../src/core/picker-core.js';
 import { erased, SEARCH_UI } from '../../src/core/providers.js';
@@ -553,5 +554,66 @@ describe('the config type stays in sync', () => {
       'precision',
     ];
     for (const key of keys) expect(key in config).toBe(true);
+  });
+});
+
+describe('the MountContext handed to adapters', () => {
+  it('describes the mount: container, root, view, interactivity, options, nonce and messages', async () => {
+    const h = elementCore({
+      value: '1,2',
+      zoom: 9,
+      readOnly: true,
+      nonce: 'n9',
+      lang: 'fr',
+      mapOptions: { a: 1 },
+    });
+    h.core.mount();
+    await h.core.ready;
+    const ctx = must(h.fake.ctx);
+    expect(ctx.container).toBe(h.core.refs.map);
+    expect(ctx.root).toBe(h.element.shadowRoot);
+    expect(ctx.view).toEqual({ center: { lat: 1, lng: 2 }, zoom: 9 });
+    expect(ctx).toMatchObject({
+      interactive: 'zoom-only',
+      gestureHandling: 'auto',
+      lang: 'fr',
+      nonce: 'n9',
+    });
+    expect(ctx.options).toMatchObject({
+      tileUrl: undefined,
+      attribution: undefined,
+      mapStyle: undefined,
+      marker: 'pin',
+      search: false,
+      mapOptions: { a: 1 },
+    });
+    expect(Reflect.get(ctx, 'messages')).toMatchObject({
+      cooperativeHint: expect.stringContaining('scroll to zoom'),
+    });
+    expect(['light', 'dark', 'auto']).toContain(ctx.colorScheme);
+  });
+
+  it('showHint shows a transient hint; report dispatches an error event; both stop after a remount', async () => {
+    vi.useFakeTimers();
+    spyConsole();
+    const h = elementCore();
+    h.core.mount();
+    const ctx = must(h.fake.ctx);
+    ctx.showHint('Use Ctrl + scroll to zoom the map');
+    expect(h.core.refs.hint).toMatchObject({
+      hidden: false,
+      textContent: 'Use Ctrl + scroll to zoom the map',
+    });
+    await vi.advanceTimersByTimeAsync(1500);
+    expect(h.core.refs.hint.hidden).toBe(true);
+    const auth = new LocationPickerError('GOOGLE_AUTH_FAILED');
+    ctx.report(auth);
+    expect(errors(h.log)).toEqual([auth]);
+    h.core.update({ mapOptions: { b: 1 } });
+    await vi.advanceTimersByTimeAsync(0);
+    ctx.report(auth);
+    ctx.events.interactionStart();
+    expect(errors(h.log)).toHaveLength(1);
+    expect(h.states.has('dragging')).toBe(false);
   });
 });

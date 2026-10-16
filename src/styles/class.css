@@ -20,7 +20,7 @@
   inline-size: calc(var(--lp-pin-size, 44px) * 28 / 44);
   block-size: var(--lp-pin-size, 44px);
   margin: 0;
-  margin-inline-start: calc(var(--lp-pin-size, 44px) * 28 / 44 / -2);
+  margin-inline-start: calc(var(--lp-pin-size, 44px) * -14 / 44);
   margin-block-start: calc(1px - var(--lp-pin-size, 44px));
 }
 location-picker:not(:defined):not([hidden]) {
