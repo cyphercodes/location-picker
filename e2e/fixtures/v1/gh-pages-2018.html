@@ -1,0 +1,59 @@
+<!doctype html>
+<!-- The 2018 gh-pages example (origin/gh-pages:example/index.html, 3aa437f), verbatim except the doctype case and the
+     two script URLs: Google Maps (with its API key) -> the classic stub; unpkg location-picker -> the local v1 file. -->
+<!-- prettier-ignore -->
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Example</title>
+  <script type="text/javascript"
+          src="/e2e/fixtures/v1/google-classic-stub.js"></script>
+  <script src="/dist/location-picker.min.js"></script>
+  <style type="text/css">
+    #map {
+      width: 100%;
+      height: 480px;
+    }
+  </style>
+</head>
+
+<body>
+<div id="map"></div>
+<br>
+<button id="confirmPosition">Confirm Position</button>
+<br>
+<p>On idle position: <span id="onIdlePositionView"></span></p>
+<p>On click position: <span id="onClickPositionView"></span></p>
+<script>
+  // Get element references
+  var confirmBtn = document.getElementById('confirmPosition');
+  var onClickPositionView = document.getElementById('onClickPositionView');
+  var onIdlePositionView = document.getElementById('onIdlePositionView');
+  var map = document.getElementById('map');
+
+  // Initialize LocationPicker plugin
+  var lp = new locationPicker(map, {
+    setCurrentPosition: true, // You can omit this, defaults to true
+    lat: 45.5017,
+    lng: -73.5673
+  }, {
+    zoom: 15 // You can set any google map options here, zoom defaults to 15
+  });
+
+  // Listen to button onclick event
+  confirmBtn.onclick = function () {
+    // Get current location and show it in HTML
+    var location = lp.getMarkerPosition();
+    onClickPositionView.innerHTML = 'The chosen location is ' + location.lat + ',' + location.lng;
+  };
+
+  // Listen to map idle event, listening to idle event more accurate than listening to ondrag event
+  google.maps.event.addListener(lp.map, 'idle', function (event) {
+    // Get current location and show it in HTML
+    var location = lp.getMarkerPosition();
+    onIdlePositionView.innerHTML = 'The chosen location is ' + location.lat + ',' + location.lng;
+  });
+</script>
+
+</body>
+</html>

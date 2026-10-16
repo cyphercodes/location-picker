@@ -1,0 +1,51 @@
+<!doctype html>
+<!-- An OpenWebRX-style settings page. OpenWebRX vendors the v1 file as a plain <script> (htdocs/lib/location-picker.min.js)
+     and its lib/settings/MapInput.js, rewritten here without jQuery, loads Google on demand, then passes the map
+     HTMLElement and the parsed lat/lon inputs, and writes the position back into the inputs on every `idle`.
+     The only rewrites: the Google script URL (-> the classic stub) and the picker URL (-> the local frozen v1 file). -->
+<!-- prettier-ignore -->
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <title>Settings - OpenWebRX</title>
+  <script src="/dist/location-picker.min.js"></script>
+</head>
+<body>
+<form class="settings-body" method="POST">
+  <label>Receiver GPS position</label>
+  <div class="map-input" for="receiver_gps" data-key="TEST_KEY"></div>
+  <input type="number" step="any" id="receiver_gps-lat" name="receiver_gps-lat" value="51.4779">
+  <input type="number" step="any" id="receiver_gps-lon" name="receiver_gps-lon" value="0">
+</form>
+<script>
+  // lib/settings/MapInput.js ($.fn.mapInput), without jQuery.
+  function mapInput(el) {
+    var fieldId = el.getAttribute('for');
+    var lat = document.getElementById(fieldId + '-lat');
+    var lon = document.getElementById(fieldId + '-lon');
+    var script = document.createElement('script');
+    // was: 'https://maps.googleapis.com/maps/api/js?key=' + $el.data('key')
+    script.src = '/e2e/fixtures/v1/google-classic-stub.js?key=' + el.getAttribute('data-key');
+    script.onload = function () {
+      el.style.height = '200px';
+      var lp = new locationPicker(el, {
+        lat: parseFloat(lat.value),
+        lng: parseFloat(lon.value)
+      }, {
+        zoom: 7
+      });
+
+      google.maps.event.addListener(lp.map, 'idle', function (event) {
+        var pos = lp.getMarkerPosition();
+        lat.value = pos.lat;
+        lon.value = pos.lng;
+      });
+      window.__lp = lp; // test hook
+    };
+    document.head.appendChild(script);
+  }
+  var inputs = document.querySelectorAll('.map-input');
+  for (var i = 0; i < inputs.length; i++) mapInput(inputs[i]);
+</script>
+</body>
+</html>
