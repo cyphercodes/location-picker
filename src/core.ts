@@ -1,9 +1,10 @@
-// placeholder: owned by WP2 (types copied from api.d.ts so other WPs can build against them; the class throws)
+// location-picker/core: the side-effect-free class entry (CONTRACT §2). The public types live here, verbatim from
+// api.d.ts; the implementations live in ./core/.
 export * from './utils.js';
 import type { LatLng, LatLngInput } from './utils.js';
 
-/** Library version. @example version // "3.0.0" */
-export const version: string = '3.0.0-alpha.0';
+export { version } from './core/version.js';
+export { LocationPicker, LocationPicker as default } from './core/location-picker.js';
 
 /** Built-in map providers. Aliases `"osm"`/`"openstreetmap"` -> `leaflet`, `"googlemaps"`/`"google-maps"` -> `google` are accepted with a warning. */
 export type ProviderName = 'leaflet' | 'google' | 'maplibre';
@@ -349,150 +350,6 @@ export interface LocationPickerOptions<TMap = unknown> {
   /** @deprecated v2. -> `marker: 'advanced'` (Google only; needs `mapId`). Selects `'google'` when `provider` is omitted. */
   useAdvancedMarker?: boolean;
 }
-
-// The interface carries the instance surface; the class below is a placeholder that throws.
-// eslint-disable-next-line typescript/no-unsafe-declaration-merging
-export interface LocationPicker<TMap = unknown> extends EventTarget {
-  /** The target element (v1/v2 `.element`). */
-  readonly element: HTMLElement;
-  /** The map container div the picker created inside `element`. */
-  readonly container: HTMLElement;
-  /** Resolved provider name. @example "leaflet" */
-  readonly provider: string;
-  /**
-   * Engine map (L.Map, google.maps.Map, maplibregl.Map). `undefined` until `ready`, except when an adapter OBJECT is
-   * passed and its engine is already present: then it is set synchronously in the constructor.
-   */
-  readonly map: TMap | undefined;
-  /**
-   * Resolves when the map is mounted and interactive; rejects with LocationPickerError. The promise itself never
-   * triggers `unhandledrejection` when ignored. A promise you DERIVE from it (`await`, or `.then()` without a
-   * rejection handler) rejects like any other promise: add `.catch()`, or use the `ready`/`error` events.
-   * @example picker.ready.then((p) => p.map).catch((e) => console.warn(e.code));
-   */
-  readonly ready: Promise<this>;
-  /** Committed canonical `"lat,lng"`, or `""` while unset. Setting is SILENT (no events) and accepts any LatLngInput or `""`/null to clear. A string that does not parse warns (INVALID_VALUE) and clears; an object is normalised (latitude clamped with a warning). @default "" */
-  get value(): string;
-  set value(value: LatLngInput | null);
-  /** Committed value as an object, or null while unset. Setting is silent. @default null */
-  get valueAsLatLng(): LatLng | null;
-  set valueAsLatLng(value: LatLngInput | null);
-  /** Address of the current value (search pick or reverse geocode), or null. */
-  readonly address: string | null;
-  /** Live zoom. Setting zooms around the pin and never changes the value. */
-  zoom: number;
-  /** @default false */
-  disabled: boolean;
-  /** @default false */
-  readOnly: boolean;
-  /** Locate-control mode (option `locate`). @default 'off' */
-  locateMode: LocateMode;
-  /**
-   * v1/v2: the current map centre (the point under the pin), normalised, unrounded. Never null: before the map exists
-   * it returns the value, else the centre. While the picker is UNSET this is only the view centre (e.g. the 20,0 world
-   * view), not a chosen location, and the first such call logs one console warning. To read the user's choice, use
-   * `valueAsLatLng` (null while unset) or `value` (`""` while unset).
-   * @example const { lat, lng } = picker.getMarkerPosition();
-   */
-  getMarkerPosition(): LatLng;
-  /**
-   * Move the pin and COMMIT (fires `input` then `change` with source `"api"` when the rounded value changed).
-   * Throws `INVALID_VALUE` for a string that does not parse. Numbers and objects are normalised: `setLocation(95, 10)`
-   * commits `"90,10"` and logs one warning ("latitude 95 was clamped to 90; did you swap lat and lng? try (10, 95)").
-   * @example picker.setLocation(48.8584, 2.2945)
-   */
-  setLocation(lat: number, lng: number, options?: SetLocationOptions): void;
-  /** @example picker.setLocation('48.8584, 2.2945', { zoom: 17 }) */
-  setLocation(position: LatLngInput, options?: SetLocationOptions): void;
-  /**
-   * Geolocate and commit (source `"geolocation"`; zoom becomes max(current, 17)). Rejects with
-   * GEOLOCATION_UNSUPPORTED | GEOLOCATION_DENIED | GEOLOCATION_UNAVAILABLE | GEOLOCATION_TIMEOUT | ABORTED; never hangs.
-   * Does not fire `error` (the promise is the channel).
-   * @example const { lat, lng } = await picker.locate();
-   */
-  locate(options?: LocateOptions): Promise<LocationDetail>;
-  /** v1/v2 alias of {@link LocationPicker.locate} that keeps the current zoom (v2 only re-centred). Same promise, errors and `change` (source `"geolocation"`). */
-  setCurrentPosition(options?: LocateOptions): Promise<LocationDetail>;
-  /**
-   * Forward-geocode with the paired (or custom) geocoder; results are NOT committed. A query that parses as
-   * coordinates returns one offline result. Rejects GEOCODER_MISSING / GEOCODER_FAILED / ABORTED.
-   * @example const [best] = await picker.geocode('Eiffel Tower');
-   */
-  geocode(query: string, options?: GeocodeOptions): Promise<GeocodeResult[]>;
-  /**
-   * Reverse-geocode `at` (default: the current value); cached. When `at` is the current value, also updates
-   * `address` and fires `addresschange`.
-   * @example const r = await picker.lookupAddress(); console.log(r?.address);
-   */
-  lookupAddress(at?: LatLngInput, options?: GeocodeOptions): Promise<GeocodeResult | null>;
-  /** Idempotent. Removes the DOM and listeners the picker created, removes the map it created, aborts pending work (pending promises reject with ABORTED). */
-  destroy(): void;
-  addEventListener<K extends keyof LocationPickerEventMap<TMap>>(
-    type: K,
-    listener: (this: this, ev: LocationPickerEventMap<TMap>[K]) => unknown,
-    options?: boolean | AddEventListenerOptions,
-  ): void;
-  addEventListener(
-    type: string,
-    listener: EventListenerOrEventListenerObject | null,
-    options?: boolean | AddEventListenerOptions,
-  ): void;
-  removeEventListener<K extends keyof LocationPickerEventMap<TMap>>(
-    type: K,
-    listener: (this: this, ev: LocationPickerEventMap<TMap>[K]) => unknown,
-    options?: boolean | EventListenerOptions,
-  ): void;
-  removeEventListener(
-    type: string,
-    listener: EventListenerOrEventListenerObject | null,
-    options?: boolean | EventListenerOptions,
-  ): void;
-}
-/**
- * Imperative picker. Renders into a light-DOM container YOU own: `target` keeps its children; the picker appends one
- * `div.lp-base` wrapper holding `.lp-map`, `.lp-pin.centerMarker` (v1 alias), `.lp-controls`, `.lp-status` (plus
- * `.lp-search` when `search` is on). State classes (`lp-is-unset`, `lp-is-dragging`, …) live on `.lp-base`, never on
- * `target`, so a framework that rewrites `target.className` breaks nothing. The picker also adds the class
- * `location-picker` to `target` (only for v1 CSS overrides such as `.location-picker .centerMarker{display:none}`)
- * and, when `target` computes `position: static`, an inline `position: relative`. Re-constructing on the same target
- * destroys the previous instance.
- * Not a form control: use `<location-picker>` for forms, or bind inputs with `latInput`/`lngInput`.
- * @example
- * const picker = new LocationPicker('#map', { search: true, onChange: (d) => console.log(d.value) });
- * await picker.ready;
- * const chosen = picker.valueAsLatLng; // null until the user chose a point
- */
-// eslint-disable-next-line typescript/no-unsafe-declaration-merging
-export class LocationPicker<TMap = unknown> extends EventTarget {
-  /** @example LocationPicker.version // "3.0.0" */
-  static readonly version: string = version;
-  /**
-   * @param target an element, an id (`"map"`, tried first) or a CSS selector (`"#map"`). Throws `TARGET_NOT_FOUND`,
-   *   or `INVALID_OPTION` if `target` is a `<location-picker>` (use the element directly).
-   * @param options see {@link LocationPickerOptions}
-   */
-  constructor(target: string | HTMLElement, options?: LocationPickerOptions<TMap>);
-  /**
-   * @deprecated v1/v2 signature. The 3rd argument is merged into `options.mapOptions` and selects
-   * `provider: 'google'` unless `options.provider` is set (logs one deprecation warning).
-   */
-  constructor(
-    target: string | HTMLElement,
-    options: LocationPickerOptions<TMap> | undefined,
-    mapOptions: Record<string, unknown>,
-  );
-  constructor(
-    _target: string | HTMLElement,
-    _options?: LocationPickerOptions<TMap>,
-    _mapOptions?: Record<string, unknown>,
-  ) {
-    super();
-    throw new Error(
-      'location-picker: LocationPicker is not implemented yet (placeholder: owned by WP2)',
-    );
-  }
-}
-export default LocationPicker;
 
 // ---------------------------------------------------------------------------------------------------------------
 // Provider adapter contract (public: lets anyone plug in another engine, e.g. OpenLayers)

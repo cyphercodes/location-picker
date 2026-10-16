@@ -1,1 +1,191 @@
-/* placeholder: owned by WP2 (shared picker rules, the source of truth for both sheets) */
+/*
+ * Shared picker rules, the source of truth for both sheets (CONTRACT §3.1, §3.7). Both modes carry the lp-* classes,
+ * and PickerCore mirrors every state as an lp-is-* class on .lp-base. Every rule is wrapped in :where() (zero
+ * specificity) so user CSS wins. Custom properties are read with their defaults at the point of use, so values set
+ * on any ancestor (or the host) apply.
+ */
+:where(.lp-base) {
+  position: absolute;
+  inset: 0;
+  isolation: isolate;
+  overflow: hidden;
+  font: var(--lp-font, inherit);
+  color: var(--lp-on-surface, light-dark(#1f2937, #f3f4f6));
+}
+:where(.lp-map) {
+  position: absolute;
+  inset: 0;
+  isolation: isolate;
+  z-index: 0;
+}
+:where(.lp-map:focus-visible) {
+  outline: 2px solid var(--lp-accent, light-dark(#1d4ed8, #93c5fd));
+  outline-offset: -2px;
+}
+:where(.lp-map .leaflet-tile-pane) {
+  filter: var(--lp-tile-filter, none);
+}
+
+/* The pin: v1's 28x44 footprint, its tip on the map centre (margin -14px/-43px at the default size). */
+:where(.lp-pin) {
+  position: absolute;
+  z-index: 1;
+  inset-inline-start: 50%;
+  inset-block-start: 50%;
+  inline-size: calc(var(--lp-pin-size, 44px) * 28 / 44);
+  block-size: var(--lp-pin-size, 44px);
+  margin-inline-start: calc(var(--lp-pin-size, 44px) * 28 / 44 / -2);
+  margin-block-start: calc(1px - var(--lp-pin-size, 44px));
+  pointer-events: none;
+  transition:
+    transform var(--lp-transition, 160ms ease-out),
+    opacity var(--lp-transition, 160ms ease-out);
+}
+:where(.lp-pin-icon) {
+  display: block;
+  inline-size: 100%;
+  block-size: 100%;
+  overflow: visible;
+}
+:where(.lp-pin-icon path) {
+  fill: var(--lp-pin-color, #e11d48);
+}
+:where(.lp-pin-icon circle) {
+  fill: var(--lp-pin-inner, #fff);
+}
+/* A custom marker is anchored by its bottom-centre at the map centre (the box bottom is 1px below it). */
+:where(.lp-pin-custom) {
+  position: absolute;
+  left: 50%;
+  bottom: 1px;
+  translate: -50%;
+}
+:where(.lp-pin-shadow) {
+  position: absolute;
+  z-index: -1;
+  left: 50%;
+  bottom: 0;
+  inline-size: 10px;
+  block-size: 4px;
+  translate: -50% 1px;
+  border-radius: 50%;
+  background: var(--lp-pin-shadow, rgb(0 0 0 / 0.35));
+  transition: transform var(--lp-transition, 160ms ease-out);
+}
+:where(.lp-is-unset .lp-pin) {
+  opacity: var(--lp-unset-opacity, 0.6);
+}
+:where(.lp-is-dragging .lp-pin) {
+  transform: translateY(calc(-1 * var(--lp-pin-lift, 10px)));
+}
+:where(.lp-is-dragging .lp-pin-shadow) {
+  transform: translateY(var(--lp-pin-lift, 10px)) scale(1.4);
+}
+@media (prefers-reduced-motion: reduce) {
+  :where(.lp-base) {
+    --lp-transition: 0s;
+  }
+  :where(.lp-is-dragging .lp-pin, .lp-is-dragging .lp-pin-shadow) {
+    transform: none;
+  }
+}
+
+/* Controls (z-index 2, above the pin): real buttons, at least 44x44, at inline-end. */
+:where(.lp-base button) {
+  min-inline-size: var(--lp-control-size, 44px);
+  min-block-size: var(--lp-control-size, 44px);
+  border: 0;
+  border-radius: var(--lp-radius, 8px);
+  background: var(--lp-surface, light-dark(#fff, #1f1f1f));
+  color: var(--lp-on-surface, light-dark(#1f2937, #f3f4f6));
+  font: inherit;
+  box-shadow: 0 1px 4px rgb(0 0 0 / 0.3);
+  cursor: pointer;
+}
+:where(.lp-base button:focus-visible) {
+  outline: 2px solid var(--lp-accent, light-dark(#1d4ed8, #93c5fd));
+  outline-offset: 2px;
+}
+:where(.lp-base button:disabled) {
+  opacity: 0.5;
+  cursor: default;
+}
+:where(.lp-controls) {
+  position: absolute;
+  z-index: 2;
+  inset-block-start: 10px;
+  inset-inline-end: 10px;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+:where(.lp-locate) {
+  display: grid;
+  place-items: center;
+  padding: 0;
+}
+:where(.lp-icon) {
+  inline-size: 20px;
+  block-size: 20px;
+  fill: none;
+  stroke: currentColor;
+  stroke-width: 2;
+}
+:where(.lp-confirm) {
+  position: absolute;
+  z-index: 2;
+  left: 50%;
+  bottom: 28px;
+  translate: -50%;
+  padding-inline: 16px;
+  background: var(--lp-accent, light-dark(#1d4ed8, #93c5fd));
+  color: light-dark(#fff, #111827);
+}
+:where(.lp-search) {
+  position: absolute;
+  z-index: 2;
+  inset-block-start: 10px;
+  inset-inline: 56px 64px;
+}
+:where(.lp-hint, .lp-error) {
+  position: absolute;
+  z-index: 2;
+  inset-inline: 12px;
+  margin-inline: auto;
+  inline-size: fit-content;
+  padding: 8px 12px;
+  border-radius: var(--lp-radius, 8px);
+  text-align: center;
+}
+:where(.lp-hint) {
+  inset-block-start: 50%;
+  translate: 0 -50%;
+  background: rgb(0 0 0 / 0.75);
+  color: #fff;
+  pointer-events: none;
+}
+:where(.lp-error) {
+  inset-block-start: 12px;
+  background: var(--lp-surface, light-dark(#fff, #1f1f1f));
+}
+:where(.lp-fallback) {
+  position: absolute;
+  z-index: 2;
+  inset-inline: 12px;
+  inset-block-end: 12px;
+  min-block-size: var(--lp-control-size, 44px);
+  padding-inline: 12px;
+  border: 1px solid currentColor;
+  border-radius: var(--lp-radius, 8px);
+  background: var(--lp-surface, light-dark(#fff, #1f1f1f));
+  color: inherit;
+  font: inherit;
+}
+:where(.lp-sr) {
+  position: absolute;
+  inline-size: 1px;
+  block-size: 1px;
+  overflow: hidden;
+  clip-path: inset(50%);
+  white-space: nowrap;
+}
