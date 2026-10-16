@@ -63,6 +63,9 @@ type Extra = {
 interface Gesture {
   /** Rounded centre when the gesture began. */
   readonly start: string;
+  /** Centre and zoom when the gesture began. */
+  readonly from: LatLng;
+  readonly zoom: number;
   /** Last value emitted live during this gesture. */
   last: string;
   emitted: boolean;
@@ -326,8 +329,8 @@ export class PickerCore {
   /** Enter/Space/confirm while unset: commits the current centre (source 'user'). */
   commitCenter(): void {
     if (this.#value || this.#interactive() != 'full' || this.#dead) return;
-    const at = this.#handle ? normalizeLatLng(this.#handle.getCenter()) : this.#center;
-    this.#commit(at, 'user', { move: false });
+    // The centre as the adapter last reported it: engines may re-derive theirs from whole pixels (Leaflet after resize).
+    this.#commit(this.#center, 'user', { move: false });
   }
 
   /** Zoom around the pin; never changes the value. */
@@ -649,7 +652,8 @@ export class PickerCore {
     this.#state('dragging', true);
     if (!this.#gesture) {
       const start = this.#canonical(this.#center);
-      this.#gesture = { start, last: start, emitted: false, moved: false };
+      const from = { ...this.#center };
+      this.#gesture = { start, from, zoom: this.#zoom, last: start, emitted: false, moved: false };
     }
   }
 
@@ -684,7 +688,7 @@ export class PickerCore {
     const gesture = this.#gesture;
     if (!gesture) return;
     const value = this.#canonical(this.#center);
-    if (value == gesture.last) return;
+    if (value == gesture.last || (!gesture.emitted && this.#still(gesture))) return;
     gesture.last = value;
     gesture.emitted = true;
     this.#liveInput(value);
@@ -705,6 +709,12 @@ export class PickerCore {
     this.#cancelFrame = this.#gesture = undefined;
     this.#state('dragging', false);
     const value = this.#canonical(this.#center);
+    if (!gesture.emitted && this.#still(gesture)) {
+      // Not a pan: zoom never commits (§3.3). Put the camera back on the value where the engine allows it.
+      if (this.#value && value != this.#value) this.#view(toLatLng(this.#value));
+      if (zoomed) this.#emitSnapshot('zoom');
+      return;
+    }
     const full = this.#interactive() == 'full';
     // Leaving unset needs an actual pan; zoom alone never commits (§3.3).
     if (
@@ -715,6 +725,20 @@ export class PickerCore {
       this.#commit(this.#center, 'user', { move: false });
     else if (full && gesture.emitted && value != this.#lastInput) this.#liveInput(value);
     else if (zoomed) this.#emitSnapshot('zoom');
+  }
+
+  /**
+   * Less than one screen pixel (256 px tiles, at the smaller of the two zooms) from where the gesture began: engines
+   * such as Leaflet snap the centre to whole pixels while zooming, and that drift is not a pan.
+   */
+  #still(gesture: Gesture): boolean {
+    const scale = (256 * 2 ** Math.min(gesture.zoom, this.#zoom)) / 360;
+    const { lat, lng } = this.#center;
+    const dLng = Math.abs(lng - gesture.from.lng) % 360;
+    return (
+      Math.min(dLng, 360 - dLng) * scale < 1 &&
+      Math.abs(mercatorY(lat) - mercatorY(gesture.from.lat)) * scale < 1
+    );
   }
 
   // ---- commits -----------------------------------------------------------------------------------------------------

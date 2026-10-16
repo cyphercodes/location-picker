@@ -208,8 +208,11 @@ describe('WP2-10 unset model', () => {
   });
 
   it('Enter (or Space) on the map region commits the centre (user)', async () => {
-    const { picker, log } = mountPicker({ center: '33.8938,35.5018' });
+    const { picker, fake, log } = mountPicker({ center: '33.8938,35.5018' });
     await picker.ready;
+    // The centre as last reported: an engine that re-derives its own from whole pixels (Leaflet after a resize,
+    // found by e2e/core.spec.ts) without moving does not shift the commit.
+    fake.handle!.map.center = { lat: 33.893809, lng: 35.501812 };
     picker.container.dispatchEvent(
       new KeyboardEvent('keydown', { key: 'Enter', bubbles: true, cancelable: true }),
     );

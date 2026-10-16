@@ -81,6 +81,42 @@ describe('WP2-08 events with the fake adapter', () => {
     expect(summary(log)).toEqual(['ready']);
   });
 
+  it.each([{ value: '48.8584,2.2945' }, { center: '48.8584,2.2945' }])(
+    '(b) sub-pixel centre drift while zooming is not a pan (%o)',
+    async (options) => {
+      // Real Leaflet moves the centre by a fraction of a pixel when it zooms (found by e2e/core.spec.ts).
+      const drifted = { lat: 48.858391, lng: 2.294598 }; // about 0.3 px at zoom 12
+      const { picker, fake, log } = mountPicker({ ...options, zoom: 12 });
+      await picker.ready;
+      const { events } = fake.ctx!;
+      const map = fake.handle!.map;
+      events.interactionStart();
+      map.center = drifted;
+      events.move(drifted);
+      await nextFrame();
+      await nextFrame();
+      map.zoom = 13;
+      events.moveEnd(drifted, 13);
+      events.interactionEnd();
+      expect(summary(log)).toEqual(['ready']);
+      expect(picker.zoom).toBe(13);
+      expect(picker.value).toBe(options.value ?? '');
+      // A set value puts the camera back on it.
+      expect(map.center).toEqual(options.value ? { lat: 48.8584, lng: 2.2945 } : drifted);
+      // Three pixels is a pan.
+      const panned = { lat: 48.8584, lng: 2.2955 };
+      events.interactionStart();
+      map.center = panned;
+      events.move(panned);
+      await nextFrame();
+      events.moveEnd(panned, 13);
+      expect(summary(log).slice(-2)).toEqual([
+        'input:48.8584,2.2955:user',
+        'change:48.8584,2.2955:user',
+      ]);
+    },
+  );
+
   it('(c) setLocation() gives input then change (api) before it returns', async () => {
     const { picker, log } = mountPicker();
     await picker.ready;
@@ -128,7 +164,8 @@ describe('WP2-08 events with the fake adapter', () => {
   });
 
   it('(g) the §12.10 invariants hold for every detail', async () => {
-    const { picker, fake, log } = mountPicker({ precision: 3 });
+    // Zoom 12: every pan below is many pixels long (sub-pixel moves are not pans).
+    const { picker, fake, log } = mountPicker({ precision: 3, zoom: 12 });
     await picker.ready;
     await fake.userPan({ lat: 1.23456, lng: -179.99999 });
     picker.setLocation('48.858370, 2.294481');
