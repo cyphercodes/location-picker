@@ -1,0 +1,61 @@
+name: Types matrix
+
+# The full consumer types matrix (CONTRACT §13 WP5-03): TypeScript 5.9.3 / 6.0.3 / 7.0.2 x bundler, nodenext-esm,
+# nodenext-cjs, node16-cjs x every cell, with and without @types/google.maps. ci.yml runs the trimmed subset (A13.4).
+on:
+  schedule:
+    - cron: '17 4 * * 1'
+  workflow_dispatch:
+    inputs:
+      ts:
+        description: 'TypeScript versions, comma-separated (empty = all)'
+        required: false
+        default: ''
+      mode:
+        description: 'Module modes, comma-separated (empty = all)'
+        required: false
+        default: ''
+      cell:
+        description: 'Cells, comma-separated (empty = all)'
+        required: false
+        default: ''
+
+permissions:
+  contents: read
+
+concurrency:
+  group: types-matrix-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  types-matrix:
+    name: Full types matrix
+    runs-on: ubuntu-latest
+    env:
+      PLAYWRIGHT_SKIP_BROWSER_DOWNLOAD: '1'
+    steps:
+      - uses: actions/checkout@v7
+      - uses: actions/setup-node@v7
+        with:
+          node-version: 24
+          cache: npm
+      - run: npm ci
+      - run: npm run build
+      - name: Types matrix
+        env:
+          TS: ${{ inputs.ts }}
+          MODE: ${{ inputs.mode }}
+          CELL: ${{ inputs.cell }}
+        run: |
+          args=(--concurrency 4 --json types-matrix-report.json)
+          if [ -n "$TS" ]; then args+=(--ts "$TS"); fi
+          if [ -n "$MODE" ]; then args+=(--mode "$MODE"); fi
+          if [ -n "$CELL" ]; then args+=(--cell "$CELL"); fi
+          node types-matrix/run.mjs "${args[@]}" | tee -a "$GITHUB_STEP_SUMMARY"
+      - uses: actions/upload-artifact@v7
+        if: always()
+        with:
+          name: types-matrix-report
+          path: types-matrix-report.json
+          if-no-files-found: ignore
+          retention-days: 30

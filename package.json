@@ -233,7 +233,8 @@
     "publint": "publint --strict",
     "attw": "attw --pack . --profile node16",
     "check:package": "node scripts/pack-check.mjs && npm run publint && npm run attw && npm run size",
-    "types-matrix": "node -e \"console.log('TODO(WP5): types matrix (types-matrix/run.mjs)')\"",
+    "types-matrix": "node types-matrix/run.mjs --ts 5.9.3,7.0.2 --mode bundler,nodenext-esm,nodenext-cjs",
+    "types-matrix:full": "node types-matrix/run.mjs",
     "docs:test": "node -e \"console.log('TODO(WP5): doc snippet tests (scripts/extract-snippets.mjs, e2e/docs.spec.ts)')\""
   },
   "devDependencies": {
