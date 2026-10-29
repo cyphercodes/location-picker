@@ -23,19 +23,26 @@ const form = (): HTMLFormElement => document.querySelector('form')!;
 const entries = (f = form()): [string, string][] =>
   [...new FormData(f)].map(([key, value]) => [key, typeof value == 'string' ? value : value.name]);
 
-/** A REAL submission: GET into a same-origin iframe, read back from its URL. */
+/**
+ * A REAL submission: GET into a same-origin iframe, read back from its URL. The target is a static text file, which
+ * every engine renders as a document (Firefox fires no `load` for a 404 or a download).
+ */
 async function submit(f = form()): Promise<[string, string][]> {
   const frame = document.createElement('iframe');
   frame.name = `echo${frames.length}`;
   document.body.append(frame);
   frames.push(frame);
   f.method = 'get';
-  f.action = '/__lp_echo';
+  f.action = '/site/llms.txt';
   f.target = frame.name;
-  const loaded = new Promise((resolve) => frame.addEventListener('load', resolve, { once: true }));
+  const echoed = new Promise<void>((resolve) =>
+    frame.addEventListener('load', () => {
+      if (frame.contentWindow?.location.pathname == '/site/llms.txt') resolve();
+    }),
+  );
   f.requestSubmit();
-  await loaded;
-  return [...new URLSearchParams(frame.contentWindow!.location.search)];
+  await echoed;
+  return [...new URLSearchParams(frame.contentWindow?.location.search)];
 }
 
 describe('WP4-09 form participation (ElementInternals)', () => {
