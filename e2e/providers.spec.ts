@@ -3,6 +3,7 @@
 // the built package (dist/*.mjs) and real Leaflet 1.9.4 / maplibre-gl 6.14.0 from node_modules, through the §12.6
 // route table; spec-local page routes add the variants the table has no option for (no CORS, errors, hangs, CSP).
 import type { Page, Request, Route } from '@playwright/test';
+import type * as L from 'leaflet';
 import type * as Core from '../src/core.js';
 import type * as Leaflet from '../src/leaflet.js';
 import type * as MapLibre from '../src/maplibre.js';
@@ -423,6 +424,50 @@ test.describe('WP3-02 / WP3-21 the engine CSS order (§4.3) in real engines', ()
       .poll(async () => (await logOf(page)).filter((e) => e.type == 'error'))
       .toEqual([expect.objectContaining({ code: 'ENGINE_CSS_MISSING', level: 'warn' })]);
     expect((await links(page)).head).toEqual([]);
+  });
+});
+
+test.describe('WP3-22 synchronous .map while leaflet.css takes 3 s', () => {
+  test('picker.map is set in the constructor and L.circle().addTo(map) works on the next line', async ({
+    page,
+  }) => {
+    await page.route(CSS_URL, async (route) => {
+      await new Promise((resolve) => setTimeout(resolve, 3000));
+      await route.fulfill({
+        path: 'node_modules/leaflet/dist/leaflet.css',
+        contentType: 'text/css',
+        headers: { 'access-control-allow-origin': '*' },
+      });
+    });
+    await openPage(
+      page,
+      '<div id="map" class="map"></div><div id="host"></div>',
+      pageLeaflet('none'),
+    );
+    const sync = await page.evaluate(() => {
+      const lp: Harness = Reflect.get(window, 'lp');
+      const engine = Reflect.get(window, 'L') as typeof L;
+      const shadow = document.getElementById('host')?.attachShadow({ mode: 'open' });
+      const inner = document.createElement('div');
+      inner.style.cssText = 'display:block;width:320px;height:240px';
+      shadow?.append(inner);
+      return [document.getElementById('map'), inner].map((target) => {
+        if (!target) return 'no target';
+        const picker = new lp.modules.core.LocationPicker<L.Map>(target, {
+          provider: lp.modules.leaflet.leafletProvider<L.Map>(),
+          value: '48.8584,2.2945',
+        });
+        const map = picker.map;
+        if (!(map instanceof engine.Map)) return 'no map';
+        engine.circle([48.8584, 2.2945], { radius: 200 }).addTo(map);
+        const link = (target.getRootNode() as Document | ShadowRoot).querySelector<HTMLLinkElement>(
+          'link[href*="leaflet.css"]',
+        );
+        return link?.sheet ? 'css already applied' : 'ok';
+      });
+    });
+    expect(sync).toEqual(['ok', 'ok']);
+    await expect.poll(() => panePosition(page, 'map'), { timeout: 8000 }).toBe('absolute');
   });
 });
 
