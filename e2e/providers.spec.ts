@@ -275,7 +275,10 @@ test.describe('WP3-21 the default CSP recipe (§4.8) on a strict-CSP page', () =
     );
     const console: string[] = [];
     page.on('console', (message) => {
-      if (/Content.Security.Policy|CSP/i.test(message.text())) console.push(message.text());
+      const text = message.text();
+      // Firefox's own favicon loader reports its /favicon.ico request under the page policy; that is not the page.
+      if (/Content.Security.Policy|CSP/i.test(text) && !text.includes('/favicon.ico'))
+        console.push(text);
     });
     const response = await page.goto('/__lp/csp.html');
     expect(response?.headers()['content-security-policy']).toBe(csp);
