@@ -23,20 +23,11 @@ export const BUILTIN_PROVIDERS: Record<ProviderName, () => Promise<ProviderAdapt
   maplibre: async () => erased((await import('../maplibre.js')).maplibreProvider()),
 };
 
-/**
- * The built-in search combobox (§12.5), loaded only when `search` is on and the adapter has no `createSearch`.
- * WP3 owns src/search/combobox.ts; until it lands, this seam reports that the box is missing from the build.
- */
+/** The built-in search combobox (§12.5): a lazy chunk, loaded only when `search` is on and the adapter has no `createSearch`. */
 export const SEARCH_UI: {
   load: () => Promise<{ readonly createCombobox: typeof C.createCombobox }>;
 } = {
-  load: () =>
-    Promise.reject(
-      createError('GEOCODER_FAILED', {
-        message: 'the built-in search box is not part of this build',
-        fix: 'Use a provider with its own search UI, or call geocode() from your own input.',
-      }),
-    ),
+  load: () => import('../search/combobox.js'),
 };
 
 const asError = (cause: unknown, spec: string): LocationPickerError =>
