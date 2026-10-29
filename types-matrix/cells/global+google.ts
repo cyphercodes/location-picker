@@ -3,7 +3,8 @@
 import type { ProviderAdapter } from 'location-picker/core';
 import type {} from 'location-picker/google';
 
-type Equals<A, B> = (<T>() => T extends A ? 1 : 2) extends <T>() => T extends B ? 1 : 2 ? true : false;
+type Equals<A, B> =
+  (<T>() => T extends A ? 1 : 2) extends <T>() => T extends B ? 1 : 2 ? true : false;
 
 const adapter = LocationPicker.googleProvider({ apiKey: 'AIza-test' });
 const precise: Equals<typeof adapter, ProviderAdapter<google.maps.Map>> = true;

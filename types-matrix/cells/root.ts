@@ -11,7 +11,8 @@ import LocationPicker, {
   type LocationPickerOptions,
 } from 'location-picker';
 
-type Equals<A, B> = (<T>() => T extends A ? 1 : 2) extends <T>() => T extends B ? 1 : 2 ? true : false;
+type Equals<A, B> =
+  (<T>() => T extends A ? 1 : 2) extends <T>() => T extends B ? 1 : 2 ? true : false;
 
 const sameClass: Equals<typeof LocationPicker, typeof NamedPicker> = true;
 const options: LocationPickerOptions = {

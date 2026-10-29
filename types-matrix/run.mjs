@@ -52,7 +52,12 @@ const MISSING_GOOGLE_CODES = new Set(['TS2688', 'TS2503']);
 const MODES = {
   bundler: { module: 'esnext', moduleResolution: 'bundler', ext: '.ts', type: 'module' },
   'nodenext-esm': { module: 'nodenext', moduleResolution: 'nodenext', ext: '.mts', type: 'module' },
-  'nodenext-cjs': { module: 'nodenext', moduleResolution: 'nodenext', ext: '.cts', type: 'commonjs' },
+  'nodenext-cjs': {
+    module: 'nodenext',
+    moduleResolution: 'nodenext',
+    ext: '.cts',
+    type: 'commonjs',
+  },
   'node16-cjs': { module: 'node16', moduleResolution: 'node16', ext: '.cts', type: 'commonjs' },
 };
 
@@ -105,7 +110,10 @@ const CELLS = {
     pending: ['src/jsx/solid.d.ts', ...ELEMENT],
   },
   'jsx-vue': { pending: ['src/jsx/vue.d.ts', ...ELEMENT] },
-  'jsx-svelte': { na: { 'node16-cjs': ESM_ONLY_FRAMEWORK }, pending: ['src/jsx/svelte.d.ts', ...ELEMENT] },
+  'jsx-svelte': {
+    na: { 'node16-cjs': ESM_ONLY_FRAMEWORK },
+    pending: ['src/jsx/svelte.d.ts', ...ELEMENT],
+  },
 };
 
 const { values: args } = parseArgs({
@@ -128,7 +136,8 @@ const pick = (all, list) => {
 const tsVersions = pick(TS_VERSIONS, args.ts);
 const modes = pick(Object.keys(MODES), args.mode);
 const cells = pick(Object.keys(CELLS), args.cell);
-const variants = args.google === 'both' ? ['with', 'without'] : pick(['with', 'without'], args.google);
+const variants =
+  args.google === 'both' ? ['with', 'without'] : pick(['with', 'without'], args.google);
 
 if (!existsSync(join(ROOT, 'dist/index.mjs'))) {
   console.error('types-matrix: dist/ is missing; run `npm run build` first.');
@@ -146,15 +155,20 @@ function ensureInstalled(dir, dependencies) {
   rmSync(dir, { recursive: true, force: true });
   mkdirSync(dir, { recursive: true });
   writeFileSync(join(dir, 'package.json'), JSON.stringify({ private: true, dependencies }));
-  execFileSync('npm', ['install', '--no-audit', '--no-fund', '--ignore-scripts', '--loglevel=error'], {
-    cwd: dir,
-    stdio: 'inherit',
-  });
+  execFileSync(
+    'npm',
+    ['install', '--no-audit', '--no-fund', '--ignore-scripts', '--loglevel=error'],
+    {
+      cwd: dir,
+      stdio: 'inherit',
+    },
+  );
   writeFileSync(stamp, want);
 }
 
 const tscOf = (version) => join(CACHE, `typescript-${version}/node_modules/typescript/bin/tsc`);
-for (const version of tsVersions) ensureInstalled(join(CACHE, `typescript-${version}`), { typescript: version });
+for (const version of tsVersions)
+  ensureInstalled(join(CACHE, `typescript-${version}`), { typescript: version });
 const depsDir = join(CACHE, 'deps/node_modules');
 ensureInstalled(dirname(depsDir), DEPS);
 
@@ -248,19 +262,30 @@ function compile(job) {
   return new Promise((done) => {
     const argv = [tscOf(job.ts), '-p', join(job.dir, 'tsconfig.json'), '--pretty', 'false'];
     if (job.spec.listed) argv.push('--listFiles');
-    execFile(process.execPath, argv, { cwd: job.dir, maxBuffer: 64 << 20 }, (error, stdout, stderr) => {
-      const output = `${stdout}${stderr}`;
-      const codes = [...new Set([...output.matchAll(/error (TS\d+)/g)].map((m) => m[1]))];
-      // tsc prints paths relative to the realpath of cwd; keep only the cell-relative part.
-      const errors = output
-        .split('\n')
-        .filter((line) => /error TS\d+/.test(line))
-        .map((line) => line.replace(/^.*\/(?:with|without)\/[^/]+\/[^/]+\/[^/]+\//, ''));
-      const missing = (job.spec.listed ?? []).filter(
-        (file) => !output.includes(`node_modules/location-picker/${file}`),
-      );
-      done({ exit: error ? (error.code ?? 1) : 0, codes, errors, missing, ms: Date.now() - start });
-    });
+    execFile(
+      process.execPath,
+      argv,
+      { cwd: job.dir, maxBuffer: 64 << 20 },
+      (error, stdout, stderr) => {
+        const output = `${stdout}${stderr}`;
+        const codes = [...new Set([...output.matchAll(/error (TS\d+)/g)].map((m) => m[1]))];
+        // tsc prints paths relative to the realpath of cwd; keep only the cell-relative part.
+        const errors = output
+          .split('\n')
+          .filter((line) => /error TS\d+/.test(line))
+          .map((line) => line.replace(/^.*\/(?:with|without)\/[^/]+\/[^/]+\/[^/]+\//, ''));
+        const missing = (job.spec.listed ?? []).filter(
+          (file) => !output.includes(`node_modules/location-picker/${file}`),
+        );
+        done({
+          exit: error ? (error.code ?? 1) : 0,
+          codes,
+          errors,
+          missing,
+          ms: Date.now() - start,
+        });
+      },
+    );
   });
 }
 
@@ -324,7 +349,9 @@ for (const variant of variants) {
     console.log(`| ${cell} | ${row.join(' | ')} |`);
   }
 }
-console.log('\nok* = fails only with TS2688/TS2503 because @types/google.maps is absent (allowed).');
+console.log(
+  '\nok* = fails only with TS2688/TS2503 because @types/google.maps is absent (allowed).',
+);
 
 const count = (status) => jobs.filter((job) => job.status === status).length;
 const pendingCells = new Map();

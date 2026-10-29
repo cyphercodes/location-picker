@@ -1,6 +1,10 @@
 // location-picker/webmcp: opt-in tool registration.
 import { LocationPicker } from 'location-picker/core';
-import { isWebMcpSupported, registerWebMcpTools, type WebMcpRegistration } from 'location-picker/webmcp';
+import {
+  isWebMcpSupported,
+  registerWebMcpTools,
+  type WebMcpRegistration,
+} from 'location-picker/webmcp';
 
 const picker = new LocationPicker('#map');
 const registration: WebMcpRegistration = registerWebMcpTools(picker, {

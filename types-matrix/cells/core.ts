@@ -35,7 +35,10 @@ const custom: ProviderAdapter<CustomMap> = {
   },
 };
 
-const picker = new LocationPicker('#map', { provider: custom, value: { lat: 48.8584, lng: 2.2945 } });
+const picker = new LocationPicker('#map', {
+  provider: custom,
+  value: { lat: 48.8584, lng: 2.2945 },
+});
 const map: CustomMap | undefined = picker.map;
 const same: LocationPicker<CustomMap> = picker;
 const legacy = new DefaultPicker(document.body, { lat: 1, lng: 2, setCurrentPosition: false });

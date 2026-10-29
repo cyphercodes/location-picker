@@ -8,4 +8,12 @@ const google = LocationPicker.googleProvider({ apiKey: 'AIza-test' });
 const leaflet = LocationPicker.leafletProvider();
 const Element: typeof LocationPicker.LocationPickerElement = LocationPicker.LocationPickerElement;
 const viaGlobalThis: typeof LocationPicker = globalThis.LocationPicker;
-export const used = [picker.value, version, parsed, google.name, leaflet.name, Element, viaGlobalThis];
+export const used = [
+  picker.value,
+  version,
+  parsed,
+  google.name,
+  leaflet.name,
+  Element,
+  viaGlobalThis,
+];
