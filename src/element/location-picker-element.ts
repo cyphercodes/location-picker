@@ -545,6 +545,8 @@ class Controller {
       this.checkNames();
       return;
     }
+    // The latest provider write wins: a name written after an adapter replaces it.
+    if (spec.attr == 'provider' && value !== null) this.adapter = undefined;
     this.sync(spec.attr);
     if (spec.prop == 'zoom' && this.core) {
       const zoom = Number(value ?? NaN);
