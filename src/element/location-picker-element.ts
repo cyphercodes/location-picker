@@ -596,18 +596,41 @@ function setAttr(el: Element, name: string, value: unknown, alias?: string): voi
  *   <location-picker id="loc" name="location" lat-name="lat" lng-name="lng" required search></location-picker>
  * </form>
  *
+ * @tagname location-picker
+ *
  * @attr value - Default value, lenient ("48.8584, 2.2945", DMS, geo:, map URLs). "," or empty = unset.
  * @attr lat - Default-value alias, needs `lng` too. `value` wins.
  * @attr lng - Default-value alias, needs `lat` too.
- * @attr center - View centre while unset ("lat,lng"). @attr zoom - Initial zoom. @attr max-zoom @attr precision
- * @attr name @attr lat-name @attr lng-name @attr address-name
- * @attr value-input @attr lat-input @attr lng-input @attr address-input
- * @attr required @attr disabled @attr readonly
- * @attr provider - leaflet | google | maplibre. @attr api-key @attr map-id @attr tile-url @attr attribution
- * @attr map-style @attr engine-url - URL, or "none" to never auto-load. @attr engine-css-url - URL, or "none".
- * @attr search @attr placeholder @attr reverse-geocode @attr locate - off | button | auto ("" = button). Writing the
- *   `locate` PROPERTY (as React 19/Vue 3/Preact do for this attribute) also sets it; reading it returns the method.
- * @attr marker - pin | none | advanced. @attr gesture-handling @attr webmcp
+ * @attr center - View centre while unset ("lat,lng").
+ * @attr zoom - Initial zoom.
+ * @attr max-zoom
+ * @attr precision
+ * @attr name
+ * @attr lat-name
+ * @attr lng-name
+ * @attr address-name
+ * @attr value-input
+ * @attr lat-input
+ * @attr lng-input
+ * @attr address-input
+ * @attr required
+ * @attr disabled
+ * @attr readonly
+ * @attr provider - leaflet | google | maplibre.
+ * @attr api-key
+ * @attr map-id
+ * @attr tile-url
+ * @attr attribution
+ * @attr map-style
+ * @attr engine-url - URL, or "none" to never auto-load.
+ * @attr engine-css-url - URL, or "none".
+ * @attr search
+ * @attr placeholder
+ * @attr reverse-geocode
+ * @attr locate - off | button | auto ("" = button). Writing the `locate` PROPERTY (as React 19/Vue 3/Preact do for this attribute) also sets it; reading it returns the method.
+ * @attr marker - pin | none | advanced.
+ * @attr gesture-handling
+ * @attr webmcp
  *
  * @fires input - CustomEvent<LocationDetail>: live user changes, and the final value before every change and at the end of every gesture.
  * @fires change - CustomEvent<LocationDetail>: committed (user gesture or method call), de-duplicated.
@@ -615,22 +638,49 @@ function setAttr(el: Element, name: string, value: unknown, alias?: string): voi
  * @fires ready - CustomEvent<ReadyDetail>.
  * @fires error - CustomEvent<LocationPickerError> (cancelable; logged when not canceled).
  *
- * @csspart base @csspart search @csspart search-input @csspart search-listbox @csspart search-option
- * @csspart map @csspart pin @csspart pin-icon @csspart pin-shadow @csspart confirm-button @csspart controls
- * @csspart locate-button @csspart hint @csspart error-message @csspart fallback
+ * @csspart base
+ * @csspart search
+ * @csspart search-input
+ * @csspart search-listbox
+ * @csspart search-option
+ * @csspart map
+ * @csspart pin
+ * @csspart pin-icon
+ * @csspart pin-shadow
+ * @csspart confirm-button
+ * @csspart controls
+ * @csspart locate-button
+ * @csspart hint
+ * @csspart error-message
+ * @csspart fallback
  *
  * @slot marker - Custom pin graphic, anchored by its bottom-centre at the map centre.
  * @slot controls - Extra buttons placed with the built-in controls.
  * @slot error - Content shown when the map fails to load.
  *
- * @cssstate unset @cssstate loading @cssstate ready @cssstate error @cssstate dragging @cssstate locating
- * @cssstate searching @cssstate interacted
+ * @cssstate unset
+ * @cssstate loading
+ * @cssstate ready
+ * @cssstate error
+ * @cssstate dragging
+ * @cssstate locating
+ * @cssstate searching
+ * @cssstate interacted
  *
- * @cssprop [--lp-pin-color=#e11d48] @cssprop [--lp-pin-inner=#fff] @cssprop [--lp-pin-size=44px] - height; width is size × 28/44
- * @cssprop [--lp-pin-lift=10px] @cssprop [--lp-pin-shadow=rgb(0 0 0 / .35)] @cssprop [--lp-unset-opacity=.6]
- * @cssprop [--lp-accent=light-dark(#1d4ed8, #93c5fd)] @cssprop [--lp-surface=light-dark(#fff, #1f1f1f)]
- * @cssprop [--lp-on-surface=light-dark(#1f2937, #f3f4f6)] @cssprop [--lp-radius=8px] @cssprop [--lp-control-size=44px]
- * @cssprop [--lp-font=inherit] @cssprop [--lp-tile-filter=none] @cssprop [--lp-transition=160ms ease-out]
+ * @cssprop [--lp-pin-color=#e11d48]
+ * @cssprop [--lp-pin-inner=#fff]
+ * @cssprop [--lp-pin-size=44px] - height; width is size × 28/44
+ * @cssprop [--lp-pin-lift=10px]
+ * @cssprop [--lp-pin-shadow=rgb(0 0 0 / .35)]
+ * @cssprop [--lp-unset-opacity=.6]
+ * @cssprop [--lp-accent=light-dark(#1d4ed8, #93c5fd)]
+ * @cssprop [--lp-surface=light-dark(#fff, #1f1f1f)]
+ * @cssprop [--lp-on-surface=light-dark(#1f2937, #f3f4f6)]
+ * @cssprop [--lp-radius=8px]
+ * @cssprop [--lp-control-size=44px]
+ * @cssprop [--lp-font=inherit]
+ * @cssprop [--lp-tile-filter=none]
+ * @cssprop [--lp-transition=160ms ease-out]
  */
 // oxlint-disable-next-line typescript/no-unsafe-declaration-merging -- typed listener overloads, no runtime code
 export class LocationPickerElement extends Base {
