@@ -33,8 +33,9 @@ jobs:
       - run: npm run lint
       - run: npm run format:check
       - run: npm run typecheck
-      - run: npm test
+      # test/package/* pack dist/, and under CI=true they fail rather than skip without it (A13.4).
       - run: npm run build
+      - run: npm test
       - name: Frozen v1 artifact matches its source
         run: node scripts/minify-v1.mjs --check
       - name: Package file set (CONTRACT §1.2)
