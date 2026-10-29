@@ -567,15 +567,20 @@ test.describe('WP3-19 every external request is allowed and answered by a fixtur
     });
     await openPage(page, '<div id="map" class="map" style="height:320px"></div>');
     await create(page, 'map', { init: { search: true, reverseGeocode: true } });
+    const reverses = (): number => finished.filter((url) => url.includes('/reverse?')).length;
+    const sources = async (): Promise<unknown[]> =>
+      (await logOf(page)).filter((e) => e.type == 'change').map((e) => e.source);
     await ready(page, 'map');
+    // The initial value is looked up first; waiting for it keeps the next commit from aborting it (§5.3).
+    await expect.poll(reverses).toBe(1);
     const input = page.locator('#map .lp-search-input');
     await input.fill('eiffel');
     await expect(page.locator('#map .lp-search-option').first()).toBeVisible();
     await input.press('Enter');
-    await expect
-      .poll(async () => (await logOf(page)).filter((e) => e.type == 'change').map((e) => e.source))
-      .toEqual(['search']);
+    await expect.poll(sources).toEqual(['search']);
     await pressInMap(page, 'map', 'ArrowDown');
+    await expect.poll(sources).toEqual(['search', 'user']);
+    await expect.poll(reverses).toBe(2);
     await expect
       .poll(() => page.evaluate(() => (Reflect.get(window, 'lp') as Harness).pickers.map?.address))
       .toContain('Tour Eiffel');
