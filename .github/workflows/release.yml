@@ -1,0 +1,109 @@
+name: Release
+
+# Publishes to npm with trusted publishing (OIDC): no npm token is stored in this repo.
+# One-time setup on npmjs.com: package settings -> Trusted publisher -> GitHub Actions,
+# owner "cyphercodes", repository "location-picker", workflow "release.yml" (keep this file name), no environment.
+#
+# Every gate runs before the publish. Prereleases go to `next`, stable versions straight to `latest` (A13.5: trusted
+# publishing cannot run `npm dist-tag`). The CDN smoke runs right after the publish and, on failure, fails the job and
+# prints the rollback command.
+on:
+  push:
+    tags: ['v*']
+
+permissions:
+  contents: read
+
+concurrency:
+  group: release
+  cancel-in-progress: false
+
+jobs:
+  publish:
+    name: Publish to npm
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      id-token: write # trusted publishing + provenance
+    env:
+      PLAYWRIGHT_SKIP_BROWSER_DOWNLOAD: '1'
+    steps:
+      - uses: actions/checkout@v7
+      - uses: actions/setup-node@v7
+        with:
+          node-version: 24
+          registry-url: https://registry.npmjs.org
+      - name: Tag matches package.json version
+        id: version
+        run: |
+          version=$(node -p "require('./package.json').version")
+          if [ "v$version" != "$GITHUB_REF_NAME" ]; then
+            echo "::error::tag $GITHUB_REF_NAME does not match package.json version $version"
+            exit 1
+          fi
+          if [[ "$version" == *-* ]]; then dist_tag=next; else dist_tag=latest; fi
+          echo "version=$version" >> "$GITHUB_OUTPUT"
+          echo "dist-tag=$dist_tag" >> "$GITHUB_OUTPUT"
+      - name: Use an npm with trusted publishing support
+        run: npm install -g npm@12
+      - run: npm ci
+      - run: npm run lint
+      - run: npm run format:check
+      - run: npm run typecheck
+      # Build before the tests: test/package/* pack dist/ (A13.4).
+      - run: npm run build
+      - run: npm test
+      - name: Frozen v1 file matches its source and test/compat/v1.lock
+        run: |
+          node scripts/minify-v1.mjs --check
+          echo "$(cat test/compat/v1.lock)  dist/location-picker.min.js" | sha256sum -c -
+      - name: Package checks (file set, publint, attw, size)
+        run: npm run check:package
+      - name: Leaflet SRI constants match the jsDelivr files
+        run: node scripts/check-sri.mjs
+      - name: Current dist-tag (named in the rollback command)
+        id: previous
+        env:
+          DIST_TAG: ${{ steps.version.outputs.dist-tag }}
+        run: echo "version=$(npm view location-picker "dist-tags.$DIST_TAG" 2>/dev/null || true)" >> "$GITHUB_OUTPUT"
+      - name: Publish
+        env:
+          DIST_TAG: ${{ steps.version.outputs.dist-tag }}
+        run: npm publish --provenance --access public --tag "$DIST_TAG"
+      - name: CDN smoke (unpkg, jsDelivr)
+        env:
+          VERSION: ${{ steps.version.outputs.version }}
+          PREVIOUS: ${{ steps.previous.outputs.version }}
+        run: node scripts/cdn-smoke.mjs --version "$VERSION" --rollback-to "$PREVIOUS"
+
+  github-release:
+    name: GitHub release
+    needs: publish
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+    steps:
+      - uses: actions/checkout@v7
+      # The CHANGELOG section for this version (or its base version for a prerelease); never fails over notes.
+      - name: Release notes from CHANGELOG.md
+        run: |
+          node --input-type=module <<'EOF'
+          import { readFileSync, writeFileSync } from 'node:fs';
+          const version = process.env.GITHUB_REF_NAME.replace(/^v/, '');
+          const sections = readFileSync('CHANGELOG.md', 'utf8').split(/^(?=## \[)/m);
+          const find = (v) => sections.find((section) => section.startsWith(`## [${v}]`));
+          const section = find(version) ?? find(version.split('-')[0]);
+          const body = section?.replace(/^.*\n/, '').trim();
+          writeFileSync('release-notes.md', `${body || 'See CHANGELOG.md.'}\n`);
+          EOF
+      - name: Create the release
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          if gh release view "$GITHUB_REF_NAME" > /dev/null 2>&1; then
+            echo "Release $GITHUB_REF_NAME already exists"
+            exit 0
+          fi
+          flags=(--title "$GITHUB_REF_NAME" --notes-file release-notes.md --verify-tag)
+          if [[ "$GITHUB_REF_NAME" == *-* ]]; then flags+=(--prerelease); else flags+=(--latest); fi
+          gh release create "$GITHUB_REF_NAME" "${flags[@]}"
