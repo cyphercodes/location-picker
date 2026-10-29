@@ -334,6 +334,30 @@ describe('reset and restore state (unit; the FACE callbacks are driven directly)
 });
 
 describe('§9 inert degrade (jsdom has no setFormValue, setValidity or ResizeObserver)', () => {
+  it('without attachInternals (happy-dom throws), construction, setters and callbacks still work', async () => {
+    vi.spyOn(HTMLElement.prototype, 'attachInternals').mockImplementation(() => {
+      throw new TypeError('attachInternals is not supported');
+    });
+    const { el, log } = render(
+      '<form><location-picker name="loc" required value="1,2"></location-picker></form>',
+    );
+    await flush();
+    expect(summary(log)).toEqual(['ready']);
+    expect(() => {
+      el.value = '3,4';
+      el.required = false;
+      el.form = 'f1';
+      el.disabled = true;
+      el.setCustomValidity('x');
+      el.formResetCallback();
+    }).not.toThrow();
+    expect(el.value).toBe('1,2');
+    expect(el.form).toBeNull();
+    expect(el.labels).toHaveLength(0);
+    expect(el.checkValidity()).toBe(false);
+    expect(texts(console.warn).find((t) => t.includes('runs inert'))).toContain('ElementInternals');
+  });
+
   it('one diagnostic names the missing APIs; value, valueAsLatLng and setLocation() still round-trip; nothing throws', async () => {
     const { el } = render('<form><location-picker name="loc" required></location-picker></form>');
     expect(texts(console.warn).filter((t) => t.includes('runs inert'))).toHaveLength(1);
