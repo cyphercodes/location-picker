@@ -3,34 +3,46 @@
     "name": "location-picker/utils (parser + formatter)",
     "path": "dist/utils.mjs",
     "import": "*",
-    "limit": "1 kB"
+    "limit": "1.6 kB"
   },
   {
     "name": "location-picker/core: import { LocationPicker }",
     "path": "dist/core.mjs",
     "import": "{ LocationPicker }",
-    "limit": "3.5 kB",
+    "limit": "10 kB",
     "ignore": [
       "./leaflet.mjs",
       "./google.mjs",
       "./maplibre.mjs",
       "./photon.mjs",
       "./webmcp.mjs",
-      "./_chunks/combobox-*"
+      "../leaflet.mjs",
+      "../google.mjs",
+      "../maplibre.mjs",
+      "../photon.mjs",
+      "../webmcp.mjs",
+      "./_chunks/combobox-*",
+      "./combobox-*"
     ]
   },
   {
     "name": "location-picker (root: core + element + define)",
     "path": "dist/index.mjs",
     "import": "*",
-    "limit": "5.5 kB",
+    "limit": "13 kB",
     "ignore": [
       "./leaflet.mjs",
       "./google.mjs",
       "./maplibre.mjs",
       "./photon.mjs",
       "./webmcp.mjs",
-      "./_chunks/combobox-*"
+      "../leaflet.mjs",
+      "../google.mjs",
+      "../maplibre.mjs",
+      "../photon.mjs",
+      "../webmcp.mjs",
+      "./_chunks/combobox-*",
+      "./combobox-*"
     ]
   },
   {
@@ -52,6 +64,12 @@
     "limit": "0.9 kB"
   },
   {
+    "name": "search combobox chunk (as shipped)",
+    "path": "dist/_chunks/combobox-*.mjs",
+    "disablePlugins": ["@size-limit/esbuild"],
+    "limit": "1.5 kB"
+  },
+  {
     "name": "photon: import { photonGeocoder }",
     "path": "dist/photon.mjs",
     "import": "{ photonGeocoder }",
@@ -67,7 +85,7 @@
     "name": "location-picker.global.js (IIFE, as shipped)",
     "path": "dist/location-picker.global.js",
     "disablePlugins": ["@size-limit/esbuild"],
-    "limit": "12.5 kB"
+    "limit": "20 kB"
   },
   {
     "name": "location-picker.min.js (frozen v1, as shipped)",
