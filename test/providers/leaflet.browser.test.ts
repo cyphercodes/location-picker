@@ -4,11 +4,24 @@
 import * as L from 'leaflet';
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 import { commands, userEvent } from 'vitest/browser';
-import { LocationPicker, type LocationPickerOptions } from '../../src/core.js';
+import {
+  LocationPicker,
+  type LocationPickerOptions,
+  type ProviderAdapter,
+} from '../../src/core.js';
 import { erased } from '../../src/core/providers.js';
-import { leafletProvider } from '../../src/leaflet.js';
+import { LEAFLET_CSS_URL, leafletProvider } from '../../src/leaflet.js';
 import { centreOf, touchGesture } from './gestures.js';
-import { must, record, resetStore, spyConsole, texts, waitFor, shadowPicker, type ShadowPicker } from './helpers.js';
+import {
+  must,
+  record,
+  resetStore,
+  spyConsole,
+  texts,
+  waitFor,
+  shadowPicker,
+  type ShadowPicker,
+} from './helpers.js';
 
 const EIFFEL = '48.8584,2.2945';
 const pickers: { destroy(): void }[] = [];
@@ -23,19 +36,30 @@ function create(options: LocationPickerOptions<L.Map> = {}, target: string | HTM
   pickers.push(picker);
   return { picker, log: record(picker) };
 }
-function element(options: LocationPickerOptions<unknown> = {}): ShadowPicker {
+function element(
+  options: LocationPickerOptions<unknown> & { provider?: ProviderAdapter<unknown> } = {},
+): ShadowPicker {
   const host = document.createElement('div');
   host.style.cssText = 'display:block;position:relative;width:400px;height:300px';
   document.body.append(host);
-  const picker = shadowPicker(host, { provider: erased(leafletProvider({ engine: L })), value: EIFFEL, ...options });
+  const picker = shadowPicker(host, {
+    value: EIFFEL,
+    ...options,
+    provider: options.provider ?? erased(leafletProvider({ engine: L })),
+  });
   pickers.push(picker.core);
   return picker;
 }
-const position = (node: Element | null | undefined): string => (node ? getComputedStyle(node).position : 'none');
+const position = (node: Element | null | undefined): string =>
+  node ? getComputedStyle(node).position : 'none';
 /** Waits until Leaflet's zoom/pan animation has finished and the picker saw the final moveend. */
 async function settle(map: L.Map): Promise<void> {
   await new Promise((resolve) => setTimeout(resolve, 50));
-  await waitFor(() => !Reflect.get(map, '_animatingZoom') && !Reflect.get(map, '_panAnim')?._inProgress, 3000, 'the camera to settle');
+  await waitFor(
+    () => !Reflect.get(map, '_animatingZoom') && !Reflect.get(map, '_panAnim')?._inProgress,
+    3000,
+    'the camera to settle',
+  );
   await new Promise((resolve) => setTimeout(resolve, 300));
 }
 const changes = (log: ReturnType<typeof record>) =>
@@ -43,6 +67,8 @@ const changes = (log: ReturnType<typeof record>) =>
 
 beforeEach(() => {
   resetStore();
+  // Each test starts without leaflet.css: a sheet left by an earlier test would satisfy §4.3 step 3 or 3'.
+  for (const link of document.head.querySelectorAll('link[href*="leaflet"]')) link.remove();
   document.body.innerHTML = '<div id="map" style="width:400px;height:300px"></div>';
   scrollTo(0, 0);
 });
@@ -68,45 +94,91 @@ describe('WP3-01 with a global L', () => {
       integrity: 'sha256-p4NxAoJBhIIN+hmNHrzRCf9tD/miZyoHS5obTRR9BMY=',
       crossOrigin: 'anonymous',
     });
-    await waitFor(() => position(document.querySelector('#map .leaflet-pane')) == 'absolute', 4000, 'leaflet.css');
+    await waitFor(
+      () => position(document.querySelector('#map .leaflet-pane')) == 'absolute',
+      4000,
+      'leaflet.css',
+    );
   });
 
   it('positions the panes in the element (shadow root) too, with the sheet linked inside the root', async () => {
     const { root, core } = element();
     await core.ready;
     expect(root.querySelectorAll('link[href*="leaflet.css"]')).toHaveLength(1);
-    await waitFor(() => position(root.querySelector('.leaflet-pane')) == 'absolute', 4000, 'leaflet.css in the root');
+    await waitFor(
+      () => position(root.querySelector('.leaflet-pane')) == 'absolute',
+      4000,
+      'leaflet.css in the root',
+    );
   });
 });
 
 describe('WP3-22 synchronous .map', () => {
-  const sync = (target: string | HTMLElement) => {
-    const { picker } = create({}, target);
+  const sync = (target: string | HTMLElement, options: LocationPickerOptions<L.Map> = {}) => {
+    const { picker, log } = create(options, target);
     const map = picker.map;
     expect(map).toBeInstanceOf(L.Map);
-    expect(() => L.circle(must(picker.valueAsLatLng), { radius: 200 }).addTo(must(map))).not.toThrow();
-    return picker;
+    expect(() =>
+      L.circle(must(picker.valueAsLatLng), { radius: 200 }).addTo(must(map)),
+    ).not.toThrow();
+    return { picker, log };
   };
 
-  it('in a Document, with leaflet.css absent (its link still pending) or already present', async () => {
-    const pending = sync('#map');
-    const link = must(document.head.querySelector<HTMLLinkElement>('link[href*="leaflet.css"]'));
+  it('in a Document, with leaflet.css absent, still loading or already present', async () => {
+    spyConsole();
+    // Absent: nothing on the page and nothing linked; step 5 reports it after mount.
+    const absent = sync('#map', { engineCssUrl: false });
+    expect(document.head.querySelector('link[href*="leaflet"]')).toBeNull();
+    await waitFor(
+      () =>
+        absent.log.some(
+          (e) => e.type == 'error' && Reflect.get(Object(e.detail), 'code') == 'ENGINE_CSS_MISSING',
+        ),
+      4000,
+      'ENGINE_CSS_MISSING',
+    );
+    absent.picker.destroy();
+
+    // Loading: a fresh URL, so the sheet cannot come from the memory cache.
+    document.body.innerHTML = '<div id="map" style="width:400px;height:300px"></div>';
+    const href = `${LEAFLET_CSS_URL}?wp3-22=${Date.now()}`;
+    sync('#map', { engineCssUrl: href });
+    const link = must(document.head.querySelector<HTMLLinkElement>(`link[href="${href}"]`));
     expect(link.sheet).toBeNull();
-    pending.destroy();
-    await waitFor(() => link.sheet, 4000, 'leaflet.css');
+    expect(position(document.querySelector('#map .leaflet-pane'))).not.toBe('absolute');
+    await waitFor(
+      () => position(document.querySelector('#map .leaflet-pane')) == 'absolute',
+      4000,
+      'the panes to be styled',
+    );
+
+    // Present: the page's own leaflet.css is already applied.
     document.body.innerHTML = '<div id="map" style="width:400px;height:300px"></div>';
     sync('#map');
   });
 
-  it('inside a user ShadowRoot, while the copy of the document rules (step 3\') is still pending', async () => {
+  it("inside a user ShadowRoot, where step 3' copies the document's leaflet.css (not awaited)", async () => {
+    // The page has a readable leaflet.css (as `import 'leaflet/dist/leaflet.css'` gives), for step 3' to copy.
+    const page = document.createElement('link');
+    page.rel = 'stylesheet';
+    page.crossOrigin = 'anonymous';
+    page.href = LEAFLET_CSS_URL;
+    const loaded = new Promise((resolve) => page.addEventListener('load', resolve));
+    document.head.append(page);
+    await loaded;
     const host = must(document.querySelector<HTMLElement>('#map'));
     const root = host.attachShadow({ mode: 'open' });
     const target = document.createElement('div');
     target.style.cssText = 'width:400px;height:300px';
     root.append(target);
-    const picker = sync(target);
+    const { picker } = sync(target);
     await picker.ready;
-    await waitFor(() => position(root.querySelector('.leaflet-pane')) == 'absolute', 4000, 'leaflet.css in the root');
+    await waitFor(
+      () => position(root.querySelector('.leaflet-pane')) == 'absolute',
+      4000,
+      'leaflet.css in the root',
+    );
+    expect(root.querySelector('link')).toBeNull();
   });
 
   it('the element model mounts synchronously as well', () => {
@@ -207,10 +279,14 @@ describe('WP3-05 tiles and attribution', () => {
   it('the default tiles show a visible OpenStreetMap credit', async () => {
     const { picker } = create();
     await picker.ready;
-    const credit = await waitFor(() => {
-      const node = document.querySelector<HTMLElement>('#map .leaflet-control-attribution');
-      return node && node.offsetHeight > 0 && node;
-    }, 4000, 'a visible attribution');
+    const credit = await waitFor(
+      () => {
+        const node = document.querySelector<HTMLElement>('#map .leaflet-control-attribution');
+        return node && node.offsetHeight > 0 ? node : null;
+      },
+      4000,
+      'a visible attribution',
+    );
     expect(credit.textContent).toContain('OpenStreetMap');
     await waitFor(() => document.querySelector('#map img.leaflet-tile-loaded'), 4000, 'a tile');
     expect(document.querySelector<HTMLImageElement>('#map img.leaflet-tile')?.src).toMatch(
@@ -222,7 +298,10 @@ describe('WP3-05 tiles and attribution', () => {
     const { warn } = spyConsole();
     const { picker } = create({ tileUrl: '/test/fixtures/tile.png?{z}/{x}/{y}' });
     await picker.ready;
-    const second = create({ tileUrl: '/test/fixtures/tile.png?{z}/{x}/{y}' }, document.body.appendChild(document.createElement('div')));
+    const second = create(
+      { tileUrl: '/test/fixtures/tile.png?{z}/{x}/{y}' },
+      document.body.appendChild(document.createElement('div')),
+    );
     await second.picker.ready;
     expect(texts(warn).filter((t) => t.includes('attribution'))).toHaveLength(1);
   });
@@ -230,11 +309,18 @@ describe('WP3-05 tiles and attribution', () => {
   it('a tileUrl change swaps the layer in place (no remount)', async () => {
     let mounts = 0;
     const adapter = leafletProvider({ engine: L });
-    const counted = { ...adapter, mount: (ctx: Parameters<typeof adapter.mount>[0]) => (mounts++, adapter.mount(ctx)) };
+    const counted = {
+      ...adapter,
+      mount: (ctx: Parameters<typeof adapter.mount>[0]) => (mounts++, adapter.mount(ctx)),
+    };
     const { core } = element({ provider: erased(counted) });
     await core.ready;
     const map = core.handle?.map as L.Map;
-    core.update({ tileUrl: '/test/fixtures/tile.png?custom={z}/{x}/{y}', tileUrlGiven: true, attribution: '© Test tiles' });
+    core.update({
+      tileUrl: '/test/fixtures/tile.png?custom={z}/{x}/{y}',
+      tileUrlGiven: true,
+      attribution: '© Test tiles',
+    });
     await core.ready;
     const urls: string[] = [];
     map.eachLayer((layer) => {
@@ -243,7 +329,15 @@ describe('WP3-05 tiles and attribution', () => {
     expect(urls).toEqual(['/test/fixtures/tile.png?custom={z}/{x}/{y}']);
     expect(mounts).toBe(1);
     expect(core.handle?.map).toBe(map);
-    await waitFor(() => map.getContainer().querySelector('.leaflet-control-attribution')?.textContent?.includes('© Test tiles'), 2000, 'the new credit');
+    await waitFor(
+      () =>
+        map
+          .getContainer()
+          .querySelector('.leaflet-control-attribution')
+          ?.textContent?.includes('© Test tiles'),
+      2000,
+      'the new credit',
+    );
   });
 });
 
@@ -276,9 +370,14 @@ describe('WP3-06 keyboard', () => {
     await picker.ready;
     const map = must(picker.map);
     picker.container.focus();
+    const before = map.getCenter();
     await userEvent.keyboard('{ArrowRight}');
     await new Promise((resolve) => setTimeout(resolve, 400));
-    expect(map.getCenter().lng).toBeCloseTo(2.2945, 6);
+    // An arrow pans 80 px; what remains is Leaflet's whole-pixel centre (well under a pixel).
+    const moved = map
+      .latLngToContainerPoint(before)
+      .distanceTo(map.latLngToContainerPoint(map.getCenter()));
+    expect(moved).toBeLessThan(1);
     await userEvent.keyboard('{+}');
     await waitFor(() => picker.zoom == 13, 3000, 'zoom in');
     expect(changes(log)).toEqual([]);
@@ -288,7 +387,11 @@ describe('WP3-06 keyboard', () => {
 describe('WP3-07 a Leaflet-2-style namespace', () => {
   it('mounts, shows tiles and commits a pan with only the Map and TileLayer constructors', async () => {
     const engine = Object.freeze({ version: '2.0.0-alpha.1', Map: L.Map, TileLayer: L.TileLayer });
-    const picker = new LocationPicker<L.Map>('#map', { provider: leafletProvider<L.Map>({ engine }), value: EIFFEL, zoom: 12 });
+    const picker = new LocationPicker<L.Map>('#map', {
+      provider: leafletProvider<L.Map>({ engine }),
+      value: EIFFEL,
+      zoom: 12,
+    });
     pickers.push(picker);
     const log = record(picker);
     await picker.ready;
