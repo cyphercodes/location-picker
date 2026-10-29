@@ -1,0 +1,97 @@
+name: Pages
+
+# Builds the GitHub Pages site (dist + scripts/build-site.mjs) and deploys it from master (CONTRACT §13 WP5-14).
+# A dispatch on any other branch builds and verifies the artifact but never deploys.
+on:
+  push:
+    branches: [master]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: pages
+  cancel-in-progress: false
+
+jobs:
+  build:
+    name: Build the site
+    runs-on: ubuntu-latest
+    env:
+      PLAYWRIGHT_SKIP_BROWSER_DOWNLOAD: '1'
+    steps:
+      - uses: actions/checkout@v7
+      - uses: actions/setup-node@v7
+        with:
+          node-version: 24
+          cache: npm
+      - run: npm ci
+      - run: npm run build
+      - name: Build the site into _site
+        run: |
+          if [ -f scripts/build-site.mjs ]; then
+            node scripts/build-site.mjs
+          else
+            echo "::warning::scripts/build-site.mjs does not exist yet (WP6); copying site/ and the script build"
+            rm -rf _site
+            mkdir -p _site
+            cp -R site/. _site/
+            cp dist/location-picker.global.js* _site/
+          fi
+      # The pages that must work the moment Pages switches to this workflow (A13.5), and a real script build.
+      - name: Verify the artifact
+        run: |
+          status=0
+          for page in index.html example/index.html docs/index.html llms.txt; do
+            if [ ! -s "_site/$page" ]; then
+              echo "::error::_site/$page is missing or empty"
+              status=1
+            fi
+          done
+          script=$(find _site -name location-picker.global.js -print -quit)
+          if [ -z "$script" ] || ! grep -q 'customElements.define' "$script"; then
+            echo "::error::_site has no location-picker.global.js script build (or only a placeholder)"
+            status=1
+          fi
+          exit $status
+      - uses: actions/upload-pages-artifact@v5
+        with:
+          path: _site
+
+  deploy:
+    name: Deploy to GitHub Pages
+    needs: build
+    if: github.ref == 'refs/heads/master'
+    runs-on: ubuntu-latest
+    permissions:
+      pages: write
+      id-token: write
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+    steps:
+      - uses: actions/configure-pages@v6
+      - id: deployment
+        uses: actions/deploy-pages@v5
+      - name: Post-deploy check (WP5-14)
+        env:
+          PAGE_URL: ${{ steps.deployment.outputs.page_url }}
+        run: |
+          base="${PAGE_URL:-https://cyphercodes.github.io/location-picker/}"
+          status=0
+          for path in '' example/ docs/ llms.txt; do
+            url="${base%/}/$path"
+            code=000
+            for attempt in 1 2 3 4 5 6 7 8; do
+              code=$(curl -s -o /dev/null -w '%{http_code}' --max-time 30 "$url" || true)
+              if [ "$code" = 200 ]; then break; fi
+              sleep $((attempt * 10))
+            done
+            echo "$code $url"
+            if [ "$code" != 200 ]; then
+              echo "::error::$url returned $code"
+              status=1
+            fi
+          done
+          exit $status

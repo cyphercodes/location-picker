@@ -2,8 +2,12 @@
 // against the PACKED tarball with TypeScript 5.9.3 / 6.0.3 / 7.0.2 in four module modes, `strict`,
 // `skipLibCheck: false`, `types: []`, once WITH and once WITHOUT @types/google.maps.
 //
-//   npm run types-matrix                       (needs `npm run build` first)
+//   npm run types-matrix          the trimmed matrix CI runs on every push (A13.4: TS 5.9.3 and 7.0.2 x bundler,
+//                                 nodenext-esm, nodenext-cjs; all cells; with and without @types/google.maps)
+//   npm run types-matrix:full     every TS version and mode (.github/workflows/types-matrix.yml, weekly)
 //   node types-matrix/run.mjs --ts 7.0.2 --mode bundler --cell root,core --google with --json report.json
+//
+// Both need `npm run build` first. `--concurrency <n>` (default 2) sets how many tsc processes run at once.
 //
 // Expected: with @types/google.maps every cell passes; without it every cell passes except the Google ones, which
 // may fail only with TS2688/TS2503. A failing cell whose source is still a placeholder (first line
@@ -24,7 +28,7 @@ import {
   symlinkSync,
   writeFileSync,
 } from 'node:fs';
-import { availableParallelism, tmpdir } from 'node:os';
+import { tmpdir } from 'node:os';
 import { dirname, join, resolve } from 'node:path';
 import { parseArgs } from 'node:util';
 
@@ -124,6 +128,7 @@ const { values: args } = parseArgs({
     google: { type: 'string', default: 'both' },
     json: { type: 'string' },
     keep: { type: 'boolean', default: false },
+    concurrency: { type: 'string', default: '2' },
   },
 });
 const pick = (all, list) => {
@@ -138,6 +143,10 @@ const modes = pick(Object.keys(MODES), args.mode);
 const cells = pick(Object.keys(CELLS), args.cell);
 const variants =
   args.google === 'both' ? ['with', 'without'] : pick(['with', 'without'], args.google);
+const concurrency = Number(args.concurrency);
+if (!Number.isInteger(concurrency) || concurrency < 1) {
+  throw new Error(`--concurrency must be a positive integer (got ${args.concurrency})`);
+}
 
 if (!existsSync(join(ROOT, 'dist/index.mjs'))) {
   console.error('types-matrix: dist/ is missing; run `npm run build` first.');
@@ -157,7 +166,14 @@ function ensureInstalled(dir, dependencies) {
   writeFileSync(join(dir, 'package.json'), JSON.stringify({ private: true, dependencies }));
   execFileSync(
     'npm',
-    ['install', '--no-audit', '--no-fund', '--ignore-scripts', '--loglevel=error'],
+    [
+      'install',
+      '--prefer-offline',
+      '--no-audit',
+      '--no-fund',
+      '--ignore-scripts',
+      '--loglevel=error',
+    ],
     {
       cwd: dir,
       stdio: 'inherit',
@@ -166,9 +182,20 @@ function ensureInstalled(dir, dependencies) {
   writeFileSync(stamp, want);
 }
 
-const tscOf = (version) => join(CACHE, `typescript-${version}/node_modules/typescript/bin/tsc`);
-for (const version of tsVersions)
-  ensureInstalled(join(CACHE, `typescript-${version}`), { typescript: version });
+// The repo's own TypeScript is reused when it is one of the requested versions (no install needed).
+const REPO_TS = join(ROOT, 'node_modules/typescript');
+const repoTsVersion = existsSync(join(REPO_TS, 'package.json'))
+  ? JSON.parse(readFileSync(join(REPO_TS, 'package.json'), 'utf8')).version
+  : undefined;
+const tscOf = (version) =>
+  version === repoTsVersion
+    ? join(REPO_TS, 'bin/tsc')
+    : join(CACHE, `typescript-${version}/node_modules/typescript/bin/tsc`);
+for (const version of tsVersions) {
+  if (version !== repoTsVersion) {
+    ensureInstalled(join(CACHE, `typescript-${version}`), { typescript: version });
+  }
+}
 const depsDir = join(CACHE, 'deps/node_modules');
 ensureInstalled(dirname(depsDir), DEPS);
 
@@ -177,6 +204,11 @@ ensureInstalled(dirname(depsDir), DEPS);
 // lookups resolve next to it) + symlinks to the cached packages (without @types/google.maps for "without").
 
 const work = mkdtempSync(join(tmpdir(), 'lp-types-matrix-'));
+// Also runs when a step below throws, so a crash never leaves the workspace behind.
+process.on('exit', () => {
+  if (args.keep) console.log(`workspace kept at ${work}`);
+  else rmSync(work, { recursive: true, force: true });
+});
 const [pack] = JSON.parse(
   execFileSync('npm', ['pack', '--ignore-scripts', '--json', '--pack-destination', work], {
     cwd: ROOT,
@@ -317,7 +349,7 @@ function judge(job, result) {
 async function runAll() {
   for (const job of jobs) if (!job.na) prepare(job);
   const queue = [...jobs];
-  const workers = Array.from({ length: Math.max(1, availableParallelism() - 1) }, async () => {
+  const workers = Array.from({ length: Math.min(concurrency, jobs.length) }, async () => {
     for (let job = queue.shift(); job; job = queue.shift()) {
       // oxlint-disable-next-line no-await-in-loop -- each worker compiles one cell at a time
       const result = job.na ? { exit: 0, codes: [], errors: [], missing: [] } : await compile(job);
@@ -384,6 +416,4 @@ if (args.json) {
   }));
   writeFileSync(resolve(args.json), `${JSON.stringify(rows, null, 2)}\n`);
 }
-if (args.keep) console.log(`workspace kept at ${work}`);
-else rmSync(work, { recursive: true, force: true });
 process.exitCode = failures.length ? 1 : 0;
