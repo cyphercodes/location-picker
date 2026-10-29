@@ -23,6 +23,13 @@ export {
 } from '../core/helpers.js';
 export type { Logged };
 
+// What types/globals.d.ts gives package consumers (that file resolves against dist/, so tests declare it here).
+declare global {
+  interface HTMLElementTagNameMap {
+    'location-picker': LocationPickerElement;
+  }
+}
+
 export interface Picked {
   readonly el: LocationPickerElement;
   readonly fake: FakeControl;

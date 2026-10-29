@@ -271,7 +271,8 @@ class Controller {
     } else if (state.value && prev.precision != next.precision) {
       state.value = this.canonical(latLngOf(state.value));
     }
-    if (rawKey(prev.value) == rawKey(next.value)) return;
+    // The validity message comes from `messages`, the form value's zoom from the config.
+    if (rawKey(prev.value) == rawKey(next.value)) return this.updateForm();
     if (!state.dirty) this.write(next.value, { dirty: false, cause: 'write' });
     // D10: only lat/lng changes warn; a value attribute change while dirty is silent (native parity).
     else if (name == 'lat' || name == 'lng') warnOnce('lat-lng-ignored', LAT_LNG_IGNORED);

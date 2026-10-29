@@ -32,7 +32,7 @@ it('WP4-07 value, provider (an adapter), messages and disabled set before define
   defineLocationPicker();
   expect(el).toBeInstanceOf(LocationPickerElement);
   const upgraded = el as LocationPickerElement;
-  for (const key of Object.keys(props)) expect(Object.hasOwn(upgraded, key), key).toBe(false);
+  expect(Object.keys(props).filter((key) => Object.hasOwn(upgraded, key))).toEqual([]);
 
   // A property set before upgrade wins over the value attribute (§3.3 precedence step 1).
   expect(upgraded.value).toBe('48.8584,2.2945');

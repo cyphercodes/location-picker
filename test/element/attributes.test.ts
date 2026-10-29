@@ -64,8 +64,7 @@ describe('WP4-03 ATTRIBUTES table', () => {
 
       el.removeAttribute(spec.attr);
       Reflect.set(el, spec.prop, prop);
-      if (spec.reflect) expect(el.getAttribute(spec.attr)).toBe(attr);
-      else expect(el.hasAttribute(spec.attr)).toBe(false);
+      expect(el.getAttribute(spec.attr)).toBe(spec.reflect ? attr : null);
     },
   );
 
@@ -103,10 +102,8 @@ describe('WP4-03 ATTRIBUTES table', () => {
 
   it('observedAttributes holds every attribute, alias and wrong guess', () => {
     const observed = LocationPickerElement.observedAttributes;
-    for (const spec of ATTRIBUTES) {
-      expect(observed).toContain(spec.attr);
-      if (spec.alias) expect(observed).toContain(spec.alias);
-    }
+    for (const name of ATTRIBUTES.flatMap((spec) => [spec.attr, spec.alias ?? spec.attr]))
+      expect(observed).toContain(name);
     for (const guess of Object.keys(WRONG_GUESS_ATTRIBUTES)) expect(observed).toContain(guess);
   });
 
@@ -201,15 +198,14 @@ describe('WP4-21 framework property assignment', () => {
     const { el } = create();
     const checked = keys.filter((key) => key in el);
     expect(checked).toEqual(keys.filter((key) => key != 'readonly'));
-    for (const key of checked) {
-      let proto: object | null = Object.getPrototypeOf(el);
-      let descriptor: PropertyDescriptor | undefined;
-      while (proto && !descriptor) {
-        descriptor = Object.getOwnPropertyDescriptor(proto, key);
-        proto = Object.getPrototypeOf(proto);
+    const setter = (key: string): boolean => {
+      for (let proto: object | null = el; proto; proto = Object.getPrototypeOf(proto)) {
+        const descriptor = Object.getOwnPropertyDescriptor(proto, key);
+        if (descriptor) return typeof descriptor.set == 'function';
       }
-      expect(descriptor?.set, key).toBeTypeOf('function');
-    }
+      return false;
+    };
+    expect(checked.filter((key) => !setter(key))).toEqual([]);
   });
 
   it('locate="button" assigned as a property sets the attribute; el.locate stays the same method', () => {
