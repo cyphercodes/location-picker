@@ -18,7 +18,6 @@ import type {
   MapHandle,
   MountContext,
   ProviderAdapter,
-  SearchContext,
   SearchHandle,
   SetLocationOptions,
 } from '../core.js';
@@ -51,7 +50,6 @@ import { loadProvider, resolveGeocoder, SEARCH_UI } from './providers.js';
 import { getStore } from './store.js';
 import { adoptStyles } from './styles.js';
 
-type Interactive = MountContext['interactive'];
 type Extra = {
   readonly zoom?: number;
   readonly animate?: boolean;
@@ -76,15 +74,24 @@ let uid = 0;
 const noop = (): void => {};
 const isThenable = <T>(value: T | PromiseLike<T> | undefined): value is PromiseLike<T> =>
   typeof Reflect.get(Object(value), 'then') == 'function';
-const reducedMotion = (): boolean =>
-  typeof Reflect.get(globalThis, 'matchMedia') == 'function' &&
-  matchMedia('(prefers-reduced-motion: reduce)').matches;
-const keyOf = (event: Event): unknown => Reflect.get(event, 'key');
 /** Web Mercator y, in degrees. */
 const mercatorY = (lat: number): number =>
   (Math.log(Math.tan(Math.PI / 4 + (lat * Math.PI) / 360)) * 180) / Math.PI;
 const isResult = (value: unknown): value is GeocodeResult | null =>
   value === null || (typeof value == 'object' && 'lat' in value);
+const addressOf = (result: GeocodeResult): string => result.address ?? result.label;
+/** The rounded coordinate a canonical value denotes (§12.10: parseLatLng(value) deep-equals {lat, lng}). */
+const toLatLng = (value: string): LatLng => {
+  const { lat = 0, lng = 0 } = parseLatLng(value) ?? {};
+  return { lat, lng };
+};
+const asError = (
+  cause: unknown,
+  code: 'GEOCODER_FAILED' | 'ENGINE_LOAD_FAILED' | 'GEOLOCATION_UNAVAILABLE',
+): LocationPickerError => (isLocationPickerError(cause) ? cause : createError(code, { cause }));
+const keyOf = (event: Event): unknown => Reflect.get(event, 'key');
+const stop = (event: Event): void => event.stopPropagation();
+const isVisible = ({ width = 0, height = 0 } = {}): boolean => width > 0 && height > 0;
 /** A camera whose reads always see the core's current state (a mount may start long after it was requested). */
 const liveView = (
   center: () => LatLng,
@@ -97,24 +104,9 @@ const liveView = (
     return zoom();
   },
 });
-/** The rounded coordinate a canonical value denotes (§12.10: parseLatLng(value) deep-equals {lat, lng}). */
-const toLatLng = (value: string): LatLng => {
-  const { lat = 0, lng = 0 } = parseLatLng(value) ?? {};
-  return { lat, lng };
-};
-const asError = (
-  cause: unknown,
-  code: 'GEOCODER_FAILED' | 'ENGINE_LOAD_FAILED' | 'GEOLOCATION_UNAVAILABLE',
-): LocationPickerError => (isLocationPickerError(cause) ? cause : createError(code, { cause }));
-
-type GeolocationText =
-  'geolocationDenied' | 'geolocationUnavailable' | 'geolocationTimeout' | 'geolocationUnsupported';
-const GEOLOCATION_TEXT: Partial<Record<LocationPickerError['code'], GeolocationText>> = {
-  GEOLOCATION_DENIED: 'geolocationDenied',
-  GEOLOCATION_UNAVAILABLE: 'geolocationUnavailable',
-  GEOLOCATION_TIMEOUT: 'geolocationTimeout',
-  GEOLOCATION_UNSUPPORTED: 'geolocationUnsupported',
-};
+/** A provider spec's name: the string itself or the adapter's `name`. */
+const nameOf = (provider: ResolvedConfig['provider']): string =>
+  typeof provider == 'string' ? provider : provider.name;
 
 /** Runs `fn` on the next animation frame (setTimeout 16 ms where rAF is missing, e.g. jsdom); returns a canceller. */
 export function onFrame(fn: () => void): () => void {
@@ -191,11 +183,13 @@ export class PickerCore {
     this.host = host;
     this.#config = config;
     this.refs = renderOverlay(host.host.ownerDocument, host.mode, config.messages, String(++uid));
-    if (config.value)
-      this.#value = this.#committed = this.#lastInput = this.#canonical(config.value);
+    this.#value =
+      this.#committed =
+      this.#lastInput =
+        config.value ? this.#canonical(config.value) : '';
     this.#center = this.#value ? toLatLng(this.#value) : normalizeLatLng(config.center);
     this.#zoom = config.zoom;
-    this.#provider = typeof config.provider == 'string' ? config.provider : config.provider.name;
+    this.#provider = nameOf(config.provider);
     this.#geocoder = Promise.resolve(config.geocoder || null);
     this.events = {
       move: (center) => this.#onMove(center),
@@ -209,7 +203,6 @@ export class PickerCore {
     this.#listen();
     this.#observe();
     this.#newReady();
-    this.#setPhase('loading');
     this.#configure();
     this.#snapshot = this.#snap();
   }
@@ -275,11 +268,14 @@ export class PickerCore {
     if (has('center') && !this.#value) this.#view(normalizeLatLng(next.center));
     if (has('zoom')) this.setZoom(next.zoom);
     if (has('inputs') && this.#mounted) this.#bind();
-    if (has('geocoder') && !remount && this.#ctx && handle && this.#adapter)
-      this.#geocoder = this.#resolveGeocoder(this.#adapter, this.#ctx, handle);
-    if (has('search', 'geocoder', 'placeholder') && !remount) {
-      this.#dropSearch();
-      void this.#setupSearch();
+    if (!remount) {
+      const [adapter, ctx] = [this.#adapter, this.#ctx];
+      if (has('geocoder') && ctx && handle && adapter)
+        this.#geocoder = this.#resolveGeocoder(adapter, ctx, handle);
+      if (has('search', 'geocoder', 'placeholder')) {
+        this.#dropSearch();
+        void this.#setupSearch();
+      }
     }
     this.#configure();
   }
@@ -295,49 +291,43 @@ export class PickerCore {
     },
   ): void {
     if (this.#dead) return;
+    const { cause, address } = options;
+    const reset = cause == 'reset';
     const next = value ? this.#canonical(value) : '';
-    if (next != this.#value || options.address !== undefined) {
-      this.#address = options.address ?? null;
-      this.#addressResult = null;
-    }
+    if (next != this.#value || address !== undefined) this.#setAddress(address ?? null, null);
     this.#value = this.#committed = this.#lastInput = next;
     this.#written = true;
     this.#dirty = options.dirty;
-    if (options.cause == 'reset') this.#interacted = false;
-    this.#reverse?.abort();
-    this.#clearTimer('reverse');
-    const zoom =
-      options.zoom ?? (options.cause == 'reset' && !next ? this.#config.zoom : undefined);
+    if (reset) this.#interacted = false;
+    this.#cancelReverse();
+    const zoom = options.zoom ?? (reset && !next ? this.#config.zoom : undefined);
     if (next) this.#view(toLatLng(next), zoom);
-    else if (options.cause == 'reset') this.#view(normalizeLatLng(this.#config.center), zoom);
+    else if (reset) this.#view(normalizeLatLng(this.#config.center), zoom);
     else if (zoom !== undefined) this.setZoom(zoom);
     if (this.#mounted) this.#inputs?.write(next, this.#address, 'none');
     this.#refresh();
-    this.#emitSnapshot(options.cause);
+    this.#emitSnapshot(cause);
   }
 
   /** Method commit (source 'api'): emits input then change when the rounded value changed. Callers validate input first. */
   setLocation(value: LatLng, options: SetLocationOptions = {}): void {
     if (this.#dead) return;
-    if (this.#phase == 'loading') {
+    if (this.#phase == 'loading')
       this.#afterReady().then(() => this.setLocation(value, options), noop);
-      return;
-    }
-    this.#commit(value, 'api', options);
+    else this.#commit(value, 'api', options);
   }
 
   /** Enter/Space/confirm while unset: commits the current centre (source 'user'). */
   commitCenter(): void {
-    if (this.#value || this.#interactive() != 'full' || this.#dead) return;
     // The centre as the adapter last reported it: engines may re-derive theirs from whole pixels (Leaflet after resize).
-    this.#commit(this.#center, 'user', { move: false });
+    if (!this.#value && this.#interactive() == 'full' && !this.#dead)
+      this.#commit(this.#center, 'user', { move: false });
   }
 
   /** Zoom around the pin; never changes the value. */
   setZoom(zoom: number): void {
     if (!Number.isFinite(zoom) || this.#dead) return;
-    const max = this.#config.maxZoom ?? Infinity;
-    this.#zoom = Math.max(0, Math.min(max, zoom));
+    this.#zoom = this.#clampZoom(zoom);
     this.#quietly((handle) => handle.setZoom(this.#zoom));
     this.#emitSnapshot('zoom');
   }
@@ -345,8 +335,7 @@ export class PickerCore {
   getMarkerPosition(): LatLng {
     if (!this.#value) warnOnce('unset-marker-position', UNSET_MARKER_POSITION);
     const handle = this.#handle;
-    if (handle) return normalizeLatLng(handle.getCenter());
-    return this.#value ? toLatLng(this.#value) : { ...this.#center };
+    return handle ? normalizeLatLng(handle.getCenter()) : this.#at();
   }
 
   /**
@@ -362,20 +351,25 @@ export class PickerCore {
     this.#state('locating', true);
     button.setAttribute('aria-busy', 'true');
     try {
-      const signal = options.signal
-        ? AbortSignal.any([options.signal, this.#life.signal])
-        : this.#life.signal;
-      const fix = await geolocate({ ...this.#config.geolocation, ...options, signal });
+      const signal = this.#signal(options.signal);
+      const { coords } = await geolocate({ ...this.#config.geolocation, ...options, signal });
       await this.#afterReady();
-      const zoom = keepZoom ? undefined : Math.max(this.#zoom, 17);
-      const at = normalizeLatLng({ lat: fix.coords.latitude, lng: fix.coords.longitude });
-      return this.#commit(at, 'geolocation', { zoom, accuracy: fix.coords.accuracy });
+      return this.#commit(
+        normalizeLatLng({ lat: coords.latitude, lng: coords.longitude }),
+        'geolocation',
+        {
+          zoom: keepZoom ? undefined : Math.max(this.#zoom, 17),
+          accuracy: coords.accuracy,
+        },
+      );
     } catch (cause) {
       const error = asError(cause, 'GEOLOCATION_UNAVAILABLE');
       if (via != 'method' && error.code != 'ABORTED' && !this.#dead) {
         this.report(error);
-        const text = GEOLOCATION_TEXT[error.code];
-        if (text) this.showHint(this.#config.messages[text]);
+        // GEOLOCATION_DENIED -> messages.geolocationDenied, and so on.
+        const key = error.code.toLowerCase().replace(/_(.)/g, (_, c: string) => c.toUpperCase());
+        const text: unknown = Reflect.get(this.#config.messages, key);
+        if (typeof text == 'string') this.showHint(text);
       }
       throw error;
     } finally {
@@ -386,18 +380,14 @@ export class PickerCore {
 
   async geocode(query: string, options: GeocodeOptions = {}): Promise<GeocodeResult[]> {
     const at = parseLatLng(query);
-    if (at)
-      return [
-        {
-          lat: at.lat,
-          lng: at.lng,
-          label: formatLatLng(at, { precision: this.#config.precision }),
-        },
-      ];
+    if (at) {
+      const { lat, lng } = at;
+      return [{ lat, lng, label: formatLatLng(at, { precision: this.#config.precision }) }];
+    }
     const geocoder = await this.#geocoderAfterReady();
     const search = geocoder?.search?.bind(geocoder);
     if (!search) throw createError('GEOCODER_MISSING');
-    return this.#request(options.signal, 'searching', (signal) =>
+    return this.#request(options.signal, true, (signal) =>
       search(query, {
         signal,
         near: { ...this.#center },
@@ -418,11 +408,11 @@ export class PickerCore {
       target = read.value;
     }
     if (!target) return null;
+    const point = target;
     const geocoder = await this.#geocoderAfterReady();
     if (!geocoder?.reverse) throw createError('GEOCODER_MISSING');
-    const value = this.#canonical(target);
-    const point = target;
-    const result = await this.#request(options.signal, null, (signal) =>
+    const value = this.#canonical(point);
+    const result = await this.#request(options.signal, false, (signal) =>
       this.#lookup(geocoder, point, signal),
     );
     this.#addressResolved(value, result);
@@ -442,9 +432,7 @@ export class PickerCore {
     if (this.#dead) return;
     this.#dead = true;
     const aborted = createError('ABORTED');
-    this.#life.abort(aborted);
-    this.#mount?.abort(aborted);
-    this.#reverse?.abort(aborted);
+    for (const control of [this.#life, this.#mount, this.#reverse]) control?.abort(aborted);
     this.#teardownMap();
     this.#observer?.disconnect();
     for (const timer of this.#timers.values()) clearTimeout(timer);
@@ -463,9 +451,10 @@ export class PickerCore {
 
   /** Dispatches an `error` event (MountContext.report and every internal failure); logged unless handled. */
   report(error: LocationPickerError): void {
-    if (this.#dead) return;
-    const handled = !!this.host.beforeDispatch?.('error', error);
-    reportError(this.host.eventTarget, error, { handled });
+    if (!this.#dead)
+      reportError(this.host.eventTarget, error, {
+        handled: !!this.host.beforeDispatch?.('error', error),
+      });
   }
 
   // ---- mounting ----------------------------------------------------------------------------------------------------
@@ -497,53 +486,49 @@ export class PickerCore {
     });
   }
 
+  /** Loads the provider, then the engine, then mounts: synchronously as far as each step allows (adapter objects). */
   #start(): void {
     this.#mount?.abort();
     this.#teardownMap();
-    const control = (this.#mount = new AbortController());
-    const { signal } = control;
-    this.#setPhase('loading');
+    const { signal } = (this.#mount = new AbortController());
+    this.#phase = 'loading';
     this.refs.error.hidden = this.refs.fallback.hidden = true;
     this.#refresh();
-    const { provider } = this.#config;
-    this.#rename(typeof provider == 'string' ? provider : provider.name);
+    this.#rename(nameOf(this.#config.provider));
     const fail = (cause: unknown): void => {
       if (!signal.aborted) this.#failed(asError(cause, 'ENGINE_LOAD_FAILED'));
     };
-    const mountWith = (adapter: ProviderAdapter): void => {
-      if (signal.aborted) return;
-      this.#adapter = adapter;
-      this.#rename(adapter.name);
-      const view = liveView(
-        () => (this.#value ? toLatLng(this.#value) : { ...this.#center }),
-        () => this.#zoom,
-      );
-      const ctx = (this.#ctx = createMountContext(this, signal, view));
-      const go = (): void => {
-        try {
-          const handle = adapter.mount(ctx);
-          if (isThenable(handle))
-            handle.then((h) => this.#onMounted(adapter, ctx, h, signal), fail);
-          else this.#onMounted(adapter, ctx, handle, signal);
-        } catch (cause) {
-          fail(cause);
-        }
-      };
+    // Runs `run`, then `next` with its result: synchronously unless it returns a promise.
+    const step = <T>(run: () => T | PromiseLike<T>, next: (value: T) => void): void => {
       try {
-        const loading = adapter.load?.(ctx);
-        if (isThenable(loading)) loading.then(go, fail);
-        else go();
+        const value = run();
+        if (isThenable(value)) value.then((v) => step(() => v, next), fail);
+        else next(value);
       } catch (cause) {
         fail(cause);
       }
     };
-    try {
-      const adapter = loadProvider(this.#config.provider);
-      if (isThenable(adapter)) adapter.then(mountWith, fail);
-      else mountWith(adapter);
-    } catch (cause) {
-      fail(cause);
-    }
+    step(
+      () => loadProvider(this.#config.provider),
+      (adapter) => {
+        if (signal.aborted) return;
+        this.#adapter = adapter;
+        this.#rename(adapter.name);
+        const view = liveView(
+          () => this.#at(),
+          () => this.#zoom,
+        );
+        const ctx = (this.#ctx = createMountContext(this, signal, view));
+        step(
+          () => adapter.load?.(ctx),
+          () =>
+            step(
+              () => adapter.mount(ctx),
+              (handle) => this.#onMounted(adapter, ctx, handle),
+            ),
+        );
+      },
+    );
   }
 
   /** A new provider NAME drops the address: Google content must not stay next to a non-Google map, and vice versa (ToS §3.2.3(e); §3.2). */
@@ -551,33 +536,32 @@ export class PickerCore {
     if (name == this.#provider) return;
     this.#provider = name;
     if (this.#address === null && !this.#addressResult) return;
-    this.#address = null;
-    this.#addressResult = null;
+    this.#setAddress(null, null);
     this.#inputs?.write(undefined, null, 'none');
     this.#emitSnapshot('address');
   }
 
-  #onMounted(
-    adapter: ProviderAdapter,
-    ctx: MountContext,
-    handle: MapHandle,
-    signal: AbortSignal,
-  ): void {
-    if (signal.aborted) {
-      handle.destroy();
-      return;
-    }
+  #onMounted(adapter: ProviderAdapter, ctx: MountContext, handle: MapHandle): void {
+    const { signal } = ctx;
+    if (signal.aborted) return handle.destroy();
     this.#handle = handle;
     // The camera may have moved on while the engine loaded (writes, zoom): re-apply it without echoes.
-    const at = this.#value ? toLatLng(this.#value) : this.#center;
+    const at = this.#at();
     if (
       this.#canonical(handle.getCenter()) != this.#canonical(at) ||
       handle.getZoom() != this.#zoom
     )
       this.#view(at, this.#zoom);
-    this.#a11y(handle.a11y == 'engine');
+    // With an engine that renders its own accessible region (Google), the core only labels the container.
+    const map = this.refs.map;
+    if (handle.a11y == 'engine')
+      for (const name of ['role', 'aria-roledescription', 'tabindex']) map.removeAttribute(name);
+    else {
+      map.setAttribute('role', 'application');
+      map.tabIndex = 0;
+    }
     this.#geocoder = this.#resolveGeocoder(adapter, ctx, handle);
-    this.#setPhase('ready');
+    this.#phase = 'ready';
     this.#configure();
     this.#emitSnapshot('mount');
     this.#settle?.resolve(handle);
@@ -596,7 +580,7 @@ export class PickerCore {
   }
 
   #failed(error: LocationPickerError): void {
-    this.#setPhase('error');
+    this.#phase = 'error';
     this.refs.error.hidden = this.refs.fallback.hidden = false;
     this.#refresh();
     this.#emitSnapshot('mount');
@@ -636,8 +620,9 @@ export class PickerCore {
 
   /** Resolves once the current mount settled (ready or failed); rejects ABORTED on destroy. */
   #afterReady(): Promise<void> {
-    if (this.#phase != 'loading') return Promise.resolve();
-    return new Promise((resolve, reject) => this.#waiting.push({ resolve, reject }));
+    return this.#phase == 'loading'
+      ? new Promise((resolve, reject) => this.#waiting.push({ resolve, reject }))
+      : Promise.resolve();
   }
 
   #flush(): void {
@@ -650,11 +635,10 @@ export class PickerCore {
     if (this.#quiet || this.#dead) return;
     this.#clearTimer('announce');
     this.#state('dragging', true);
-    if (!this.#gesture) {
-      const start = this.#canonical(this.#center);
-      const from = { ...this.#center };
-      this.#gesture = { start, from, zoom: this.#zoom, last: start, emitted: false, moved: false };
-    }
+    if (this.#gesture) return;
+    const start = this.#canonical(this.#center);
+    const from = { ...this.#center };
+    this.#gesture = { start, from, zoom: this.#zoom, last: start, emitted: false, moved: false };
   }
 
   #onMove(center: LatLng): void {
@@ -663,8 +647,13 @@ export class PickerCore {
     if (this.#quiet || !gesture || this.#interactive() != 'full') return;
     gesture.moved = true;
     this.#cancelFrame ??= onFrame(() => {
+      // One live frame of a user gesture: `input` (source user) when the rounded value changed.
       this.#cancelFrame = undefined;
-      this.#live();
+      const value = this.#canonical(this.#center);
+      if (value == gesture.last || (!gesture.emitted && this.#still(gesture))) return;
+      gesture.last = value;
+      gesture.emitted = true;
+      this.#liveInput(value);
     });
   }
 
@@ -680,18 +669,7 @@ export class PickerCore {
   #onEnd(): void {
     this.#state('dragging', false);
     // A press without any movement (a click) ends here; moves end at moveEnd (after inertia).
-    if (this.#gesture && !this.#gesture.moved) this.#gesture = undefined;
-  }
-
-  /** One live frame of a user gesture: `input` (source user) when the rounded value changed. */
-  #live(): void {
-    const gesture = this.#gesture;
-    if (!gesture) return;
-    const value = this.#canonical(this.#center);
-    if (value == gesture.last || (!gesture.emitted && this.#still(gesture))) return;
-    gesture.last = value;
-    gesture.emitted = true;
-    this.#liveInput(value);
+    if (!this.#gesture?.moved) this.#gesture = undefined;
   }
 
   #liveInput(value: string): void {
@@ -701,6 +679,7 @@ export class PickerCore {
     this.#emitSnapshot('live');
     this.#inputs?.write(value, undefined, 'input');
     this.#lastInput = value;
+    // The address of a value the pan has not settled on yet is unknown.
     this.#emit('input', this.#detail('user', {}, null));
   }
 
@@ -709,22 +688,23 @@ export class PickerCore {
     this.#cancelFrame = this.#gesture = undefined;
     this.#state('dragging', false);
     const value = this.#canonical(this.#center);
+    const full = this.#interactive() == 'full';
     if (!gesture.emitted && this.#still(gesture)) {
       // Not a pan: zoom never commits (§3.3). Put the camera back on the value where the engine allows it.
       if (this.#value && value != this.#value) this.#view(toLatLng(this.#value));
-      if (zoomed) this.#emitSnapshot('zoom');
-      return;
-    }
-    const full = this.#interactive() == 'full';
-    // Leaving unset needs an actual pan; zoom alone never commits (§3.3).
-    if (
+    } else if (
+      // Leaving unset needs an actual pan; zoom alone never commits (§3.3).
       full &&
       value != this.#committed &&
       (this.#committed || value != gesture.start || gesture.emitted)
-    )
+    ) {
       this.#commit(this.#center, 'user', { move: false });
-    else if (full && gesture.emitted && value != this.#lastInput) this.#liveInput(value);
-    else if (zoomed) this.#emitSnapshot('zoom');
+      return;
+    } else if (full && gesture.emitted && value != this.#lastInput) {
+      this.#liveInput(value);
+      return;
+    }
+    if (zoomed) this.#emitSnapshot('zoom');
   }
 
   /**
@@ -751,13 +731,9 @@ export class PickerCore {
     if (changed) {
       this.#committed = value;
       this.#interacted = true;
-      const known = extra.place
-        ? { address: extra.place.address ?? extra.place.label, result: extra.place }
-        : this.#cached(value);
-      this.#address = known?.address ?? null;
-      this.#addressResult = known?.result ?? null;
-      this.#reverse?.abort();
-      this.#clearTimer('reverse');
+      const known = extra.place ?? this.#cached(value);
+      this.#setAddress(known ? addressOf(known) : null, known ?? null);
+      this.#cancelReverse();
     }
     if (changed || value != this.#value) {
       this.#value = value;
@@ -765,7 +741,7 @@ export class PickerCore {
       this.#refresh();
       this.#emitSnapshot('commit');
     } else if (this.#zoom != zoom) this.#emitSnapshot('zoom');
-    const detail = this.#detail(source, extra, this.#address);
+    const detail = this.#detail(source, extra);
     if (!changed) return detail;
     this.#inputs?.write(value, this.#address, 'commit');
     this.#lastInput = value;
@@ -778,15 +754,19 @@ export class PickerCore {
     return detail;
   }
 
-  #detail(source: ChangeSource, extra: Extra, address: string | null): LocationDetail {
+  #detail(
+    source: ChangeSource,
+    { accuracy, place }: Extra,
+    address = this.#address,
+  ): LocationDetail {
     return {
       ...toLatLng(this.#value),
       value: this.#value,
       source,
       zoom: this.#zoom,
       address,
-      ...(extra.accuracy !== undefined && { accuracy: extra.accuracy }),
-      ...(extra.place && { place: extra.place }),
+      ...(accuracy !== undefined && { accuracy }),
+      ...(place && { place }),
     };
   }
 
@@ -798,39 +778,43 @@ export class PickerCore {
   }
 
   /** The zoom at which `bounds` fits the map while centred on `at` (Web Mercator). */
-  #fit(bounds: Bounds, at: LatLng): number {
+  #fit({ north, south, east, west }: Bounds, at: LatLng): number {
     const { clientWidth: width, clientHeight: height } = this.refs.map;
-    const east = bounds.east < bounds.west ? bounds.east + 360 : bounds.east;
-    const lng = at.lng < bounds.west ? at.lng + 360 : at.lng;
-    const dx = 2 * Math.max(east - lng, lng - bounds.west);
-    const dy =
-      2 *
-      Math.max(
-        mercatorY(bounds.north) - mercatorY(at.lat),
-        mercatorY(at.lat) - mercatorY(bounds.south),
-      );
+    const lng = at.lng < west ? at.lng + 360 : at.lng;
+    const dx = 2 * Math.max((east < west ? east + 360 : east) - lng, lng - west);
+    const y = mercatorY(at.lat);
+    const dy = 2 * Math.max(mercatorY(north) - y, y - mercatorY(south));
     const zoom = Math.floor(Math.log2((Math.min(width / dx, height / dy) * 360) / 256));
     return Math.max(0, Math.min(this.#config.maxZoom ?? 19, Number.isFinite(zoom) ? zoom : 17));
   }
 
   #typed(): void {
     const fallback = this.refs.fallback;
-    const read = readLatLngInput(fallback.value);
-    fallback.setAttribute('aria-invalid', String(!read.value));
-    if (read.value && this.#interactive() == 'full') this.#commit(read.value, 'user');
+    const { value } = readLatLngInput(fallback.value);
+    fallback.setAttribute('aria-invalid', String(!value));
+    if (value && this.#interactive() == 'full') this.#commit(value, 'user');
   }
 
   // ---- addresses ---------------------------------------------------------------------------------------------------
+
+  #setAddress(address: string | null, result: GeocodeResult | null): void {
+    this.#address = address;
+    this.#addressResult = result;
+  }
+
+  #cancelReverse(): void {
+    this.#reverse?.abort();
+    this.#clearTimer('reverse');
+  }
 
   #cacheKey(at: LatLng): string {
     return `${this.#geocoderId}:${at.lat.toFixed(5)},${at.lng.toFixed(5)}`;
   }
 
-  #cached(value: string): { address: string | null; result: GeocodeResult } | undefined {
+  /** The cached reverse result for `value`, if any (only once a geocoder is known). */
+  #cached(value: string): GeocodeResult | undefined {
     const result: unknown = getStore().reverseCache.get(this.#cacheKey(toLatLng(value)));
-    return this.#geocoderId && isResult(result) && result
-      ? { address: result.address ?? result.label, result }
-      : undefined;
+    return (this.#geocoderId && isResult(result) && result) || undefined;
   }
 
   async #lookup(
@@ -840,27 +824,25 @@ export class PickerCore {
   ): Promise<GeocodeResult | null> {
     const cache = getStore().reverseCache;
     const key = this.#cacheKey(at);
-    const hit: unknown = cache.get(key);
-    if (isResult(hit)) {
-      cache.delete(key);
-      cache.set(key, hit);
-      return hit;
-    }
-    const result =
-      (await geocoder.reverse?.(at, { signal, lang: this.#config.lang, zoom: this.#zoom })) ?? null;
+    let result: unknown = cache.get(key);
+    // An LRU: a hit moves to the end.
+    cache.delete(key);
+    if (!isResult(result))
+      result =
+        (await geocoder.reverse?.(at, { signal, lang: this.#config.lang, zoom: this.#zoom })) ??
+        null;
     cache.set(key, result);
     if (cache.size > 200) cache.delete(cache.keys().next().value ?? key);
-    return result;
+    return isResult(result) ? result : null;
   }
 
   /** Reverse-geocodes the committed value after a 400 ms debounce; a newer commit aborts the request. */
   #scheduleReverse(): void {
     this.#reverse?.abort();
-    if (!this.#config.reverseGeocode || !this.#value) return;
     const value = this.#value;
+    if (!this.#config.reverseGeocode || !value) return;
     this.#later('reverse', 400, () => {
-      const control = (this.#reverse = new AbortController());
-      const signal = AbortSignal.any([control.signal, this.#life.signal]);
+      const signal = this.#signal((this.#reverse = new AbortController()).signal);
       void this.#geocoder.then(async (geocoder) => {
         if (!geocoder?.reverse || signal.aborted) return;
         try {
@@ -875,7 +857,7 @@ export class PickerCore {
   /** A lookup for `value` finished: stale results are dropped, an unchanged address fires nothing. */
   #addressResolved(value: string, result: GeocodeResult | null): void {
     if (value != this.#value || this.#dead) return;
-    const address = result ? (result.address ?? result.label) : null;
+    const address = result && addressOf(result);
     this.#addressResult = result;
     if (address === this.#address) return;
     this.#address = address;
@@ -901,13 +883,13 @@ export class PickerCore {
   async #setupSearch(): Promise<void> {
     const [handle, adapter, ctx, config] = [this.#handle, this.#adapter, this.#ctx, this.#config];
     if (!config.search || !handle || !adapter || !ctx || this.#search) return;
-    const search: SearchContext = {
+    const search = {
       ...ctx,
       handle,
       slot: this.refs.search,
       placeholder: config.placeholder,
       label: config.messages.searchLabel,
-      select: (result) => this.#pick(result),
+      select: (result: GeocodeResult) => this.#pick(result),
     };
     try {
       let ui: SearchHandle;
@@ -949,9 +931,12 @@ export class PickerCore {
       return typeof value == 'number' && value >= 0 ? value : fallback;
     };
     const url: unknown = Reflect.get(geocoder, 'url');
-    const publicPhoton = typeof url == 'string' && url.startsWith('https://photon.komoot.io/');
+    const debounce = own('debounce', 300);
     return {
-      debounce: publicPhoton ? Math.max(300, own('debounce', 300)) : own('debounce', 300),
+      // The public photon.komoot.io endpoint needs at least 300 ms between requests (§5.2).
+      debounce: String(url).startsWith('https://photon.komoot.io/')
+        ? Math.max(300, debounce)
+        : debounce,
       minChars: own('minChars', 3),
       limit: own('limit', 5),
       messages: this.#config.messages,
@@ -959,22 +944,23 @@ export class PickerCore {
     };
   }
 
+  /** Runs a geocoder request with the picker's lifetime; `searching` toggles :state(searching) around it. */
   async #request<T>(
     user: AbortSignal | undefined,
-    state: 'searching' | null,
+    searching: boolean,
     run: (signal: AbortSignal) => Promise<T>,
   ): Promise<T> {
-    const signal = user ? AbortSignal.any([user, this.#life.signal]) : this.#life.signal;
-    if (state) this.#state(state, true);
+    const signal = this.#signal(user);
+    if (searching) this.#state('searching', true);
     try {
-      if (signal.aborted) throw createError('ABORTED', { cause: signal.reason });
+      if (signal.aborted) throw signal.reason;
       return await run(signal);
     } catch (cause) {
       throw signal.aborted
         ? createError('ABORTED', { cause: signal.reason })
         : asError(cause, 'GEOCODER_FAILED');
     } finally {
-      if (state) this.#state(state, false);
+      if (searching) this.#state('searching', false);
     }
   }
 
@@ -984,8 +970,22 @@ export class PickerCore {
     return formatLatLng(normalizeLatLng(at), { precision: this.#config.precision });
   }
 
-  #interactive(): Interactive {
+  /** The value as a coordinate, else (unset) the view centre. */
+  #at(): LatLng {
+    return this.#value ? toLatLng(this.#value) : { ...this.#center };
+  }
+
+  /** `signal` combined with the picker's lifetime (destroy aborts). */
+  #signal(signal?: AbortSignal): AbortSignal {
+    return signal ? AbortSignal.any([signal, this.#life.signal]) : this.#life.signal;
+  }
+
+  #interactive(): MountContext['interactive'] {
     return this.#config.disabled ? 'none' : this.#config.readOnly ? 'zoom-only' : 'full';
+  }
+
+  #clampZoom(zoom: number): number {
+    return Math.max(0, Math.min(this.#config.maxZoom ?? Infinity, zoom));
   }
 
   #quietly(fn: (handle: MapHandle) => void): void {
@@ -1002,11 +1002,10 @@ export class PickerCore {
   /** Moves the camera without reporting a user interaction (engine echoes are ignored). */
   #view(center: LatLng, zoom?: number, animate = false): void {
     this.#center = center;
-    if (zoom !== undefined)
-      this.#zoom = Math.max(0, Math.min(this.#config.maxZoom ?? Infinity, zoom));
+    if (zoom !== undefined) this.#zoom = this.#clampZoom(zoom);
     this.#quietly((handle) =>
       handle.setView(center, zoom === undefined ? undefined : this.#zoom, {
-        animate: animate && !reducedMotion(),
+        animate: animate && !globalThis.matchMedia?.('(prefers-reduced-motion: reduce)').matches,
       }),
     );
   }
@@ -1020,18 +1019,13 @@ export class PickerCore {
     this.host.setState(name, on);
   }
 
-  #setPhase(phase: PickerSnapshot['phase']): void {
-    this.#phase = phase;
-    this.#state('loading', phase == 'loading');
-    this.#state('ready', phase == 'ready');
-    this.#state('error', phase == 'error');
-  }
-
   /** Derived UI after any state change. */
   #refresh(): void {
     const { refs, config } = this;
     const unset = !this.#value;
     const full = this.#interactive() == 'full';
+    for (const phase of ['loading', 'ready', 'error'] as const)
+      this.#state(phase, phase == this.#phase);
     this.#state('unset', unset);
     this.#state('interacted', this.#interacted);
     refs.pin.hidden = config.marker == 'none' || !!this.#handle?.drawsMarker;
@@ -1048,14 +1042,11 @@ export class PickerCore {
     this.#label();
     const marker = config.marker;
     const custom = refs.pin.querySelector('.lp-pin-custom');
-    if (typeof marker == 'object') {
-      if (custom?.firstChild !== marker) {
-        const wrapper = refs.pin.ownerDocument.createElement('span');
-        wrapper.className = 'lp-pin-custom';
-        wrapper.append(marker);
-        refs.pin.querySelector('.lp-pin-icon')?.replaceWith(wrapper);
-        custom?.replaceWith(wrapper);
-      }
+    if (typeof marker == 'object' && custom?.firstChild !== marker) {
+      const wrapper = refs.pin.ownerDocument.createElement('span');
+      wrapper.className = 'lp-pin-custom';
+      wrapper.append(marker);
+      (custom ?? refs.pin.querySelector('.lp-pin-icon'))?.replaceWith(wrapper);
     }
     this.#handle?.setInteractive(this.#interactive());
     this.#refresh();
@@ -1065,25 +1056,12 @@ export class PickerCore {
   #label(): void {
     const host = this.host.host;
     const labels = (host as Partial<HTMLInputElement>).labels;
-    const name =
+    this.refs.map.setAttribute(
+      'aria-label',
       host.getAttribute('aria-label') ||
-      labels?.[0]?.textContent?.trim() ||
-      this.#config.messages.label;
-    this.refs.map.setAttribute('aria-label', name);
-  }
-
-  /** With an engine that renders its own accessible region (Google), the core only labels the container. */
-  #a11y(engine: boolean): void {
-    const map = this.refs.map;
-    if (engine) {
-      map.removeAttribute('role');
-      map.removeAttribute('aria-roledescription');
-      map.removeAttribute('tabindex');
-    } else {
-      map.setAttribute('role', 'application');
-      map.tabIndex = 0;
-      applyTexts(this.refs, this.#config.messages);
-    }
+        labels?.[0]?.textContent?.trim() ||
+        this.#config.messages.label,
+    );
   }
 
   #snap(): PickerSnapshot {
@@ -1113,9 +1091,13 @@ export class PickerCore {
   ): void {
     if (this.#dead) return;
     this.host.beforeDispatch?.(type, detail);
-    const bubbles = type != 'ready';
-    const composed = type == 'input' || type == 'addresschange';
-    this.host.eventTarget.dispatchEvent(new CustomEvent(type, { detail, bubbles, composed }));
+    this.host.eventTarget.dispatchEvent(
+      new CustomEvent(type, {
+        detail,
+        bubbles: type != 'ready',
+        composed: type == 'input' || type == 'addresschange',
+      }),
+    );
   }
 
   /** Polite announcement 700 ms after a commit (never during a pan) and again when its address resolves. */
@@ -1137,27 +1119,25 @@ export class PickerCore {
 
   #bind(): void {
     const host = this.host;
+    const element = host.mode == 'element';
     const inputs = (this.#inputs = new BoundInputs(
       host.lookupRoot,
       this.#config.inputs,
-      (key) => (host.mode == 'class' ? `${key}Input` : `${key}-input`),
-      (input) => host.mode == 'element' && host.host.contains(input),
+      (key) => (element ? `${key}-input` : `${key}Input`),
+      (input) => element && host.host.contains(input),
     ));
     const seed = inputs.read();
     this.seedDefault ??= seed.defaults;
     if (!this.#written && !this.#value) {
-      if (seed.value) {
-        const config = this.#config;
-        this.#value = this.#committed = this.#lastInput = this.#canonical(seed.value);
+      const { value, error } = seed;
+      if (value) {
+        this.#value = this.#committed = this.#lastInput = this.#canonical(value);
         this.#center = toLatLng(this.#value);
         // "15 with a value": the resolved zoom is the no-value default unless one was given.
-        if (!config.centerGiven && config.zoom == DEFAULTS.zoom) this.#zoom = 15;
+        if (!this.#config.centerGiven && this.#config.zoom == DEFAULTS.zoom) this.#zoom = 15;
         this.#refresh();
         this.#emitSnapshot('mount');
-      } else if (seed.error) {
-        const error = seed.error;
-        queueMicrotask(() => this.report(error));
-      }
+      } else if (error) queueMicrotask(() => this.report(error));
     }
     // The first write: never before the inputs were read, and never "" at init.
     if (this.#value) inputs.write(this.#value, this.#address ?? undefined, 'none');
@@ -1165,15 +1145,11 @@ export class PickerCore {
 
   #listen(): void {
     const { refs } = this;
-    const signal = this.#life.signal;
     const on = (target: EventTarget, type: string, fn: (event: Event) => void): void =>
-      target.addEventListener(type, fn, { signal });
+      target.addEventListener(type, fn, { signal: this.#life.signal });
     on(refs.map, 'keydown', (event) => {
-      if (
-        (keyOf(event) == 'Enter' || keyOf(event) == ' ') &&
-        event.target == refs.map &&
-        !this.#value
-      ) {
+      const key = keyOf(event);
+      if ((key == 'Enter' || key == ' ') && event.target == refs.map && !this.#value) {
         event.preventDefault();
         this.commitCenter();
       }
@@ -1187,13 +1163,13 @@ export class PickerCore {
       this.#typed();
     });
     on(refs.fallback, 'change', (event) => {
-      event.stopPropagation();
+      stop(event);
       this.#typed();
     });
     // Inner native events never escape (retargeted to the host they would look like picker events, §3.5).
-    on(refs.fallback, 'input', (event) => event.stopPropagation());
-    on(refs.search, 'input', (event) => event.stopPropagation());
-    on(refs.search, 'change', (event) => event.stopPropagation());
+    on(refs.fallback, 'input', stop);
+    on(refs.search, 'input', stop);
+    on(refs.search, 'change', stop);
     on(refs.search, 'keydown', (event) => {
       if (keyOf(event) == 'Enter') event.preventDefault();
     });
@@ -1201,23 +1177,21 @@ export class PickerCore {
 
   /** Initialised while hidden (tabs, dialog, display:none): resize, and re-centre when the size becomes non-zero. */
   #observe(): void {
-    const Observer = this.host.host.ownerDocument.defaultView?.ResizeObserver;
+    const target = this.host.host;
+    const Observer = target.ownerDocument.defaultView?.ResizeObserver;
     if (!Observer) return;
     this.#observer = new Observer(([entry]) => {
-      const { width = 0, height = 0 } = entry?.contentRect ?? {};
-      const visible = width > 0 && height > 0;
+      const now = isVisible(entry?.contentRect);
       const handle = this.#handle;
       if (handle) {
         handle.resize();
-        if (visible && !this.#visible)
-          this.#view(this.#value ? toLatLng(this.#value) : this.#center, this.#zoom);
+        if (now && !this.#visible) this.#view(this.#at(), this.#zoom);
       }
-      this.#visible = visible;
+      this.#visible = now;
     });
     // No initial observation fires for an element that is not rendered (display:none): measure now.
-    const { width, height } = this.host.host.getBoundingClientRect();
-    this.#visible = width > 0 && height > 0;
-    this.#observer.observe(this.host.host);
+    this.#visible = isVisible(target.getBoundingClientRect());
+    this.#observer.observe(target);
   }
 }
 

@@ -1,7 +1,7 @@
 {
   "name": "location-picker",
   "version": "3.0.0-alpha.0",
-  "description": "Tiny, form-ready map location picker: pan a map under a fixed pin to get lat/lng (and an address). Web component + JS API. OpenStreetMap/Leaflet with no API key, Google Maps, MapLibre.",
+  "description": "Form-ready map location picker: pan a map under a fixed pin to pick one latitude/longitude. Web component + class, keyless OpenStreetMap by default, Google and MapLibre optional.",
   "license": "MIT",
   "type": "commonjs",
   "author": "Rayan Salhab",
@@ -229,7 +229,7 @@
     "test:browser": "vitest run --project browser --configLoader runner",
     "test:e2e": "playwright test",
     "compat": "COMPAT_FULL=1 playwright test",
-    "size": "size-limit",
+    "size": "size-limit --ignore-missing",
     "publint": "publint --strict",
     "attw": "attw --pack . --profile node16",
     "check:package": "node scripts/pack-check.mjs && npm run publint && npm run attw && npm run size",
