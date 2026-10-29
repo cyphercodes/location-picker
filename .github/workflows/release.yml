@@ -5,8 +5,9 @@ name: Release
 # owner "cyphercodes", repository "location-picker", workflow "release.yml" (keep this file name), no environment.
 #
 # Every gate runs before the publish. Prereleases go to `next`, stable versions straight to `latest` (A13.5: trusted
-# publishing cannot run `npm dist-tag`). The CDN smoke runs right after the publish and, on failure, fails the job and
-# prints the rollback command.
+# publishing cannot run `npm dist-tag`). The CDN smoke is its own job right after the publish: on failure it prints the
+# rollback command, and `gh run rerun --failed` re-runs only the smoke. A full re-run skips the already published
+# version.
 on:
   push:
     tags: ['v*']
@@ -25,6 +26,9 @@ jobs:
     permissions:
       contents: read
       id-token: write # trusted publishing + provenance
+    outputs:
+      version: ${{ steps.version.outputs.version }}
+      previous: ${{ steps.previous.outputs.version }}
     env:
       PLAYWRIGHT_SKIP_BROWSER_DOWNLOAD: '1'
     steps:
@@ -64,21 +68,41 @@ jobs:
       - name: Current dist-tag (named in the rollback command)
         id: previous
         env:
+          VERSION: ${{ steps.version.outputs.version }}
           DIST_TAG: ${{ steps.version.outputs.dist-tag }}
-        run: echo "version=$(npm view location-picker "dist-tags.$DIST_TAG" 2>/dev/null || true)" >> "$GITHUB_OUTPUT"
+        run: |
+          previous=$(npm view location-picker "dist-tags.$DIST_TAG" 2>/dev/null || true)
+          if [ "$previous" = "$VERSION" ]; then previous=; fi
+          echo "version=$previous" >> "$GITHUB_OUTPUT"
       - name: Publish
         env:
-          DIST_TAG: ${{ steps.version.outputs.dist-tag }}
-        run: npm publish --provenance --access public --tag "$DIST_TAG"
-      - name: CDN smoke (unpkg, jsDelivr)
-        env:
           VERSION: ${{ steps.version.outputs.version }}
-          PREVIOUS: ${{ steps.previous.outputs.version }}
+          DIST_TAG: ${{ steps.version.outputs.dist-tag }}
+        run: |
+          if [ "$(npm view "location-picker@$VERSION" version 2>/dev/null)" = "$VERSION" ]; then
+            echo "location-picker@$VERSION is already published; skipping"
+          else
+            npm publish --provenance --access public --tag "$DIST_TAG"
+          fi
+
+  smoke:
+    name: CDN smoke (unpkg, jsDelivr)
+    needs: publish
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v7
+      - uses: actions/setup-node@v7
+        with:
+          node-version: 24
+      - name: CDN smoke
+        env:
+          VERSION: ${{ needs.publish.outputs.version }}
+          PREVIOUS: ${{ needs.publish.outputs.previous }}
         run: node scripts/cdn-smoke.mjs --version "$VERSION" --rollback-to "$PREVIOUS"
 
   github-release:
     name: GitHub release
-    needs: publish
+    needs: smoke
     runs-on: ubuntu-latest
     permissions:
       contents: write
