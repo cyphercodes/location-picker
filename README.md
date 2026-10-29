@@ -1,6 +1,6 @@
 # location-picker
 
-Tiny, form-ready map location picker: pan a map under a fixed pin to get lat/lng (and an address). Web component + JS API. OpenStreetMap/Leaflet with no API key, Google Maps, MapLibre.
+Form-ready map location picker: pan a map under a fixed pin to pick one latitude/longitude. Web component + class, keyless OpenStreetMap by default, Google and MapLibre optional.
 
 **[Live demo](https://cyphercodes.github.io/location-picker/)** · [API reference](docs/api.md) · [Forms](docs/forms.md) · [Frameworks](docs/frameworks.md) · [llms.txt](https://cyphercodes.github.io/location-picker/llms.txt) · MIT
 
