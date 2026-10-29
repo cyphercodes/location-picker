@@ -3,19 +3,10 @@ import { vi } from 'vitest';
 import type { LocationPickerOptions, ProviderAdapter } from '../../src/core.js';
 import { resolveConfig } from '../../src/core/config.js';
 import { PickerCore } from '../../src/core/picker-core.js';
-import { SEARCH_UI } from '../../src/core/providers.js';
 import type { CoreHost } from '../../src/internal/contracts.js';
 import { photonResponse } from '../fixtures/photon-mock.js';
 
 export { flush, must, record, resetStore, sleep, spyConsole, texts } from '../core/helpers.js';
-
-/**
- * The core's search seam (src/core/providers.ts, WP2) still rejects until it imports src/search/combobox.ts; the
- * tests plug the real combobox in, exactly as that lazy import will.
- */
-export function useCombobox(): void {
-  SEARCH_UI.load = () => import('../../src/search/combobox.js');
-}
 
 export interface PhotonStub {
   /** Every requested URL, in order. */

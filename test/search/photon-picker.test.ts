@@ -10,7 +10,6 @@ import {
   resetStore,
   spyConsole,
   stubPhoton,
-  useCombobox,
   waitFor,
 } from '../providers/helpers.js';
 
@@ -51,7 +50,6 @@ const reverses = (urls: URL[]): URL[] => urls.filter((url) => url.pathname == '/
 
 beforeEach(() => {
   resetStore();
-  useCombobox();
 });
 afterEach(() => {
   for (const picker of pickers.splice(0)) picker.destroy();
