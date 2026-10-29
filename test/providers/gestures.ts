@@ -20,11 +20,19 @@ export async function touchGesture(
       x: start.x + ((deltas[i]?.x ?? 0) * step) / steps,
       y: start.y + ((deltas[i]?.y ?? 0) * step) / steps,
     }));
-  const touchSupport = typeof TouchEvent == 'function' && typeof Touch == 'function';
-  const touches = (points: readonly Point[]): Touch[] =>
-    touchSupport
-      ? points.map((p, identifier) => new Touch({ identifier, target, clientX: p.x, clientY: p.y }))
-      : [];
+  // Leaflet listens to touch events wherever TouchEvent exists, and emulates them from pointers elsewhere.
+  const touchSupport = typeof TouchEvent == 'function';
+  const plain = (points: readonly Point[]) =>
+    points.map((p, identifier) => ({
+      identifier,
+      target,
+      clientX: p.x,
+      clientY: p.y,
+      pageX: p.x + scrollX,
+      pageY: p.y + scrollY,
+      screenX: p.x,
+      screenY: p.y,
+    }));
   const pointers = (type: string, points: readonly Point[]): void => {
     for (const [i, p] of points.entries()) {
       target.dispatchEvent(
@@ -44,17 +52,26 @@ export async function touchGesture(
   };
   const touch = (type: string, points: readonly Point[], changed: readonly Point[]): void => {
     if (!touchSupport) return;
-    const list = touches(points);
-    target.dispatchEvent(
-      new TouchEvent(type, {
-        bubbles: true,
-        cancelable: true,
-        composed: true,
+    const init = { bubbles: true, cancelable: true, composed: true };
+    let event: Event;
+    try {
+      const list = plain(points).map((p) => new Touch(p));
+      event = new TouchEvent(type, {
+        ...init,
         touches: list,
         targetTouches: list,
-        changedTouches: touches(changed),
-      }),
-    );
+        changedTouches: plain(changed).map((p) => new Touch(p)),
+      });
+    } catch {
+      // Desktop WebKit has TouchEvent but no Touch constructor: an event carrying plain touch lists reads the same.
+      event = new Event(type, init);
+      Object.defineProperties(event, {
+        touches: { value: plain(points) },
+        targetTouches: { value: plain(points) },
+        changedTouches: { value: plain(changed) },
+      });
+    }
+    target.dispatchEvent(event);
   };
   const first = at(0);
   pointers('pointerdown', first);

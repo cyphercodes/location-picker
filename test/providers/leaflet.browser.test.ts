@@ -62,6 +62,18 @@ async function settle(map: L.Map): Promise<void> {
   );
   await new Promise((resolve) => setTimeout(resolve, 300));
 }
+/**
+ * A click focuses the map the way a user does. Programmatic focus() is not enough in Firefox: while its window is
+ * inactive the `focus` event (which arms Leaflet's keyboard handler) is deferred.
+ */
+async function focusMap(container: HTMLElement): Promise<void> {
+  await userEvent.click(container);
+  await waitFor(
+    () => container.ownerDocument.activeElement == container,
+    2000,
+    'the map to have focus',
+  );
+}
 const changes = (log: ReturnType<typeof record>) =>
   log.filter((e) => e.type == 'change').map((e) => e.detail as { value: string; source: string });
 
@@ -346,7 +358,7 @@ describe('WP3-06 keyboard', () => {
     const { picker, log } = create();
     await picker.ready;
     const map = must(picker.map);
-    picker.container.focus();
+    await focusMap(picker.container);
     await userEvent.keyboard('{+}');
     await waitFor(() => picker.zoom == 13, 3000, 'zoom in');
     await settle(map);
@@ -369,7 +381,7 @@ describe('WP3-06 keyboard', () => {
     const { picker, log } = create({ readOnly: true });
     await picker.ready;
     const map = must(picker.map);
-    picker.container.focus();
+    await focusMap(picker.container);
     const before = map.getCenter();
     await userEvent.keyboard('{ArrowRight}');
     await new Promise((resolve) => setTimeout(resolve, 400));
@@ -397,7 +409,7 @@ describe('WP3-07 a Leaflet-2-style namespace', () => {
     await picker.ready;
     expect(picker.map).toBeInstanceOf(L.Map);
     await waitFor(() => document.querySelector('#map img.leaflet-tile-loaded'), 4000, 'a tile');
-    picker.container.focus();
+    await focusMap(picker.container);
     await userEvent.keyboard('{ArrowDown}');
     await waitFor(() => changes(log).length == 1, 3000, 'a change');
     expect(changes(log)[0]?.source).toBe('user');
