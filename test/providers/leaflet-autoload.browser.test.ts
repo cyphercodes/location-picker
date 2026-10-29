@@ -1,7 +1,7 @@
 // WP3-01, the auto-loading half: no global L on this page (this file never imports 'leaflet'), so the default provider
 // inserts the pinned Leaflet script (SRI) and its stylesheet, both answered by the §12.6 route table from node_modules.
+// The failing-route case is in e2e/providers.spec.ts: the route table here is shared by every test file of a browser.
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
-import { commands } from 'vitest/browser';
 import { LocationPicker, type LocationPickerOptions } from '../../src/core.js';
 import {
   LEAFLET_CSS_INTEGRITY,
@@ -9,14 +9,7 @@ import {
   LEAFLET_JS_INTEGRITY,
   LEAFLET_JS_URL,
 } from '../../src/leaflet.js';
-import {
-  must,
-  resetStore,
-  shadowPicker,
-  spyConsole,
-  waitFor,
-  type ShadowPicker,
-} from './helpers.js';
+import { resetStore, shadowPicker, spyConsole, waitFor, type ShadowPicker } from './helpers.js';
 
 const EIFFEL = '48.8584,2.2945';
 const pickers: { destroy(): void }[] = [];
@@ -145,16 +138,5 @@ describe('WP3-01 Leaflet auto-loading', () => {
         'leaflet.css in the shadow root',
       );
     }
-  });
-
-  // Last: the route table cannot be swapped back within one page (re-installed routes miss requests).
-  it('a failing engine route gives ENGINE_LOAD_FAILED and the fallback input', async () => {
-    spyConsole();
-    await commands.lpInstallRoutes({ leaflet: 'fail' });
-    const picker = create('fail');
-    await expect(picker.ready).rejects.toMatchObject({ code: 'ENGINE_LOAD_FAILED' });
-    const fallback = must(document.querySelector<HTMLInputElement>('#fail input.lp-fallback'));
-    await waitFor(() => !fallback.hidden, 2000, 'the fallback input');
-    expect(fallback.getAttribute('aria-label')).toBeTruthy();
   });
 });
