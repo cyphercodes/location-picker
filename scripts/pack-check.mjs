@@ -29,6 +29,7 @@ const required = [
   ...JSX.map((j) => `dist/jsx/${j}.d.ts`),
   'dist/jsx/empty.js',
   'custom-elements.json',
+  'skills/location-picker/SKILL.md',
   'package.json',
   'README.md',
   'CHANGELOG.md',
@@ -53,18 +54,16 @@ for (const file of files) {
     problems.push(`unexpected: ${file}`);
 }
 
-// §1.2: every ESM, CJS and IIFE output ships a sourcemap with sourcesContent.
+// §1.2: every ESM, CJS and IIFE output ships a sourcemap with sourcesContent. Outputs with no code of their own
+// (entry facades that only re-export from _chunks/, empty placeholders) have nothing to map and emit no map.
 const NO_MAP = new Set(['dist/location-picker.min.js', 'dist/jsx/empty.js']);
-// Placeholder outputs with no code yet produce no map; drop each line when its owner lands the real entry.
-const PENDING_MAP = new Set([
-  'dist/index.mjs', // WP4 (src/index.ts)
-  'dist/index.cjs', // WP4 (src/index.ts)
-  'dist/location-picker.global.js', // WP4 (src/global.ts)
-]);
 for (const file of files) {
-  if (!/\.(mjs|cjs|js)$/.test(file) || NO_MAP.has(file) || PENDING_MAP.has(file)) continue;
+  if (!/\.(mjs|cjs|js)$/.test(file) || NO_MAP.has(file)) continue;
+  const source = readFileSync(file, 'utf8');
   const mapFile = `${file}.map`;
-  if (!files.has(mapFile)) problems.push(`missing sourcemap: ${mapFile}`);
+  if (!source.includes('//# sourceMappingURL=')) {
+    if (hasOwnCode(source)) problems.push(`missing sourcemap: ${mapFile}`);
+  } else if (!files.has(mapFile)) problems.push(`missing sourcemap: ${mapFile}`);
   else if (!JSON.parse(readFileSync(mapFile, 'utf8')).sourcesContent?.length) {
     problems.push(`sourcemap without sourcesContent: ${mapFile}`);
   }
@@ -79,6 +78,18 @@ const lock = readFileSync('test/compat/v1.lock', 'utf8').trim();
 const sha = createHash('sha256').update(readFileSync('dist/location-picker.min.js')).digest('hex');
 if (sha !== lock)
   problems.push(`frozen v1 file changed: sha256 ${sha} != test/compat/v1.lock ${lock}`);
+
+/** False for pure re-export facades (ESM or tsdown's CJS shape) and empty files. */
+function hasOwnCode(source) {
+  const rest = source
+    .replace(/\/\*[\s\S]*?\*\/|\/\/.*$/gm, '')
+    .replace(/^\s*import\s*(?:\{[^}]*\}\s*from\s*)?"[^"]+";/gm, '')
+    .replace(/^\s*export\s*(?:\*|\{[^}]*\})(?:\s*from\s*"[^"]+")?;/gm, '')
+    .replace(/^Object\.definePropert(?:y|ies)\(exports,[\s\S]*?\}\s*\);/gm, '')
+    .replace(/^\s*(?:const \w+ = )?require\("[^"]+"\);/gm, '')
+    .replace(/^\s*exports\.[\w$]+ = [\w$]+\.[\w$]+;/gm, '');
+  return rest.trim() !== '';
+}
 
 if (problems.length) {
   console.error(`pack-check: ${problems.length} problem(s)\n  ${problems.join('\n  ')}`);

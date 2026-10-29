@@ -33,8 +33,9 @@ jobs:
       - run: npm run lint
       - run: npm run format:check
       - run: npm run typecheck
-      - run: npm test
+      # test/package/* pack dist/, and under CI=true they fail rather than skip without it (A13.4).
       - run: npm run build
+      - run: npm test
       - name: Frozen v1 artifact matches its source
         run: node scripts/minify-v1.mjs --check
       - name: Package file set (CONTRACT §1.2)
@@ -42,7 +43,10 @@ jobs:
       - run: npm run publint
       - run: npm run attw
       - run: npm run size
-      - run: npm run types-matrix
+      # Trimmed consumer types matrix (A13.4); the full one runs weekly in types-matrix.yml.
+      - name: Types matrix, trimmed (TS 5.9.3 and 7.0.2 x bundler, nodenext-esm, nodenext-cjs)
+        if: matrix.node == 24
+        run: npm run types-matrix -- --concurrency 4
 
   browser:
     name: Browser + e2e (Node ${{ matrix.node }})
