@@ -212,7 +212,8 @@ test.describe('forms', () => {
       await expect.poll(async () => (await stateOf(page, '#where')).address).not.toBeNull();
       const { address } = await stateOf(page, '#where');
 
-      // By keyboard: Firefox's validation popup from the blocked submit would swallow the next click outside it.
+      // By keyboard: in Firefox a click on Save right after the blocked submit did not submit (seen in CI on both
+      // projects; suspected cause: the validation popup consumes the first click outside it). Focus + Enter does.
       await page.locator('#save').focus();
       await page.keyboard.press('Enter');
       await page.waitForURL((url) => url.pathname == BLANK);
