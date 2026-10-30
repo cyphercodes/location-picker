@@ -37,14 +37,26 @@ export function valueOf(picker: Locator): Promise<string> {
   return picker.evaluate((el: LocationPickerElement) => el.value);
 }
 
-/** A user pan: ArrowRight on the map region moves the map and commits the new centre. Returns the new value. */
+/**
+ * A user pan: ArrowRight on the map region animates the map (live `input` events) and commits once with `change`.
+ * Returns the committed value, once the element holds it.
+ */
 export async function pan(picker: Locator): Promise<string> {
-  const before = await valueOf(picker);
+  await picker.evaluate((el: LocationPickerElement) => {
+    const committed = new Promise<string>((resolve) => {
+      const onChange = (event: Event): void => {
+        const detail: unknown = event instanceof CustomEvent ? event.detail : null;
+        resolve(String(Reflect.get(Object(detail), 'value')));
+      };
+      el.addEventListener('change', onChange, { once: true });
+    });
+    Reflect.set(el, '__smokeCommitted', committed);
+  });
   await picker.locator('[part="map"]').press('ArrowRight');
-  await expect.poll(() => valueOf(picker)).not.toBe(before);
-  const after = await valueOf(picker);
-  expect(after).toMatch(LAT_LNG);
-  return after;
+  const value = await picker.evaluate((el): Promise<string> => Reflect.get(el, '__smokeCommitted'));
+  expect(value).toMatch(LAT_LNG);
+  await expect.poll(() => valueOf(picker)).toBe(value);
+  return value;
 }
 
 /** Clicks `submit` and returns the fields the server's POST handler received. */
