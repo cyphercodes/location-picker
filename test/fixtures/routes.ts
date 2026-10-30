@@ -49,14 +49,15 @@ const CONTENT_TYPES: Record<string, string> = {
   '.map': 'application/json',
 };
 
-/** Responders that work packages plug in: Photon answers from photon-mock.ts (WP3); the Google stub waits for WP3. */
+/** Responders that work packages plug in: Photon answers from photon-mock.ts, Google from the standalone mock (WP3). */
 export const responders: {
   photon: (url: URL) => globalThis.Response | null;
   google: (url: URL, mode: NonNullable<RouteOptions['google']>) => Promise<string>;
 } = {
   photon: photonResponse,
   google: async (_url, mode) => {
-    const prelude = `globalThis.__LP_GOOGLE_MOCK__ = ${JSON.stringify({ mode })};\n`;
+    // A page that set its own mock options first keeps them.
+    const prelude = `globalThis.__LP_GOOGLE_MOCK__ ??= ${JSON.stringify({ mode })};\n`;
     if (existsSync(GOOGLE_MOCK)) return prelude + (await readFile(GOOGLE_MOCK, 'utf8'));
     return `throw new Error('[routes] e2e/fixtures/google-maps-mock.js does not exist yet (WP3)');\n`;
   },
