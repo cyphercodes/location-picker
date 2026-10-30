@@ -2,7 +2,8 @@
  * Vue typings for `<location-picker>` in templates (Volar / vue-tsc). Usage: `import type {} from
  * 'location-picker/jsx/vue';` once, and tell the compiler it is a custom element
  * (`compilerOptions.isCustomElement: (tag) => tag === 'location-picker'`). `v-model` uses `input` + `el.value`;
- * `v-model.lazy` uses `change`. Listen with `@change`, `@input`, `@addresschange`, `@ready` and `@error`.
+ * `v-model.lazy` uses `change`. Listen with `@change`, `@input`, `@addresschange`, `@ready`, `@error` and `@toggle`
+ * (field mode).
  * @example
  * <location-picker v-model="location" name="location" locate="button" @addresschange="onAddress" />
  */
@@ -25,6 +26,7 @@ type LocationPickerProps = LocationPickerAttributes & {
   onAddresschange?: (event: CustomEvent<AddressDetail>) => void;
   onReady?: (event: CustomEvent<ReadyDetail>) => void;
   onError?: (event: CustomEvent<LocationPickerError>) => void;
+  onToggle?: (event: ToggleEvent) => void;
   messages?: Partial<Messages>;
   mapOptions?: Record<string, unknown>;
   engine?: object;

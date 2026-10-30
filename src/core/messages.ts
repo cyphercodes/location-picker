@@ -26,4 +26,7 @@ export const MESSAGES: Readonly<Messages> = {
   cooperativeHint: 'Use Ctrl + scroll to zoom the map',
   loadError: 'The map could not be loaded. Type coordinates instead.',
   fallbackLabel: 'Latitude, longitude',
+  chooseOnMap: 'Choose on map',
+  fieldPlaceholder: 'No location selected',
+  cancel: 'Cancel',
 };

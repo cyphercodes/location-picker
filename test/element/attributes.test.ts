@@ -194,6 +194,7 @@ describe('WP4-21 framework property assignment', () => {
     const keys: (keyof LocationPickerAttributes)[] = [
       'value', 'lat', 'lng', 'center', 'zoom', 'precision', 'name', 'form', 'required', 'disabled',
       'readonly', 'provider', 'attribution', 'search', 'placeholder', 'locate', 'marker', 'webmcp',
+      'presentation',
     ]; // prettier-ignore
     const { el } = create();
     const checked = keys.filter((key) => key in el);

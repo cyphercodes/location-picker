@@ -4,8 +4,8 @@
  * and fires `onChange`/`onInput` for the element's native-named events (verified on react-dom 19.3 with createRoot).
  * Spell primitive config in kebab-case (SSR-correct).
  * Event props in React: `onChange`, `onInput` (synthetic), and the LOWERCASE native `onaddresschange`, `onready`,
- * `onerror`. `onAddressChange`/`onReady` listen for events that never fire and `onError` is React's own synthetic
- * event (never fired for this element), so all three are type errors here.
+ * `onerror`, and `ontoggle` (field mode's sheet opened or closed). `onAddressChange`/`onReady` listen for events that
+ * never fire and `onError` is React's own synthetic event (never fired for this element), so all three are type errors here.
  * Hydration: with `hydrateRoot` (Next.js App Router, Remix), React applies neither object props (`messages`,
  * `mapOptions`, `engine`, `geocoder`, `geolocation`, an adapter-object `provider`) nor the lowercase native handlers.
  * Set them in a ref callback (refs ARE attached on hydration); attributes, `value` and `onChange`/`onInput` work.
@@ -45,6 +45,7 @@ type LocationPickerProps = ReactProps &
     onaddresschange?: (event: CustomEvent<AddressDetail>) => void;
     onready?: (event: CustomEvent<ReadyDetail>) => void;
     onerror?: (event: CustomEvent<LocationPickerError>) => void;
+    ontoggle?: (event: ToggleEvent) => void;
     messages?: Partial<Messages>;
     mapOptions?: Record<string, unknown>;
     engine?: object;
