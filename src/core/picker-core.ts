@@ -537,6 +537,9 @@ export class PickerCore {
     this.#provider = name;
     if (this.#address === null && !this.#addressResult) return;
     this.#setAddress(null, null);
+    // Nor may the live region keep (or still be about to announce) the old provider's address.
+    this.#clearTimer('announce');
+    this.refs.status.textContent = '';
     this.#inputs?.write(undefined, null, 'none');
     this.#emitSnapshot('address');
   }
