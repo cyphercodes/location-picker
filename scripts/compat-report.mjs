@@ -249,7 +249,8 @@ function groupBy(items, key) {
   return map;
 }
 
-const title = (browser) => browser[0].toUpperCase() + browser.slice(1);
+const ENGINE_NAMES = { chromium: 'Chromium', firefox: 'Firefox', webkit: 'WebKit' };
+const title = (browser) => ENGINE_NAMES[browser] ?? browser;
 const escape = (text) =>
   String(text)
     .replaceAll('&', '&amp;')
