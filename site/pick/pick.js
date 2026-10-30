@@ -142,8 +142,13 @@ function showMode() {
 function render() {
   const at = picker.valueAsLatLng;
   const [lat, lng] = at ? lib().formatLatLng(at).split(',') : ['–', '–'];
-  $('lat-out').textContent = lat;
-  $('lng-out').textContent = lng;
+  for (const [id, text] of [
+    ['lat-out', lat],
+    ['lng-out', lng],
+  ]) {
+    $(id).textContent = text;
+    $(id).toggleAttribute('data-empty', !at);
+  }
   $('address-out').textContent =
     picker.address ?? (at ? 'Coordinates chosen.' : 'Drag the map, search, or use your location.');
   for (const id of ['confirm', 'send-redirect', 'send-post'])

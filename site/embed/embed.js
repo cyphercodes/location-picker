@@ -201,3 +201,17 @@ customElements.whenDefined('location-picker').then(
   () => {},
 );
 update();
+
+// The preview iframe is same-origin (srcdoc), so it can grow to its content instead of scrolling.
+const previewSizer = new ResizeObserver(() => fitPreview());
+$('preview').addEventListener('load', () => {
+  const root = $('preview').contentDocument?.documentElement;
+  if (root) previewSizer.observe(root);
+  fitPreview();
+});
+
+function fitPreview() {
+  const frame = $('preview');
+  const height = frame.contentDocument?.documentElement.scrollHeight ?? 0;
+  if (height) frame.style.blockSize = `${Math.min(900, Math.max(240, height))}px`;
+}

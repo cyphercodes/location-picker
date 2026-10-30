@@ -83,8 +83,14 @@ function expectAddress() {
 function render() {
   const at = picker.valueAsLatLng;
   const { formatLatLng } = lib();
-  $('lat-out').textContent = at ? formatLatLng(at).split(',')[0] : '–';
-  $('lng-out').textContent = at ? formatLatLng(at).split(',')[1] : '–';
+  const [lat, lng] = at ? formatLatLng(at).split(',') : ['–', '–'];
+  for (const [id, text] of [
+    ['lat-out', lat],
+    ['lng-out', lng],
+  ]) {
+    $(id).textContent = text;
+    $(id).toggleAttribute('data-empty', !at);
+  }
   const address = picker.address;
   $('address-out').textContent = address
     ? address

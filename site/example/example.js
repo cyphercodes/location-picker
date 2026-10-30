@@ -12,7 +12,8 @@ customElements.whenDefined('location-picker').then(start, () => {});
 function start() {
   for (const type of ['input', 'change', 'addresschange', 'ready', 'error']) {
     picker.addEventListener(type, (event) => {
-      if (type === 'input' && log.firstElementChild?.dataset.type === 'input') log.firstElementChild.remove();
+      if (type === 'input' && log.firstElementChild?.dataset.type === 'input')
+        log.firstElementChild.remove();
       record(type, event);
       renderState();
     });
@@ -64,7 +65,7 @@ function record(type, event) {
     type === 'error'
       ? `${detail.code ?? ''}: ${detail.message ?? ''}`
       : type === 'ready'
-        ? `provider ${typeof detail.provider === 'string' ? detail.provider : detail.provider?.name ?? ''}`
+        ? `provider ${typeof detail.provider === 'string' ? detail.provider : (detail.provider?.name ?? '')}`
         : type === 'addresschange'
           ? String(detail.address)
           : `${detail.value} · source ${detail.source}`;

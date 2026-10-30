@@ -88,6 +88,8 @@ export const valueOf = (picker: Locator): Promise<string> =>
 export async function pan(page: Page, picker: Locator): Promise<void> {
   const before = await valueOf(picker);
   const map = picker.locator('[part~="map"]');
+  // Phone layouts put the map below the fold; the mouse only reaches what is in the viewport.
+  await map.scrollIntoViewIfNeeded();
   const box = await map.boundingBox();
   if (!box) throw new Error('the map has no box');
   const start = { x: box.x + box.width / 2 + 30, y: box.y + box.height / 2 + 30 };

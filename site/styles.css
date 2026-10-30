@@ -151,7 +151,7 @@ pre {
   background: var(--surface-2);
   border: 1px solid var(--border);
   font-size: 0.85em;
-  overflow-wrap: anywhere;
+  overflow-wrap: break-word;
 }
 [hidden] {
   display: none !important;
@@ -671,6 +671,10 @@ select:focus-visible {
   font-size: 0.92rem;
 }
 .cmd code {
+  padding: 0;
+  border: 0;
+  background: none;
+  font-size: 1em;
   overflow-wrap: anywhere;
 }
 .cmd .prompt {
@@ -748,6 +752,11 @@ location-picker {
   font-size: clamp(1.15rem, 0.9rem + 1.2vw, 1.5rem);
   font-weight: 600;
   letter-spacing: -0.02em;
+  font-variant-numeric: tabular-nums;
+}
+.coord output[data-empty] {
+  color: var(--muted);
+  font-weight: 400;
 }
 .address {
   display: flex;
@@ -1016,10 +1025,9 @@ location-picker::part(search-option):hover {
 /* ---------- tabs (snippets) ---------- */
 .tabs [role='tablist'] {
   display: flex;
+  flex-wrap: wrap;
   gap: 4px;
   margin-block-end: 12px;
-  overflow-x: auto;
-  scrollbar-width: none;
 }
 .tabs [role='tab'] {
   flex: none;
@@ -1149,7 +1157,7 @@ kbd {
   display: flex;
   align-items: center;
   gap: 12px;
-  padding: max(12px, env(safe-area-inset-top)) 16px 12px;
+  padding: max(16px, env(safe-area-inset-top)) 16px 14px;
   max-inline-size: 1080px;
   margin-inline: auto;
 }
@@ -1348,7 +1356,7 @@ kbd {
 .preview iframe {
   display: block;
   inline-size: 100%;
-  block-size: 560px;
+  block-size: 500px;
   border: 0;
   background: var(--surface);
 }
@@ -1524,4 +1532,12 @@ kbd {
 }
 #log li[data-type='error'] code {
   color: var(--bad);
+}
+tbody th {
+  font-size: 0.9rem;
+  font-weight: 600;
+  text-transform: none;
+  letter-spacing: 0;
+  color: var(--text);
+  background: none;
 }
