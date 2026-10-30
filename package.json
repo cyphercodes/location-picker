@@ -1,6 +1,6 @@
 {
   "name": "location-picker",
-  "version": "3.0.0",
+  "version": "3.0.1",
   "description": "Form-ready map location picker: pan a map under a fixed pin to pick one latitude/longitude. Web component + class, keyless OpenStreetMap by default, Google and MapLibre optional.",
   "license": "MIT",
   "type": "commonjs",

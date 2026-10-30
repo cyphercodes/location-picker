@@ -5,6 +5,14 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [3.0.1] - 2026-10-31
+
+No behaviour changes. This release republishes the package so that npmjs.com shows the current README.
+
+### Changed
+
+- The README opens with what the picker does, a screenshot, a five-line form snippet and one line for each way to use it: npm, a coding agent, the no-code embed generator and the pick link.
+
 ## [3.0.0] - 2026-10-30
 
 A rewrite around one use case: capturing one precise point in a form. The default map is now OpenStreetMap through Leaflet, with no API key; Google Maps and MapLibre are opt-in providers. The upgrade guide with every v1 and v2 API is [docs/migration.md](docs/migration.md).
