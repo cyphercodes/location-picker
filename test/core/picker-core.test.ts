@@ -440,6 +440,9 @@ describe('search and geocoding orchestration', () => {
 
   it('without the combobox chunk, search reports GEOCODER_FAILED once', async () => {
     spyConsole();
+    vi.spyOn(SEARCH_UI, 'load').mockRejectedValue(
+      new TypeError('Failed to fetch dynamically imported module'),
+    );
     const h = elementCore({ search: true, geocoder: { search: async () => [] } });
     h.core.mount();
     await h.core.ready;

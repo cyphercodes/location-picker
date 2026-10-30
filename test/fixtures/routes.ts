@@ -6,6 +6,7 @@ import { join, normalize, sep } from 'node:path';
 import type * as Contract from '../../src/internal/contracts.js';
 import type { RouteOptions, RouteTarget } from '../../src/internal/contracts.js';
 import { ALLOWED_EXTERNAL_PATTERNS, ROUTED_URLS } from './network-policy.js';
+import { photonResponse } from './photon-mock.js';
 
 export { ALLOWED_EXTERNAL_PATTERNS };
 export type { RouteOptions, RouteTarget };
@@ -36,8 +37,8 @@ const ROOT = process.cwd();
 const LEAFLET_DIST = join(ROOT, 'node_modules/leaflet/dist');
 const DIST = join(ROOT, 'dist');
 const GOOGLE_MOCK = join(ROOT, 'e2e/fixtures/google-maps-mock.js');
-/** Delay used by the `slow` variants. */
-export const SLOW_MS = 1500;
+/** Delay used by the `slow` variants (CONTRACT §13 WP3-21/22: a 3 s engine). */
+export const SLOW_MS = 3000;
 
 const CORS = { 'access-control-allow-origin': '*' };
 const CONTENT_TYPES: Record<string, string> = {
@@ -48,24 +49,26 @@ const CONTENT_TYPES: Record<string, string> = {
   '.map': 'application/json',
 };
 
-/**
- * Responders that later work packages plug in (WP3: `responders.photon = photonResponse` from photon-mock.ts).
- * The defaults are minimal stubs.
- */
+/** Responders that work packages plug in: Photon answers from photon-mock.ts (WP3); the Google stub waits for WP3. */
 export const responders: {
   photon: (url: URL) => globalThis.Response | null;
   google: (url: URL, mode: NonNullable<RouteOptions['google']>) => Promise<string>;
 } = {
-  photon: (url) =>
-    url.pathname === '/api' || url.pathname === '/reverse'
-      ? globalThis.Response.json({ type: 'FeatureCollection', features: [] })
-      : null,
+  photon: photonResponse,
   google: async (_url, mode) => {
     const prelude = `globalThis.__LP_GOOGLE_MOCK__ = ${JSON.stringify({ mode })};\n`;
     if (existsSync(GOOGLE_MOCK)) return prelude + (await readFile(GOOGLE_MOCK, 'utf8'));
     return `throw new Error('[routes] e2e/fixtures/google-maps-mock.js does not exist yet (WP3)');\n`;
   },
 };
+
+/** What the routed OpenFreeMap style URL serves. */
+export const OPENFREEMAP_STYLE = {
+  version: 8,
+  name: 'location-picker test style',
+  sources: {},
+  layers: [{ id: 'background', type: 'background', paint: { 'background-color': '#d4e6f1' } }],
+} as const;
 
 const blocked = new WeakMap<Routable, string[]>();
 
@@ -112,6 +115,14 @@ export async function installRoutes(target: Routable, options: RouteOptions = {}
       contentType: response.headers.get('content-type') ?? 'application/json',
     });
   });
+
+  // The MapLibre default style: a background layer only, so it triggers no source, sprite or glyph requests.
+  await target.route(ROUTED_URLS.openfreemap, (route) =>
+    fulfill(route, {
+      body: JSON.stringify(OPENFREEMAP_STYLE),
+      contentType: 'application/json',
+    }),
+  );
 
   await target.route(ROUTED_URLS.google, async (route) =>
     fulfill(route, {
