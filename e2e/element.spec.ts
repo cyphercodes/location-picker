@@ -37,11 +37,18 @@ interface PickerState {
 
 /**
  * Init script (every page and frame, before any page script): records the picker CustomEvents in `__lpSeen` from a
- * capturing window listener, so non-bubbling events (`ready`) are seen too, and `pageshow.persisted` in `__lpPersisted`.
+ * capturing window listener, so non-bubbling events (`ready`) are seen too; uncaught exceptions and rejections of the
+ * document's own scripts in `__lpUncaught`; and `pageshow.persisted` in `__lpPersisted`.
  */
 function recordPickerEvents(): void {
   const seen: Seen[] = [];
+  const uncaught: string[] = [];
   Reflect.set(window, '__lpSeen', seen);
+  Reflect.set(window, '__lpUncaught', uncaught);
+  window.addEventListener('error', (event) => {
+    if (event instanceof ErrorEvent) uncaught.push(event.message);
+  });
+  window.addEventListener('unhandledrejection', (event) => uncaught.push(String(event.reason)));
   for (const type of ['input', 'change', 'error', 'addresschange', 'ready']) {
     window.addEventListener(
       type,
@@ -70,13 +77,18 @@ function recordPickerEvents(): void {
   );
 }
 
-/** Uncaught page errors and console.error lines (except the browser's own `expected` reports); both must stay empty. */
+/**
+ * Page errors and console.error lines; the list must stay empty. `expected` excuses the browser's own reports, which
+ * Chromium logs as console errors and WebKit (through Playwright) as page errors.
+ */
 function watchErrors(page: Page, expected?: RegExp): string[] {
   const errors: string[] = [];
-  page.on('pageerror', (error) => errors.push(`pageerror: ${error.message}`));
+  const add = (text: string): void => {
+    if (!expected?.test(text)) errors.push(text);
+  };
+  page.on('pageerror', (error) => add(`pageerror: ${error.name}: ${error.message}`));
   page.on('console', (message) => {
-    if (message.type() == 'error' && !expected?.test(message.text()))
-      errors.push(`console.error: ${message.text()}`);
+    if (message.type() == 'error') add(`console.error: ${message.text()}`);
   });
   return errors;
 }
@@ -200,7 +212,9 @@ test.describe('forms', () => {
       await expect.poll(async () => (await stateOf(page, '#where')).address).not.toBeNull();
       const { address } = await stateOf(page, '#where');
 
-      await page.locator('#save').click();
+      // By keyboard: Firefox's validation popup from the blocked submit would swallow the next click outside it.
+      await page.locator('#save').focus();
+      await page.keyboard.press('Enter');
       await page.waitForURL((url) => url.pathname == BLANK);
       const [lat, lng] = value.split(',');
       expect([...new URL(page.url()).searchParams]).toEqual([
@@ -248,6 +262,18 @@ test.describe('forms', () => {
     },
     async ({ page }, testInfo) => {
       const errors = watchErrors(page);
+      // The e2e server sends `Cache-Control: no-store`, under which Firefox keeps no form state for the history entry.
+      // Serve this page the way a typical app server does.
+      await page.route(
+        (url) => url.pathname == FORM,
+        async (route) => {
+          const response = await route.fetch();
+          await route.fulfill({
+            response,
+            headers: { ...response.headers(), 'cache-control': 'no-cache, private' },
+          });
+        },
+      );
       await page.goto(FORM);
       await ready(page, '#where');
       await commit(page, 'where', 'Enter');
@@ -342,6 +368,62 @@ test.describe('forms', () => {
       await page.locator('#save').click();
       const body = new URLSearchParams((await posted).postData() ?? '');
       expect(Object.fromEntries(body)).toEqual({ address, lat, lng });
+      expect(errors).toEqual([]);
+    },
+  );
+
+  test(
+    'search (WP4-11/12): <label> focuses the combobox, Enter picks without submitting, the host sees only CustomEvents',
+    { tag: ['@keyboard-only'] },
+    async ({ page }) => {
+      const errors = watchErrors(page);
+      const posts: string[] = [];
+      page.on('request', (request) => {
+        if (request.method() == 'POST') posts.push(request.url());
+      });
+      await page.goto(HEAD);
+      await ready(page, '#store-location');
+      await page.evaluate(() => {
+        const host: string[] = [];
+        for (const type of ['input', 'change', 'keydown']) {
+          document.getElementById('store-location')?.addEventListener(type, (event) => {
+            host.push(`${type}:${event instanceof CustomEvent ? 'custom' : 'native'}`);
+          });
+        }
+        Reflect.set(window, '__host', host);
+      });
+      const host = (): Promise<string[]> => page.evaluate(() => Reflect.get(window, '__host'));
+      const focused = (): Promise<string | null | undefined> =>
+        page.evaluate(() => {
+          const el = document.activeElement;
+          return el?.id == 'store-location'
+            ? el.shadowRoot?.activeElement?.getAttribute('part')
+            : el?.id;
+        });
+
+      // The combobox is a lazy chunk that renders after `ready`.
+      await expect(page.locator('#store-location [part~="search-input"]')).toBeVisible();
+      await page.getByText('Store location').click();
+      await expect.poll(focused).toBe('search-input');
+      await page.keyboard.type('eiffel');
+      const option = page.locator('#store-location [part~="search-option"]').first();
+      await expect(option).toBeVisible();
+      await expect(option).toContainText('Tour Eiffel');
+
+      await page.keyboard.press('Enter');
+      await expect.poll(() => count(page, 'store-location', 'change')).toBe(1);
+      const change = (await seen(page, 'store-location')).find((entry) => entry.type == 'change');
+      expect(change?.source).toBe('search');
+      expect(change?.value).toBe('48.85826,2.294481');
+      // A second Enter, with the list closed, still does not submit the form.
+      await page.keyboard.press('Enter');
+      await expect(option).toBeHidden();
+
+      // The typed characters and Enter reached the host as composed keydowns, but no native input/change did.
+      const seenByHost = (await host()).filter((entry) => !entry.startsWith('keydown'));
+      expect(seenByHost).toEqual(['input:custom', 'change:custom']);
+      expect(posts).toEqual([]);
+      expect(new URL(page.url()).pathname).toBe(HEAD);
       expect(errors).toEqual([]);
     },
   );
@@ -461,8 +543,11 @@ test(
     tag: ['@iframe-without-geolocation'],
   },
   async ({ page }) => {
-    // Chromium logs the blocked request itself.
-    const errors = watchErrors(page, /^Permissions policy violation: Geolocation/);
+    // The browser reports the blocked request itself; the frame's own uncaught errors are checked below.
+    const errors = watchErrors(
+      page,
+      /^console\.error: Permissions policy violation: Geolocation|^pageerror: .*localhost:\d+'\.$/,
+    );
     // localhost and 127.0.0.1 are different origins, and both are secure contexts.
     const src = `http://localhost:${lpPort()}${LOCATE}`;
     await openBlank(
@@ -516,6 +601,7 @@ test(
     expect(rejected).toMatch(/^GEOLOCATION_/);
     expect((await stateOf(frame, '#where')).value).toBe(EIFFEL);
     expect(await count(frame, 'where', 'change')).toBe(0);
+    expect(await frame.evaluate(() => Reflect.get(window, '__lpUncaught'))).toEqual([]);
     expect(errors).toEqual([]);
   },
 );
