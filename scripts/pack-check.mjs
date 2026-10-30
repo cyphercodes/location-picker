@@ -42,8 +42,11 @@ const allowed = [
   /^skills\//,
 ];
 
-const [pack] = JSON.parse(
-  execFileSync('npm', ['pack', '--dry-run', '--json', '--ignore-scripts'], { encoding: 'utf8' }),
+// npm 10 and 11 print an array, npm 12 an object keyed by package name.
+const [pack] = Object.values(
+  JSON.parse(
+    execFileSync('npm', ['pack', '--dry-run', '--json', '--ignore-scripts'], { encoding: 'utf8' }),
+  ),
 );
 const files = new Set(pack.files.map((f) => f.path));
 const problems = [];

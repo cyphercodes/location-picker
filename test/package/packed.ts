@@ -79,10 +79,13 @@ export interface PackedProject {
 
 export function packProject(prefix: string): PackedProject {
   const dir = mkdtempSync(join(tmpdir(), `lp-${prefix}-`));
-  const [pack]: { filename: string; files: { path: string }[] }[] = JSON.parse(
-    execFileSync('npm', ['pack', '--ignore-scripts', '--json', '--pack-destination', dir], {
-      encoding: 'utf8',
-    }),
+  // npm 10 and 11 print an array, npm 12 an object keyed by package name.
+  const [pack]: { filename: string; files: { path: string }[] }[] = Object.values(
+    JSON.parse(
+      execFileSync('npm', ['pack', '--ignore-scripts', '--json', '--pack-destination', dir], {
+        encoding: 'utf8',
+      }),
+    ),
   );
   if (!pack) throw new Error('npm pack printed no result');
   mkdirSync(join(dir, 'node_modules'));

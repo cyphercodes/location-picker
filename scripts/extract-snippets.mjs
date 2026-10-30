@@ -372,11 +372,14 @@ function ensureInstalled(dir, dependencies) {
 
 function createConsumer(work) {
   ensureInstalled(CACHE, DEPS);
-  const [pack] = JSON.parse(
-    execFileSync('npm', ['pack', '--ignore-scripts', '--json', '--pack-destination', work], {
-      cwd: ROOT,
-      encoding: 'utf8',
-    }),
+  // npm 10 and 11 print an array, npm 12 an object keyed by package name.
+  const [pack] = Object.values(
+    JSON.parse(
+      execFileSync('npm', ['pack', '--ignore-scripts', '--json', '--pack-destination', work], {
+        cwd: ROOT,
+        encoding: 'utf8',
+      }),
+    ),
   );
   const nodeModules = join(work, 'node_modules');
   mkdirSync(nodeModules, { recursive: true });

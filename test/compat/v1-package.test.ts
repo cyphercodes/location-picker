@@ -36,10 +36,13 @@ let project = '';
 beforeAll(() => {
   if (!built) return;
   project = mkdtempSync(join(tmpdir(), 'lp-v1-consumer-'));
-  const [pack]: { filename: string }[] = JSON.parse(
-    execFileSync('npm', ['pack', '--ignore-scripts', '--json', '--pack-destination', project], {
-      encoding: 'utf8',
-    }),
+  // npm 10 and 11 print an array, npm 12 an object keyed by package name.
+  const [pack]: { filename: string }[] = Object.values(
+    JSON.parse(
+      execFileSync('npm', ['pack', '--ignore-scripts', '--json', '--pack-destination', project], {
+        encoding: 'utf8',
+      }),
+    ),
   );
   mkdirSync(join(project, 'node_modules'));
   execFileSync('tar', [
