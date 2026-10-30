@@ -1597,6 +1597,16 @@ A hidden input has `required`. Remove it and put `required` on `<location-picker
 - Arrays are rejected (`INVALID_VALUE`), because `[lat, lng]` and GeoJSON's `[lng, lat]` are ambiguous.
 - A `maps.app.goo.gl` short link cannot be expanded in the browser: open it and copy the full URL.
 
+## A pan stops halfway and no `change` fires
+
+Something wrote `value` while the map was moving. In 3.0 a write during a drag or an arrow-key pan stops the move without a commit. The usual cause is a framework binding that writes the live value back from `input` (`value` with `onInput`, `oninput`, `on:input` or `@input`). Update your state from `change` instead; Vue's `v-model` is not affected. See [frameworks.md](https://github.com/cyphercodes/location-picker/blob/master/docs/frameworks.md).
+
+## Field mode: `ready` never fires, or the field is very tall
+
+- In field mode (`presentation="field"`, or `"auto"` on a phone) the map engine loads when the sheet first opens, so `el.ready`, `el.map` and the `ready` event wait for that. Do not gate the form on `ready`; methods such as `setLocation()` and `locate()` still work while the sheet is closed.
+- A height set on the element (`style="height: 400px"`) also applies to the compact field. Leave it off, or set it in a `@media` rule that excludes phones.
+- `showPicker()` does nothing and warns in inline mode: set `presentation="field"` or `"auto"`.
+
 ## `getMarkerPosition()` warns or returns 20,0
 
 While the picker is unset, `getMarkerPosition()` returns the view centre (the 20,0 world view by default), not a chosen location, and warns once. Read `value` (`""` while unset) or `valueAsLatLng` (`null` while unset).
