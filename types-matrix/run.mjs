@@ -10,7 +10,7 @@
 // Both need `npm run build` first. `--concurrency <n>` (default 2) sets how many tsc processes run at once.
 //
 // Expected: with @types/google.maps every cell passes; without it every cell passes except the Google ones, which
-// may fail only with TS2688/TS2503. A failing cell whose source is still a placeholder (first line
+// may fail only with TS2688/TS2503/TS2304 (`typeof google.maps` needs the value-space name). A failing cell whose source is still a placeholder (first line
 // "// placeholder: owned by WPx") is reported as PENDING and does not fail the run; it counts as soon as the
 // placeholder is replaced.
 //
@@ -49,8 +49,12 @@ const DEPS = {
   svelte: '5.57.2',
 };
 const GOOGLE_TYPES = '@types/google.maps';
-/** The only errors a Google cell may report when @types/google.maps is absent. */
-const MISSING_GOOGLE_CODES = new Set(['TS2688', 'TS2503']);
+/**
+ * The only errors a Google cell may report when @types/google.maps is absent: the missing types package (TS2688),
+ * the missing `google` namespace in type positions (TS2503) and the missing `google` value in `typeof google.maps`
+ * (TS2304), which the public `loadGoogleMaps(): Promise<typeof google.maps>` signature requires.
+ */
+const MISSING_GOOGLE_CODES = new Set(['TS2688', 'TS2503', 'TS2304']);
 
 /** `ext` is the extension a `.ts` cell gets; `.tsx` cells take their format from the package.json `type`. */
 const MODES = {
@@ -382,7 +386,7 @@ for (const variant of variants) {
   }
 }
 console.log(
-  '\nok* = fails only with TS2688/TS2503 because @types/google.maps is absent (allowed).',
+  '\nok* = fails only with TS2688/TS2503/TS2304 because @types/google.maps is absent (allowed).',
 );
 
 const count = (status) => jobs.filter((job) => job.status === status).length;
