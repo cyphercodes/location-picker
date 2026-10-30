@@ -1,0 +1,8 @@
+{
+  "name": "smoke-plain-html",
+  "private": true,
+  "description": "WP5-12: a plain HTML page with the script build from the packed tarball, no bundler",
+  "dependencies": {
+    "location-picker": "file:../location-picker.tgz"
+  }
+}

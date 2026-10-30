@@ -1,0 +1,34 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Plain HTML smoke</title>
+    <!-- The script build from the installed tarball (a CDN page loads the same file). -->
+    <script src="/node_modules/location-picker/dist/location-picker.global.js"></script>
+  </head>
+  <body>
+    <form method="post" action="/echo">
+      <label for="where">Where is it?</label>
+      <location-picker
+        id="where"
+        name="location"
+        lat-name="lat"
+        lng-name="lng"
+        value="48.8584,2.2945"
+        zoom="15"
+        search
+        locate="button"
+        required
+        style="height: 360px"
+      ></location-picker>
+      <p>Picked: <output id="out">nothing yet</output></p>
+      <button>Save</button>
+    </form>
+    <script>
+      document.getElementById('where').addEventListener('change', (e) => {
+        document.getElementById('out').textContent = e.detail.value;
+      });
+    </script>
+  </body>
+</html>

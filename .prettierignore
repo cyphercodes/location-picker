@@ -12,6 +12,9 @@ test/compat/v1.lock
 site/llms-full.txt
 compat/compat.json
 COMPATIBILITY.md
+smoke/*/dist/
+smoke/*/dist-server/
+smoke/*/.angular/
 
 # Legacy files that their owners replace (WP6 removes example/, WP7 rewrites these docs); drop the lines then.
 example/

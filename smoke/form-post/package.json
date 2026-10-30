@@ -1,0 +1,10 @@
+{
+  "name": "smoke-form-post",
+  "private": true,
+  "description": "WP5-12: a Laravel-style server-rendered form (Express) posting lat/lng from bound inputs",
+  "type": "module",
+  "dependencies": {
+    "express": "^5.1.0",
+    "location-picker": "file:../location-picker.tgz"
+  }
+}

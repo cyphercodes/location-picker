@@ -20,3 +20,7 @@ example/*.local.html
 
 # Compat run outputs (workflow artifacts, never committed)
 compat/screenshots/
+# Smoke app builds (CI only, WP5-12)
+smoke/*/dist/
+smoke/*/dist-server/
+smoke/*/.angular/

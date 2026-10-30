@@ -48,6 +48,7 @@
     "custom-elements.json",
     "types-matrix/cells/**",
     "src/jsx/*.d.ts",
-    "types/*.d.ts"
+    "types/*.d.ts",
+    "smoke/*/**"
   ]
 }
