@@ -1,5 +1,7 @@
 <script setup>
-// docs/frameworks.md Vue 3 / Nuxt recipe, server-rendered: the import is safe during SSR; v-model after hydration.
+// docs/frameworks.md Vue 3 / Nuxt recipe, server-rendered: the import is safe during SSR. Vue's SSR compiler refuses
+// v-model on any element but input/textarea/select ("v-model can only be used on <input>…", custom elements too),
+// so a server-rendered template binds :value and @input, which is what v-model does on the client.
 import 'location-picker';
 
 const location = ref('48.8584,2.2945');
@@ -11,7 +13,8 @@ const address = ref(null);
     <label for="loc">Location</label>
     <location-picker
       id="loc"
-      v-model="location"
+      :value="location"
+      @input="location = $event.detail.value"
       :zoom="15"
       name="location"
       lat-name="lat"

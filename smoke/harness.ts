@@ -10,7 +10,8 @@ export { expect, test } from '../e2e/harness/fixtures.js';
 export const LAT_LNG = /^-?\d+(\.\d+)?,-?\d+(\.\d+)?$/;
 
 /**
- * Page errors, console errors and hydration warnings (React, Vue and Angular wording); a smoke page keeps it empty.
+ * Page errors, console errors, hydration warnings (React, Vue and Angular wording) and Vue warnings (for example an
+ * unresolved component when isCustomElement is missing); a smoke page keeps it empty.
  * `expected` excuses messages a test provokes on purpose.
  */
 export function watchConsole(page: Page, expected?: RegExp): string[] {
@@ -22,7 +23,8 @@ export function watchConsole(page: Page, expected?: RegExp): string[] {
   page.on('console', (message) => {
     const text = message.text();
     if (message.type() === 'error') add(`console.error: ${text}`);
-    else if (/hydrat|NG0[5-9]\d\d/i.test(text)) add(`console.${message.type()}: ${text}`);
+    else if (/hydrat|NG0[5-9]\d\d|\[Vue warn\]/i.test(text))
+      add(`console.${message.type()}: ${text}`);
   });
   return problems;
 }
