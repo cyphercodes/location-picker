@@ -93,6 +93,9 @@ jobs:
       - run: npm run build
       - name: Browser project (Chromium, Firefox, WebKit)
         run: npm run test:browser
+      # e2e/site.spec.ts and e2e/pick.spec.ts test the built site (WP6).
+      - name: Build the site into _site
+        run: node scripts/build-site.mjs
       - name: E2E, small matrix (3 engines x 375 touch / 1440 mouse)
         run: npm run test:e2e
       - uses: actions/upload-artifact@v7

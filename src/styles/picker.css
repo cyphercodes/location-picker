@@ -145,6 +145,41 @@
   inset-block-start: 10px;
   inset-inline: 56px 64px;
 }
+/* The search box matches the buttons out of the box; ::part(search-input|search-listbox|search-option) restyles it. */
+:where(.lp-search-input) {
+  box-sizing: border-box;
+  inline-size: 100%;
+  min-block-size: var(--lp-control-size, 44px);
+  padding-inline: 12px;
+  border: 0;
+  border-radius: var(--lp-radius, 8px);
+  background: var(--lp-surface, light-dark(#fff, #1f1f1f));
+  color: inherit;
+  font: inherit;
+  box-shadow: 0 1px 4px rgb(0 0 0 / 0.3);
+}
+:where(.lp-search-input:focus-visible) {
+  outline: 2px solid var(--lp-accent, light-dark(#1d4ed8, #93c5fd));
+  outline-offset: 2px;
+}
+:where(.lp-search-listbox) {
+  margin: 6px 0 0;
+  padding: 4px;
+  list-style: none;
+  max-block-size: 240px;
+  overflow: auto;
+  border-radius: var(--lp-radius, 8px);
+  background: var(--lp-surface, light-dark(#fff, #1f1f1f));
+  box-shadow: 0 4px 16px rgb(0 0 0 / 0.25);
+}
+:where(.lp-search-option) {
+  padding: 8px 10px;
+  border-radius: var(--lp-radius, 8px);
+  cursor: pointer;
+}
+:where(.lp-search-option:hover, .lp-search-option[aria-selected='true']) {
+  background: color-mix(in srgb, currentColor 10%, transparent);
+}
 :where(.lp-hint, .lp-error) {
   position: absolute;
   z-index: 2;

@@ -1,0 +1,405 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+    <title>Map location field for any form: no-code snippet generator · location-picker</title>
+    <meta
+      name="description"
+      content="Generate a copy-paste map location field for WordPress, Webflow, Squarespace, Shopify or a plain HTML form. Choose the map, the fields and the language; see a live preview."
+    />
+    <link rel="canonical" href="https://cyphercodes.github.io/location-picker/embed/" />
+    <meta property="og:title" content="Add a map location field to any form" />
+    <meta
+      property="og:description"
+      content="A no-code snippet generator for location-picker, with live preview."
+    />
+    <meta property="og:image" content="https://cyphercodes.github.io/location-picker/og.png" />
+    <meta name="twitter:card" content="summary_large_image" />
+    <link rel="icon" href="../favicon.svg" type="image/svg+xml" />
+    <link rel="stylesheet" href="../styles.css" />
+    <script>
+      try {
+        var t = localStorage.getItem('location-picker-site:theme');
+        if (t === 'dark' || t === 'light') document.documentElement.dataset.theme = t;
+      } catch (e) {}
+    </script>
+    <script type="module" src="embed.js"></script>
+    <script defer src="../location-picker.global.js"></script>
+  </head>
+  <body>
+    <a class="skip" href="#main">Skip to content</a>
+    <header class="site-header">
+      <div class="wrap">
+        <a class="brand" href="../">
+          <svg viewBox="0 0 28 44" aria-hidden="true">
+            <path
+              d="M14 0C6.3 0 0 6.2 0 13.9 0 24.3 14 44 14 44s14-19.7 14-30.1C28 6.2 21.7 0 14 0z"
+              fill="#e11d48"
+            />
+            <circle cx="14" cy="14" r="5.5" fill="#fff" />
+          </svg>
+          <span>location-picker</span>
+          <small>v3</small>
+        </a>
+        <nav class="site-nav" aria-label="Site">
+          <a href="../example/">Playground</a>
+          <a href="./" aria-current="page">No-code embed</a>
+          <a href="../pick/">Pick link</a>
+          <a href="../compat/">Compatibility</a>
+          <a href="https://github.com/cyphercodes/location-picker#readme">Docs</a>
+        </nav>
+        <div class="header-actions">
+          <a
+            class="icon-btn"
+            href="https://github.com/cyphercodes/location-picker"
+            aria-label="GitHub repository"
+          >
+            <svg viewBox="0 0 24 24" fill="currentColor" aria-hidden="true">
+              <path
+                d="M12 .5a11.5 11.5 0 0 0-3.64 22.41c.58.1.79-.25.79-.56v-2c-3.2.7-3.88-1.37-3.88-1.37-.52-1.33-1.28-1.69-1.28-1.69-1.05-.71.08-.7.08-.7 1.16.08 1.77 1.19 1.77 1.19 1.03 1.77 2.7 1.26 3.36.96.1-.75.4-1.26.73-1.55-2.55-.29-5.24-1.28-5.24-5.69 0-1.26.45-2.29 1.19-3.09-.12-.29-.52-1.46.11-3.05 0 0 .97-.31 3.17 1.18a11 11 0 0 1 5.77 0c2.2-1.49 3.17-1.18 3.17-1.18.63 1.59.23 2.76.11 3.05.74.8 1.19 1.83 1.19 3.09 0 4.42-2.7 5.39-5.26 5.68.41.36.78 1.06.78 2.14v3.17c0 .31.21.67.8.56A11.5 11.5 0 0 0 12 .5z"
+              />
+            </svg>
+          </a>
+          <button class="icon-btn" id="theme-toggle" type="button" aria-label="Dark theme">
+            <svg
+              class="theme-light-icon"
+              viewBox="0 0 24 24"
+              fill="none"
+              stroke="currentColor"
+              stroke-width="2"
+              stroke-linecap="round"
+              aria-hidden="true"
+            >
+              <circle cx="12" cy="12" r="4" />
+              <path
+                d="M12 2v2M12 20v2M4.9 4.9l1.4 1.4M17.7 17.7l1.4 1.4M2 12h2M20 12h2M4.9 19.1l1.4-1.4M17.7 6.3l1.4-1.4"
+              />
+            </svg>
+            <svg
+              class="theme-dark-icon"
+              viewBox="0 0 24 24"
+              fill="none"
+              stroke="currentColor"
+              stroke-width="2"
+              stroke-linecap="round"
+              aria-hidden="true"
+            >
+              <path d="M21 12.8A9 9 0 1 1 11.2 3a7 7 0 0 0 9.8 9.8z" />
+            </svg>
+          </button>
+        </div>
+      </div>
+    </header>
+
+    <main id="main">
+      <div class="wrap page-head">
+        <p class="eyebrow">No-code embed</p>
+        <h1>A map location field for any form</h1>
+        <p>
+          Pick the options, copy one block, paste it into your site builder. The snippet loads
+          <code>location-picker@3</code> from jsDelivr and adds a field that submits the exact
+          coordinates with your form.
+        </p>
+      </div>
+
+      <div class="wrap embed-layout">
+        <form class="card embed-options" id="options" aria-label="Snippet options">
+          <fieldset>
+            <legend>Map</legend>
+            <div class="seg" role="radiogroup" aria-label="Map provider">
+              <label
+                ><input type="radio" name="provider" value="osm" checked /><span
+                  >OpenStreetMap (no key)</span
+                ></label
+              >
+              <label
+                ><input type="radio" name="provider" value="google" /><span
+                  >Google Maps</span
+                ></label
+              >
+            </div>
+            <label class="field" id="key-field" hidden>
+              <span>Google Maps browser key</span>
+              <input
+                type="text"
+                id="api-key"
+                autocomplete="off"
+                spellcheck="false"
+                placeholder="YOUR_BROWSER_KEY"
+              />
+              <small class="hint"
+                >Goes into the snippet only; this page stores nothing. Restrict the key by HTTP
+                referrer and enable Maps JavaScript API and Places API (New).</small
+              >
+            </label>
+          </fieldset>
+
+          <fieldset>
+            <legend>Look</legend>
+            <label class="field">
+              <span>Presentation</span>
+              <select id="presentation">
+                <option value="inline">Inline map</option>
+                <option value="field">Field that opens a full-screen map</option>
+                <option value="auto">Automatic (field on phones)</option>
+              </select>
+              <small class="hint" id="presentation-note" hidden
+                >Field mode is not in this build of the library yet; the snippet uses the inline
+                map.</small
+              >
+            </label>
+            <div class="field-row">
+              <label class="field"
+                ><span>Label</span><input type="text" id="label-text" value="Location"
+              /></label>
+              <label class="field"
+                ><span>Height (px)</span
+                ><input
+                  type="number"
+                  id="height"
+                  value="360"
+                  min="200"
+                  max="900"
+                  step="10"
+                  inputmode="numeric"
+              /></label>
+            </div>
+            <label class="check"
+              ><input type="checkbox" id="opt-search" checked /><span
+                >Search box (addresses and pasted coordinates)</span
+              ></label
+            >
+            <label class="check"
+              ><input type="checkbox" id="opt-locate" checked /><span
+                >“Use my location” button</span
+              ></label
+            >
+            <label class="check"
+              ><input type="checkbox" id="opt-required" checked /><span>Required</span></label
+            >
+          </fieldset>
+
+          <fieldset>
+            <legend>What the form receives</legend>
+            <div class="radio-list">
+              <label class="check"
+                ><input type="radio" name="output" value="single" checked /><span
+                  >One field: <code>lat,lng</code></span
+                ></label
+              >
+              <label class="check"
+                ><input type="radio" name="output" value="separate" /><span
+                  >Separate latitude and longitude</span
+                ></label
+              >
+              <label class="check"
+                ><input type="radio" name="output" value="inputs" /><span
+                  >Hidden inputs (Webflow, Netlify Forms, Shopify, jQuery)</span
+                ></label
+              >
+            </div>
+            <div class="field-row" id="names-single">
+              <label class="field"
+                ><span>Field name</span><input type="text" id="name-single" value="location"
+              /></label>
+            </div>
+            <div class="field-row" id="names-split" hidden>
+              <label class="field"
+                ><span>Latitude name</span><input type="text" id="name-lat" value="lat"
+              /></label>
+              <label class="field"
+                ><span>Longitude name</span><input type="text" id="name-lng" value="lng"
+              /></label>
+            </div>
+            <label class="field">
+              <span>Address field name (optional)</span>
+              <input type="text" id="name-address" placeholder="for example address" />
+              <small class="hint"
+                >Adds the street address found for the point (reverse geocoding).</small
+              >
+            </label>
+            <label class="check" id="existing-row" hidden
+              ><input type="checkbox" id="opt-existing" /><span
+                >My form already has these fields (fill them by name)</span
+              ></label
+            >
+          </fieldset>
+
+          <fieldset>
+            <legend>Start and language</legend>
+            <label class="field">
+              <span>Start the map at (optional)</span>
+              <input
+                type="text"
+                id="start-at"
+                placeholder="48.8584, 2.2945 or a Google Maps link"
+              />
+              <small class="hint" id="start-note"
+                >Paste coordinates, DMS or a map link. Empty: a world view.</small
+              >
+            </label>
+            <label class="field">
+              <span>Language of search results</span>
+              <select id="lang">
+                <option value="">Same as the page</option>
+                <option value="en">English</option>
+                <option value="de">Deutsch</option>
+                <option value="fr">Français</option>
+                <option value="es">Español</option>
+                <option value="it">Italiano</option>
+                <option value="pt">Português</option>
+                <option value="ar">العربية</option>
+              </select>
+              <small class="hint"
+                >The public Photon search answers in English, German and French; other languages get
+                local names. Google Maps uses it for map labels. Button text stays English.</small
+              >
+            </label>
+          </fieldset>
+
+          <fieldset>
+            <legend>Form</legend>
+            <label class="check"
+              ><input type="checkbox" id="opt-form" /><span
+                >Include a complete <code>&lt;form&gt;</code> (for Formspree, Basin or your own
+                endpoint)</span
+              ></label
+            >
+            <label class="field" id="action-field" hidden>
+              <span>Form action URL</span>
+              <input type="url" id="form-action" value="https://formspree.io/f/your-form-id" />
+            </label>
+          </fieldset>
+        </form>
+
+        <div class="embed-output">
+          <figure class="code" id="snippet">
+            <div class="code-head">
+              <span>Paste this into your page</span
+              ><button class="copy-code" type="button" id="copy-snippet">Copy snippet</button>
+            </div>
+            <pre><code id="snippet-code" data-plain></code></pre>
+          </figure>
+          <div class="card preview">
+            <div class="preview-head">
+              <h2>Live preview</h2>
+              <p class="hint" id="preview-note">Submitting shows what your form would receive.</p>
+            </div>
+            <iframe id="preview" title="Live preview of the snippet"></iframe>
+          </div>
+        </div>
+      </div>
+
+      <section class="wrap section" aria-labelledby="platforms-title">
+        <div class="section-head">
+          <p class="eyebrow">Where to paste it</p>
+          <h2 id="platforms-title">Platform notes</h2>
+          <p>Short and honest: what works, and what to choose in the generator.</p>
+        </div>
+        <div class="grid grid-3 platforms">
+          <article class="card feature">
+            <h3>Plain HTML forms</h3>
+            <p>
+              Tick “Include a complete form” and set the action. <strong>Formspree</strong> and
+              <strong>Basin</strong> accept any field names.
+              <strong>Netlify Forms</strong> registers fields from your HTML at deploy time, so
+              choose <em>Hidden inputs</em> and add <code>data-netlify="true"</code> and a
+              <code>name</code> to the form.
+            </p>
+          </article>
+          <article class="card feature">
+            <h3>WordPress</h3>
+            <p>
+              Add a <strong>Custom HTML</strong> block and paste. Script tags there need the
+              <code>unfiltered_html</code> capability (administrators on a self-hosted site). Form
+              plugins keep only the fields they define: add hidden fields named <code>lat</code> and
+              <code>lng</code> in the plugin (Contact Form 7: <code>[hidden lat]</code>), choose
+              <em>Hidden inputs</em> and tick “My form already has these fields”.
+            </p>
+          </article>
+          <article class="card feature">
+            <h3>Webflow</h3>
+            <p>
+              Put a <strong>Code Embed</strong> element inside your Form Block and paste. Webflow’s
+              form handler only collects real inputs, so choose <em>Hidden inputs</em>. Custom code
+              needs a Webflow plan that allows it.
+            </p>
+          </article>
+          <article class="card feature">
+            <h3>Squarespace</h3>
+            <p>
+              The built-in Form Block cannot take extra fields. Add a
+              <strong>Code Block</strong> with “Include a complete form” posting to Formspree or
+              Basin. JavaScript in Code Blocks needs a plan that allows it.
+            </p>
+          </article>
+          <article class="card feature">
+            <h3>Shopify</h3>
+            <p>
+              Add a <strong>Custom Liquid</strong> block on the product page and choose
+              <em>Hidden inputs</em> named like <code>properties[Delivery location]</code>: the pin
+              is saved with the order line. The inputs must sit inside the product form or carry its
+              <code>form="…"</code> id (theme-specific). Checkout does not run custom scripts.
+            </p>
+          </article>
+          <article class="card feature">
+            <h3>Where it cannot work</h3>
+            <p>
+              <strong>Google Forms</strong> and <strong>Microsoft Forms</strong> have no custom
+              fields or scripts. <strong>Wix</strong> runs HTML embeds in an iframe, so the picker
+              cannot join a Wix form; a complete form inside the same embed (posting to Formspree or
+              Basin) does work.
+            </p>
+          </article>
+        </div>
+      </section>
+    </main>
+
+    <footer class="site-footer">
+      <div class="wrap">
+        <div>
+          <p><strong>location-picker</strong> · MIT © 2018-2026 Rayan Salhab</p>
+          <p>
+            Map data ©
+            <a href="https://www.openstreetmap.org/copyright">OpenStreetMap contributors</a>.
+          </p>
+        </div>
+        <div>
+          <h2>Site</h2>
+          <ul>
+            <li><a href="../">Home</a></li>
+            <li><a href="../example/">Playground</a></li>
+            <li><a href="../pick/">Pick link</a></li>
+            <li><a href="../compat/">Compatibility</a></li>
+          </ul>
+        </div>
+        <div>
+          <h2>Project</h2>
+          <ul>
+            <li><a href="https://github.com/cyphercodes/location-picker">GitHub</a></li>
+            <li><a href="https://www.npmjs.com/package/location-picker">npm</a></li>
+            <li>
+              <a href="https://github.com/cyphercodes/location-picker/blob/master/docs/forms.md"
+                >Forms guide</a
+              >
+            </li>
+          </ul>
+        </div>
+        <div>
+          <h2>AI</h2>
+          <ul>
+            <li><a href="../llms.txt">llms.txt</a></li>
+            <li>
+              <a
+                href="https://github.com/cyphercodes/location-picker/blob/master/skills/location-picker/SKILL.md"
+                >SKILL.md</a
+              >
+            </li>
+          </ul>
+        </div>
+      </div>
+    </footer>
+    <div class="toast" id="toast" role="status" aria-live="polite"></div>
+  </body>
+</html>
