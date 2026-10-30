@@ -1,0 +1,36 @@
+<!doctype html>
+<!-- WP4-10 head variant: the script build in <head>, so <location-picker> is defined before the parser reaches it and
+     its bound inputs. The body is CONTRACT §8b's Laravel form with the server values rendered in. -->
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Element head variant</title>
+    <script src="/dist/location-picker.global.js"></script>
+    <style>
+      body {
+        margin: 0;
+        font: 16px sans-serif;
+      }
+    </style>
+  </head>
+  <body>
+    <form id="f" method="post" action="/e2e/harness/blank.html">
+      <label for="store-location">Store location</label>
+      <location-picker
+        id="store-location"
+        lat-input="lat"
+        lng-input="lng"
+        address-name="address"
+        required
+        search
+        reverse-geocode
+        style="height: 360px"
+      >
+        <input id="lat" name="lat" inputmode="decimal" value="48.8584" aria-label="Latitude" />
+        <input id="lng" name="lng" inputmode="decimal" value="2.2945" aria-label="Longitude" />
+      </location-picker>
+      <button id="save" type="submit">Save</button>
+    </form>
+  </body>
+</html>
