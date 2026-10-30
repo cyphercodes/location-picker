@@ -10,15 +10,60 @@ Source: https://github.com/cyphercodes/location-picker/blob/master/README.md
 
 # location-picker
 
+**Let people pick an exact spot on a map, and get `lat,lng` in your form.**
+
 Form-ready map location picker: pan a map under a fixed pin to pick one latitude/longitude. Web component + class, keyless OpenStreetMap by default, Google and MapLibre optional.
 
-**[Live demo](https://cyphercodes.github.io/location-picker/)** · [No-code embed](https://cyphercodes.github.io/location-picker/embed/) · [Pick link](https://cyphercodes.github.io/location-picker/pick/) · [API reference](https://github.com/cyphercodes/location-picker/blob/master/docs/api.md) · [Forms](https://github.com/cyphercodes/location-picker/blob/master/docs/forms.md) · [Frameworks](https://github.com/cyphercodes/location-picker/blob/master/docs/frameworks.md) · [llms.txt](https://cyphercodes.github.io/location-picker/llms.txt) · MIT
+![location-picker in a form: an OpenStreetMap map with a fixed red pin on the Eiffel Tower, a search box and a locate button, then a Save button and the value the form submits, location=48.85837,2.294481](https://cyphercodes.github.io/location-picker/readme-hero.png)
 
-```bash
-npm i location-picker
+**[Live demo](https://cyphercodes.github.io/location-picker/)** · [No-code embed](https://cyphercodes.github.io/location-picker/embed/) · [Pick link](https://cyphercodes.github.io/location-picker/pick/) · [API reference](https://github.com/cyphercodes/location-picker/blob/master/docs/api.md) · [For AI agents](#for-ai-agents) · MIT
+
+One script tag, no API key, no build step. Put the element inside your form:
+
+```html
+<script src="https://cdn.jsdelivr.net/npm/location-picker@3"></script>
+<form method="post" action="/places">
+  <label for="where">Location</label>
+  <location-picker id="where" search locate="button" name="location" required></location-picker>
+  <button>Save</button>
+</form>
 ```
 
-No build step needed: one `<script>` tag gives you `<location-picker>` on OpenStreetMap, with no API key and no permission prompt until the button is clicked.
+People pan the map under the pin, search for a place, paste coordinates or tap the locate button (the browser asks for permission only then). On Save, the form posts `location=48.85837,2.294481`, latitude first, like any other field. In JavaScript, read the element's `value` or listen for `change`: `e.detail` has `value`, `lat`, `lng`, `source` and `address`.
+
+- **With npm:** `npm i location-picker`, then `import 'location-picker'`. Recipes for React, Vue, Angular, Svelte and more: [Frameworks](#frameworks).
+- **With a coding agent:** `npx skills add cyphercodes/location-picker` adds the location-picker Agent Skill (it also ships in the package, at `node_modules/location-picker/skills/location-picker/SKILL.md`). [llms.txt](https://cyphercodes.github.io/location-picker/llms.txt) is the short version of these docs, and [Common mistakes](#common-mistakes) lists the traps.
+- **Without code:** the [embed generator](https://cyphercodes.github.io/location-picker/embed/) writes the snippet for WordPress, Webflow, Squarespace, Shopify or a plain HTML form ([per-platform guide](https://github.com/cyphercodes/location-picker/blob/master/docs/embed.md)).
+- **To ask a person:** send them the [pick link](https://cyphercodes.github.io/location-picker/pick/). They confirm a point on a map with nothing to install, and you get it back as text they copy to you, an `https://` redirect after their click, or a `postMessage` to your origin ([how it works](#ask-a-person-for-a-location-pick-link)). Made for chat bots, AI agents and support tickets. Try [`/pick/?q=Eiffel Tower`](https://cyphercodes.github.io/location-picker/pick/?q=Eiffel%20Tower).
+
+## Why location-picker
+
+Use it when a form needs **one precise point**: a store, branch or sensor location in an admin screen, a delivery or pickup pin at checkout, an event venue, the place of a report, a home or work location in a profile.
+
+- **A real form field.** `required` validates, form reset works and back/forward navigation restores it. Submit one `"lat,lng"` entry (`name`), separate entries (`lat-name`, `lng-name`), or fill inputs you already have (`lat-input`, `lng-input`). See [Forms](#forms).
+- **No API key to start.** OpenStreetMap through Leaflet by default; Google Maps or MapLibre when you choose them. The default OpenStreetMap tiles and Photon address search are free public services with no SLA: for production traffic, use your own or a commercial tile server and geocoder ([usage policies](#providers-and-usage-policies)).
+- **Pan, search, paste or locate.** Arrow keys and Enter work too, and the locate button asks for permission only when clicked. Typed or pasted coordinates jump straight there with no network call: `48.8584, 2.2945`, DMS, `geo:` URIs and Google, OpenStreetMap or Apple Maps links.
+- **Phone-first when you want it.** [Field mode](#phone-first-field-mode) shows a compact control that opens the map full screen; the value changes only on Confirm.
+- **Your stack.** Plain HTML forms and server templates (Laravel, Django, Rails), React, Vue, Angular, Svelte, Solid and Preact; jQuery, Livewire, Alpine and htmx through bound inputs. TypeScript types and JSX typings are included.
+- **No runtime npm dependencies.** Leaflet, MapLibre and the Google Maps types are optional peers. When the page has no Leaflet, it is loaded from jsDelivr ([Install](#install)).
+- **Clear errors, generated test results.** Every runtime problem has a stable `code` and a one-line fix ([error codes](https://github.com/cyphercodes/location-picker/blob/master/docs/errors.md)). Browser and device results come from the test matrix: [COMPATIBILITY.md](https://github.com/cyphercodes/location-picker/blob/master/COMPATIBILITY.md).
+
+**When not to use it:** drawing shapes, routes or areas; several markers; a full mapping application (use Leaflet, MapLibre or the Google Maps JS API directly); text-only address autocomplete with no map; offline maps; React Native or other native mobile apps.
+
+## Install
+
+| How                     | Use                                                                                      |
+| ----------------------- | ---------------------------------------------------------------------------------------- |
+| Script tag (no bundler) | `<script src="https://cdn.jsdelivr.net/npm/location-picker@3"></script>`                 |
+| npm                     | `npm i location-picker`, then `import 'location-picker'`                                 |
+| npm, class only         | `import { LocationPicker } from 'location-picker/core'` (defines no element)             |
+| Upgrading 1.x code      | `import locationPicker from 'location-picker/v1'` ([migration guide](https://github.com/cyphercodes/location-picker/blob/master/docs/migration.md)) |
+
+The script tag defines `<location-picker>` and sets `window.LocationPicker` (the class, with every export as a static). `https://unpkg.com/location-picker@3` serves the same file. Keep the `@3`: the unpinned `/dist/location-picker.min.js` path is the frozen v1 file. In ES modules from a CDN, `https://cdn.jsdelivr.net/npm/location-picker@3/+esm` defines the element too.
+
+Leaflet 1.9.4 is loaded on demand from jsDelivr with Subresource Integrity, only when `window.L` is absent. Bundler users can pass their own Leaflet instead (see [the JavaScript class](#javascript-class)).
+
+To watch the value change while you try it, here is a complete page:
 
 ```html
 <!doctype html>
@@ -36,42 +81,6 @@ No build step needed: one `<script>` tag gives you `<location-picker>` on OpenSt
 </script>
 </html>
 ```
-
-Inside a `<form>` it submits like any input, here as `location=48.85837,2.294481`:
-
-```html
-<form method="post" action="/places">
-  <location-picker name="location" required style="height: 360px"></location-picker>
-  <button>Save</button>
-</form>
-<script src="https://cdn.jsdelivr.net/npm/location-picker@3"></script>
-```
-
-## When to use it
-
-Use it when a form needs **one precise point**: a store, branch or sensor location in an admin screen, a delivery or pickup pin at checkout, an event venue, the place of a report, a home or work location in a profile. The user pans the map under a fixed centre pin (or searches, pastes coordinates, or taps "Use my location"), and you get `"lat,lng"` in `FormData`, in your framework state, or in existing hidden inputs.
-
-- Plain HTML forms and server templates (Laravel, Django, Rails), React, Vue, Angular, Svelte, Solid and Preact; jQuery, Livewire, Alpine and htmx through bound inputs.
-- OpenStreetMap with no API key by default; Google Maps or MapLibre when you choose them.
-- Optional address search and reverse geocoding, paired with the map provider.
-- Coordinate parsing built in: `"48.8584, 2.2945"`, DMS, `geo:` URIs and Google, OpenStreetMap or Apple Maps URLs.
-- A phone-first [field mode](#phone-first-field-mode): a compact form control that opens the map full screen.
-- No code at all: the [embed generator](https://cyphercodes.github.io/location-picker/embed/) writes a snippet for WordPress, Webflow, Squarespace, Shopify or a plain HTML form ([per-platform guide](https://github.com/cyphercodes/location-picker/blob/master/docs/embed.md)), and the hosted [pick link](#ask-a-person-for-a-location-pick-link) asks someone for a location with nothing to install.
-
-**When not to use it:** drawing shapes, routes or areas; several markers; a full mapping application (use Leaflet, MapLibre or the Google Maps JS API directly); text-only address autocomplete with no map; offline maps; React Native or other native mobile apps.
-
-## Install
-
-| How                     | Use                                                                                      |
-| ----------------------- | ---------------------------------------------------------------------------------------- |
-| Script tag (no bundler) | `<script src="https://cdn.jsdelivr.net/npm/location-picker@3"></script>`                 |
-| npm                     | `npm i location-picker`, then `import 'location-picker'`                                 |
-| npm, class only         | `import { LocationPicker } from 'location-picker/core'` (defines no element)             |
-| Upgrading 1.x code      | `import locationPicker from 'location-picker/v1'` ([migration guide](https://github.com/cyphercodes/location-picker/blob/master/docs/migration.md)) |
-
-The script tag defines `<location-picker>` and sets `window.LocationPicker` (the class, with every export as a static). `https://unpkg.com/location-picker@3` serves the same file. Keep the `@3`: the unpinned `/dist/location-picker.min.js` path is the frozen v1 file. In ES modules from a CDN, `https://cdn.jsdelivr.net/npm/location-picker@3/+esm` defines the element too.
-
-Leaflet 1.9.4 is loaded on demand from jsDelivr with Subresource Integrity, only when `window.L` is absent. Bundler users can pass their own Leaflet instead (see [the JavaScript class](#javascript-class)).
 
 ## How the value works
 
