@@ -58,8 +58,11 @@ function paste(target: Element, text: string): Event {
     cancelable: true,
     composed: true,
   });
-  // Some engines ignore clipboardData in the constructor.
-  if (!event.clipboardData) Object.defineProperty(event, 'clipboardData', { value: data });
+  // Firefox hands a synthetic paste an empty clipboardData; give it the data a real paste would carry.
+  if (event.clipboardData?.getData('text') !== text)
+    Object.defineProperty(event, 'clipboardData', {
+      value: { getData: (type: string) => (/^text(\/plain)?$/.test(type) ? text : '') },
+    });
   target.dispatchEvent(event);
   return event;
 }

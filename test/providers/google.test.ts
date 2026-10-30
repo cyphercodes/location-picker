@@ -334,6 +334,52 @@ describe('WP3-11: zoom anchored at the centre', () => {
     ]);
   });
 
+  it('disabled: no gestures, keys or zoom control, and the wheel is left alone', async () => {
+    const google = install({ mode: 'classic' });
+    const p = picker({
+      provider: googleProvider(),
+      value: '1,2',
+      gestureHandling: 'greedy',
+      disabled: true,
+    });
+    await p.ready;
+    expect(lastMap().options).toMatchObject({
+      gestureHandling: 'none',
+      keyboardShortcuts: false,
+      zoomControl: false,
+    });
+    lastMap().inner.dispatchEvent(
+      new WheelEvent('wheel', { bubbles: true, cancelable: true, deltaY: -100 }),
+    );
+    lastMap().inner.dispatchEvent(new MouseEvent('dblclick', { bubbles: true }));
+    expect(google.stats.setZoomCalls).toEqual([]);
+    p.disabled = false;
+    expect(lastMap().options).toMatchObject({
+      gestureHandling: 'greedy',
+      keyboardShortcuts: true,
+      zoomControl: true,
+    });
+  });
+
+  it('gestureHandling and maxZoom change in place (no remount); a dark host asks for the DARK scheme', async () => {
+    install({ mode: 'classic' });
+    const element = target();
+    const { core } = shadowPicker(element, { provider: erased(googleProvider()), maxZoom: 18 });
+    await core.ready;
+    expect(lastMap().options).toMatchObject({ maxZoom: 18, gestureHandling: 'auto' });
+    core.update({ gestureHandling: 'cooperative', maxZoom: 16 });
+    expect(lastMap().options).toMatchObject({ maxZoom: 16, gestureHandling: 'cooperative' });
+    expect(mock?.stats.mapInstances).toHaveLength(1);
+    core.destroy();
+    const dark = target();
+    dark.style.colorScheme = 'dark';
+    picker({ provider: googleProvider() });
+    expect(lastMap().options.colorScheme).toBe('LIGHT');
+    const night = new LocationPicker(dark, { provider: googleProvider() });
+    pickers.push(night);
+    expect(lastMap().options.colorScheme).toBe('DARK');
+  });
+
   it('destroy() removes the engine listeners, the map div and the auth listener', async () => {
     install({ mode: 'classic' });
     const p = picker({ provider: googleProvider() });
