@@ -200,6 +200,15 @@ test(
     await expect.poll(fits).toBe(true);
     expect(await picker.evaluate((el: LocationPickerElement) => el.value)).toBe(EIFFEL);
 
+    // Leaflet ignores arrow keys while a pan animation runs (the resize can start one): wait for it to end.
+    await expect
+      .poll(() =>
+        picker.evaluate((el: LocationPickerElement) => {
+          const panAnim: unknown = Reflect.get(Object(el.map), '_panAnim');
+          return !Reflect.get(Object(panAnim), '_inProgress');
+        }),
+      )
+      .toBe(true);
     const outcome = await nextOutcome(picker);
     await map.press('ArrowRight');
     expect(await outcome()).toMatchObject({ type: 'change', source: 'user' });
