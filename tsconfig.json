@@ -15,5 +15,7 @@
     "skipLibCheck": false,
     "types": []
   },
-  "include": ["src"]
+  "include": ["src"],
+  // The shipped JSX augmentations import framework types the repo does not install; types-matrix/cells/jsx-* check them.
+  "exclude": ["src/jsx"]
 }
