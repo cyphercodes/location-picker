@@ -7,7 +7,6 @@
     "compat",
     "dist",
     "e2e",
-    "example",
     "scripts",
     "site",
     "smoke",
@@ -30,10 +29,20 @@
     "In forms use name, lat-name/lng-name, or lat-input/lng-input for existing inputs. Put required on <location-picker>, never on hidden inputs.",
     "In frameworks bind value (a \"lat,lng\" string) and listen to change or input. The lat/lng attributes only set the initial value.",
     "Read the result from value, valueAsLatLng or the change event detail, not getMarkerPosition(), which returns the view centre while unset.",
+    "On phones in checkout or delivery forms use presentation=\"auto\": a compact field opens the map full screen and the value changes only on Confirm. In field mode ready resolves at the first open.",
     "OpenStreetMap needs no key. Google Maps is used only with provider=\"google\", api-key, map-id or marker=\"advanced\".",
     "React 19: use onChange/onInput and lowercase onaddresschange/onready/onerror. After hydrateRoot, set object props and native listeners in a ref callback.",
     "Search uses Photon on Leaflet/MapLibre and PlaceAutocompleteElement on Google; never show Google results on a non-Google map.",
-    "Errors are LocationPickerError objects with a stable code and a one-line fix; follow the Fix: text in the console message."
+    "Errors are LocationPickerError objects with a stable code and a one-line fix; follow the Fix: text in the console message.",
+    "To ask a person for a location with nothing to install, send https://cyphercodes.github.io/location-picker/pick/ (lat, lng, zoom, q, lang; redirect=<https URL> or return=postmessage&origin=<origin>).",
+    "Update framework state from change; never write value back from an input listener (in 3.0 it stops a pan in progress)."
   ],
-  "previousVersions": [{ "tag": "v2.0.0" }, { "tag": "v1.1.1" }]
+  "previousVersions": [
+    {
+      "tag": "v2.0.0"
+    },
+    {
+      "tag": "v1.1.1"
+    }
+  ]
 }

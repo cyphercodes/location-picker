@@ -2,7 +2,7 @@
 
 Form-ready map location picker: pan a map under a fixed pin to pick one latitude/longitude. Web component + class, keyless OpenStreetMap by default, Google and MapLibre optional.
 
-**[Live demo](https://cyphercodes.github.io/location-picker/)** · [API reference](docs/api.md) · [Forms](docs/forms.md) · [Frameworks](docs/frameworks.md) · [llms.txt](https://cyphercodes.github.io/location-picker/llms.txt) · MIT
+**[Live demo](https://cyphercodes.github.io/location-picker/)** · [No-code embed](https://cyphercodes.github.io/location-picker/embed/) · [Pick link](https://cyphercodes.github.io/location-picker/pick/) · [API reference](docs/api.md) · [Forms](docs/forms.md) · [Frameworks](docs/frameworks.md) · [llms.txt](https://cyphercodes.github.io/location-picker/llms.txt) · MIT
 
 ```bash
 npm i location-picker
@@ -47,6 +47,8 @@ Use it when a form needs **one precise point**: a store, branch or sensor locati
 - OpenStreetMap with no API key by default; Google Maps or MapLibre when you choose them.
 - Optional address search and reverse geocoding, paired with the map provider.
 - Coordinate parsing built in: `"48.8584, 2.2945"`, DMS, `geo:` URIs and Google, OpenStreetMap or Apple Maps URLs.
+- A phone-first [field mode](#phone-first-field-mode): a compact form control that opens the map full screen.
+- No code at all: the [embed generator](https://cyphercodes.github.io/location-picker/embed/) writes a snippet for WordPress, Webflow, Squarespace, Shopify or a plain HTML form ([per-platform guide](docs/embed.md)), and the hosted [pick link](#ask-a-person-for-a-location-pick-link) asks someone for a location with nothing to install.
 
 **When not to use it:** drawing shapes, routes or areas; several markers; a full mapping application (use Leaflet, MapLibre or the Google Maps JS API directly); text-only address autocomplete with no map; offline maps; React Native or other native mobile apps.
 
@@ -131,9 +133,33 @@ The same in a Django template:
 
 jQuery, Livewire (`wire:model`) and Alpine (`x-model`) listen on the bound inputs, which get native `input` and `change` events. jQuery `.serialize()` ignores custom elements, so use bound inputs or `new FormData(form)`. Style errors with `location-picker:state(interacted):invalid`. More in [docs/forms.md](docs/forms.md).
 
+## Phone-first: field mode
+
+On a phone, a map in the middle of a checkout form gets in the way of scrolling. `presentation="field"` turns the picker into a compact form control: the chosen address (or the coordinates) and a **Choose on map** button. The map opens in a full-screen sheet with search, the locate button, **Confirm** and **Cancel**; the value changes only on Confirm. The map engine loads when the sheet first opens.
+
+<!-- prettier-ignore-start -->
+```html
+<form method="post" action="/deliveries">
+  <label for="drop">Delivery spot</label>
+  <location-picker id="drop" presentation="auto" name="location" search locate="button" reverse-geocode required></location-picker>
+  <button>Continue</button>
+</form>
+<script src="https://cdn.jsdelivr.net/npm/location-picker@3"></script>
+```
+<!-- prettier-ignore-end -->
+
+- `auto` shows the field on touch screens up to 640 px wide (`(pointer: coarse) and (max-width: 640px)`) and the inline map elsewhere; `field` always shows the field; `inline` (the default) always shows the map.
+- Names, `FormData`, `required` and events are the same in every mode. Pans, search picks and locates inside the sheet are a draft: Confirm commits them (`input` then `change`, with their `source`); Cancel, Escape and `el.close()` change nothing and fire no `input`/`change`.
+- `el.showPicker()` opens the sheet, `el.close()` cancels it, and the `toggle` event (a `ToggleEvent` with `oldState`/`newState`) fires on open and close.
+- In field mode, `ready` and `el.map` wait for the first open. Do not gate the form on `el.ready`.
+- Add `search locate="button"`: field mode uses the same attributes as the inline map and adds nothing on its own.
+- A height you set on the element applies to the compact field too. Leave it off (the inline map is 320px tall by default), or set it in a `@media` rule that excludes phones.
+
+Use the inline map when the map is the content, or when the form is used on desktops. Use `auto` (or `field`) in checkout, delivery and sign-up forms that people fill in on phones.
+
 ## Frameworks
 
-Bind `value` (a `"lat,lng"` string) and listen to `change` or `input`. Spell configuration as HTML attributes (`lat-name`, `api-key`), which is SSR-safe.
+Bind `value` (a `"lat,lng"` string) and update your state from `change`; `input` is for showing live updates. Do not write the value back from an `input` listener: in 3.0 that stops a pan in progress (Vue's `v-model` is fine). Spell configuration as HTML attributes (`lat-name`, `api-key`), which is SSR-safe.
 
 **Event names per framework.** The class callbacks `onChange`/`onInput`/`onAddressChange`/`onReady`/`onError` are options of the JavaScript class only.
 
@@ -149,7 +175,7 @@ Bind `value` (a `"lat,lng"` string) and listen to `change` or `input`. Spell con
 | Preact | `onchange` | `oninput` | `onaddresschange` | `onready` | `onerror` |
 <!-- prettier-ignore-end -->
 
-React's lowercase native handlers are attached on client render only. After `hydrateRoot`, use a ref (React hydration recipe below).
+React's lowercase native handlers are attached on client render only. After `hydrateRoot`, use a ref (React hydration recipe below). Field mode's `toggle` event is `ontoggle` in React, Preact and Svelte, `@toggle` in Vue, `(toggle)` in Angular and `on:toggle` in Solid.
 
 ### React 19 / Next.js App Router
 
@@ -162,7 +188,7 @@ import { useState } from 'react';
 
 export function StoreLocationField({ initial = '' }: { initial?: string }) {
   const [value, setValue] = useState(initial);    // "lat,lng" or ""
-  // Attributes, value and onChange/onInput survive SSR hydration; objects (messages…) and onaddresschange go in a ref (§3.9).
+  // Attributes, value and onChange/onInput survive SSR hydration; objects (messages…) and onaddresschange go in a ref (see the React hydration recipe).
   return (
     <>
       <label htmlFor="loc">Location</label>
@@ -276,6 +302,7 @@ Svelte 5, Solid, Preact, Nuxt, Astro, Livewire, Alpine, htmx and component tests
 | `addresschange` | `{ value, lat, lng, address, result }`                          | when the address for the current value resolves (`search` or `reverse-geocode`)                    |
 | `ready`         | `{ provider, map }`                                             | when the map is mounted, and again after each remount                                              |
 | `error`         | a `LocationPickerError` with `code`, `fix`, `level`             | on asynchronous failures; logged with its fix unless you call `preventDefault()`                   |
+| `toggle`        | a native `ToggleEvent` (`oldState`, `newState`)                 | field mode: when the map sheet opens or closes                                                     |
 
 Read the current state from properties: `el.value` (`"lat,lng"` or `""`), `el.valueAsLatLng` (`{ lat, lng }` or `null`), `el.address` and `el.map` (the engine map, after `ready`). `el.ready` is a promise for the mounted picker.
 
@@ -359,13 +386,14 @@ Every option is also an element property and (for primitives) a kebab-case attri
 | `marker`                                                 | `pin`                                                     | `none` hides the pin; `advanced` = Google AdvancedMarkerElement (needs `map-id`)                  |
 | `gesture-handling`                                       | `auto`                                                    | `cooperative`, `greedy` or `none`; `auto` is cooperative (Ctrl/⌘ + wheel) when the page scrolls   |
 | `max-zoom`, `precision`                                  | 19 for OSM tiles; 6 decimals                              |                                                                                                   |
+| `presentation`                                           | `inline`                                                  | `field` (compact control, full-screen map sheet) or `auto` (field on phones); see field mode      |
 | `webmcp`                                                 | off                                                       | Register experimental WebMCP tools for browser agents                                             |
 
-Methods: `setLocation(lat, lng)` or `setLocation('lat,lng')` (commits with source `api`), `locate()` (geolocates, never hangs), `geocode(query)`, `lookupAddress()`, plus the native `checkValidity()`, `reportValidity()` and `setCustomValidity()`. Object properties (`messages`, `geocoder`, `engine`, `mapOptions`, `geolocation`) are set from JavaScript. Full list: [docs/api.md](docs/api.md).
+Methods: `setLocation(lat, lng)` or `setLocation('lat,lng')` (commits with source `api`), `locate()` (geolocates, never hangs), `geocode(query)`, `lookupAddress()`, `showPicker()` and `close()` (field mode), plus the native `checkValidity()`, `reportValidity()` and `setCustomValidity()`. Object properties (`messages`, `geocoder`, `engine`, `mapOptions`, `geolocation`) are set from JavaScript. Full list: [docs/api.md](docs/api.md).
 
 ## Styling
 
-The element renders into an open shadow root. Style it with CSS custom properties (`--lp-pin-color`, `--lp-pin-size`, `--lp-accent`, `--lp-tile-filter`, …), parts (`location-picker::part(pin)`), slots (`slot="marker"` for your own pin) and states (`location-picker:state(unset)`). It is 320px tall by default; set your own `height`. Dark mode follows `color-scheme`, and the layout uses logical properties for right-to-left pages.
+The element renders into an open shadow root. Style it with CSS custom properties (`--lp-pin-color`, `--lp-pin-size`, `--lp-accent`, `--lp-tile-filter`, …), parts (`location-picker::part(pin)`), slots (`slot="marker"` for your own pin) and states (`location-picker:state(unset)`). It is 320px tall by default; set your own `height`. Dark mode follows `color-scheme`, and the layout uses logical properties for right-to-left pages. Field mode adds the parts `field`, `field-value`, `field-button`, `sheet`, `sheet-header` and `cancel-button` (Confirm is `confirm-button`) and the state `:state(open)`; its texts are the `chooseOnMap`, `fieldPlaceholder`, `cancel` and `confirm` keys of `messages`.
 
 ## Providers and usage policies
 
@@ -418,6 +446,18 @@ Every v1 and v2 API, what changed and the one-line fixes: [docs/migration.md](do
 
 Browser, device and framework results are generated by the test matrix, never written by hand: see [COMPATIBILITY.md](COMPATIBILITY.md) and the [compatibility page](https://cyphercodes.github.io/location-picker/compat/).
 
+## Ask a person for a location: pick link
+
+`https://cyphercodes.github.io/location-picker/pick/` is a hosted page that asks a person for an exact location with nothing to install: send the link from a chat bot, an AI agent, a support ticket or a no-code automation. The person moves the map (or searches, or taps "Use my location") and confirms.
+
+- Start it with `?lat=48.8584&lng=2.2945` (a starting point to confirm or adjust), `zoom` (1 to 19), `q=Eiffel Tower` (picks the first search result) and `lang`.
+- By default the page shows the result with copy buttons (decimal, DMS, `geo:` URI, Google Maps and OpenStreetMap links) and Web Share.
+- `redirect=https://example.com/done` sends the person there after a click, with `lat`, `lng` and (when known) `address` appended. Only `https://` URLs are accepted, and the page shows the destination host first.
+- `return=postmessage&origin=https://example.com` posts `{ type: 'location-picker:pick', lat, lng, address }` to the page that opened it (`window.open`) or embeds it (an iframe), only to that exact origin. `address` is `null` while unknown.
+- The page has no server, no storage, no cookies and no analytics; the state lives only in the URL. It uses OpenStreetMap and Photon. For heavy use, host your own copy: `node scripts/build-site.mjs` builds the static site (MIT) into `_site/`, with the page at `pick/`.
+
+Details and a `postMessage` listener: [docs/ai-agents.md](docs/ai-agents.md#ask-a-person-for-a-location-the-pick-link).
+
 ## For AI agents
 
 - [llms.txt](https://cyphercodes.github.io/location-picker/llms.txt) and [llms-full.txt](https://cyphercodes.github.io/location-picker/llms-full.txt)
@@ -425,12 +465,13 @@ Browser, device and framework results are generated by the test matrix, never wr
 - `custom-elements.json` (the package's `customElements` field) for editor and agent tooling
 - Typed errors with a `code` and a `fix`, and JSDoc with defaults and examples on every option
 - Opt-in WebMCP tools so browser agents can read and set the location: [docs/ai-agents.md](docs/ai-agents.md)
+- The [pick link](#ask-a-person-for-a-location-pick-link), the zero-install way for an agent or a bot to ask a person for a location
 
 Working on this repository: [AGENTS.md](AGENTS.md).
 
 ## Documentation
 
-[API reference](docs/api.md) · [Forms](docs/forms.md) · [Frameworks](docs/frameworks.md) · [Providers](docs/providers.md) · [CSP](docs/csp.md) · [Errors](docs/errors.md) · [Troubleshooting](docs/troubleshooting.md) · [Migration](docs/migration.md) · [AI agents](docs/ai-agents.md) · [Changelog](CHANGELOG.md) · [Contributing](CONTRIBUTING.md)
+[API reference](docs/api.md) · [Forms](docs/forms.md) · [No-code embed](docs/embed.md) · [Frameworks](docs/frameworks.md) · [Providers](docs/providers.md) · [CSP](docs/csp.md) · [Errors](docs/errors.md) · [Troubleshooting](docs/troubleshooting.md) · [Migration](docs/migration.md) · [AI agents](docs/ai-agents.md) · [Changelog](CHANGELOG.md) · [Contributing](CONTRIBUTING.md)
 
 ## License
 
