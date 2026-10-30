@@ -1,0 +1,16 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <title>Angular smoke (SSR)</title>
+    <base href="/" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+  </head>
+  <body>
+    <app-root></app-root>
+    <script>
+      // The server-rendered picker, kept to prove hydration reuses it instead of re-rendering.
+      window.__ssrPicker = document.querySelector('location-picker');
+    </script>
+  </body>
+</html>

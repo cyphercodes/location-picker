@@ -1,0 +1,109 @@
+name: Smoke
+
+# Framework smoke apps (CONTRACT §13 WP5-12, AMENDMENTS A5): each app in smoke/<app>/ installs the PACKED tarball,
+# builds, and smoke/<app>.spec.ts checks it in Chromium (no hydration warnings, no console errors, a pan updates
+# framework state, the form posts lat/lng, plus the per-app WP4-10/WP4-21 assertions). CI only: never installed locally.
+on:
+  schedule:
+    - cron: '7 3 * * 2'
+  push:
+    tags: ['v*']
+    branches: [v3]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: smoke-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  pack:
+    name: Pack the tarball
+    runs-on: ubuntu-latest
+    env:
+      PLAYWRIGHT_SKIP_BROWSER_DOWNLOAD: '1'
+    steps:
+      - uses: actions/checkout@v7
+      - uses: actions/setup-node@v7
+        with:
+          node-version: 24
+          cache: npm
+      - run: npm ci
+      - run: npm run build
+      - name: npm pack (renamed so the apps can depend on file:../location-picker.tgz)
+        run: mv "$(npm pack --silent)" location-picker.tgz
+      - uses: actions/upload-artifact@v7
+        with:
+          name: tarball
+          path: location-picker.tgz
+          if-no-files-found: error
+          retention-days: 7
+
+  app:
+    name: ${{ matrix.app }}
+    needs: pack
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    strategy:
+      fail-fast: false
+      matrix:
+        # AMENDMENTS A5 order: the top 5 first.
+        app:
+          [
+            angular,
+            form-post,
+            react19,
+            plain-html,
+            vue3,
+            svelte5,
+            preact,
+            solid,
+            next,
+            nuxt,
+            astro,
+            vitest-jsdom,
+            vitest-happy-dom,
+          ]
+    env:
+      NG_CLI_ANALYTICS: 'false'
+      NEXT_TELEMETRY_DISABLED: '1'
+      NUXT_TELEMETRY_DISABLED: '1'
+      ASTRO_TELEMETRY_DISABLED: '1'
+    steps:
+      - uses: actions/checkout@v7
+      - uses: actions/setup-node@v7
+        with:
+          node-version: 24
+          cache: npm
+      # The repository's own install provides Playwright and the route table's fixtures (Leaflet, tiles, Photon).
+      - run: npm ci
+      - uses: actions/download-artifact@v8
+        with:
+          name: tarball
+          path: smoke
+      - if: ${{ !startsWith(matrix.app, 'vitest-') }}
+        run: npx playwright install --with-deps chromium
+      - name: Install ${{ matrix.app }} with the packed tarball
+        working-directory: smoke/${{ matrix.app }}
+        run: npm install --no-audit --no-fund
+      - name: Build ${{ matrix.app }}
+        working-directory: smoke/${{ matrix.app }}
+        run: npm run build --if-present
+      # Apps with smoke/<app>.spec.ts are checked in Chromium; the vitest-* apps run their own component test.
+      - name: Smoke check
+        run: |
+          if [ -f "smoke/$SMOKE_APP.spec.ts" ]; then
+            npx playwright test -c smoke/playwright.config.ts
+          else
+            npm test --prefix "smoke/$SMOKE_APP"
+          fi
+        env:
+          SMOKE_APP: ${{ matrix.app }}
+      - uses: actions/upload-artifact@v7
+        if: failure()
+        with:
+          name: smoke-results-${{ matrix.app }}
+          path: test-results/
+          retention-days: 7

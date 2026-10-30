@@ -1,0 +1,21 @@
+{
+  "name": "smoke-react19",
+  "private": true,
+  "description": "WP5-12 react19: createRoot and hydrateRoot pages built with Vite from the packed tarball",
+  "type": "module",
+  "scripts": {
+    "build": "tsc --noEmit && NODE_ENV=development vite build && NODE_ENV=development vite build --ssr src/hydrate-server.tsx --outDir dist-server && NODE_ENV=development node prerender.mjs"
+  },
+  "dependencies": {
+    "location-picker": "file:../location-picker.tgz",
+    "react": "^19.2.0",
+    "react-dom": "^19.2.0"
+  },
+  "devDependencies": {
+    "@types/react": "^19.2.0",
+    "@types/react-dom": "^19.2.0",
+    "@vitejs/plugin-react": "^6.0.0",
+    "typescript": "^7.0.2",
+    "vite": "^8.0.0"
+  }
+}

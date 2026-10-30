@@ -159,7 +159,7 @@ async function pressInMap(page: Page, id: string, key: string): Promise<void> {
   await page.keyboard.press(key);
 }
 
-test.describe('WP3-21 slow engine (3 s)', () => {
+test.describe('WP3-21 slow engine (3 s) @slow-engine-load', () => {
   test.use({ routeOptions: { leaflet: 'slow' } });
 
   test('the pin shows at once with :state(loading) (lp-is-loading), then ready', async ({
@@ -190,7 +190,7 @@ test.describe('WP3-21 slow engine (3 s)', () => {
   });
 });
 
-test.describe('WP3-01 a failing engine route', () => {
+test.describe('WP3-01 a failing engine route @engine-load-failure', () => {
   test.use({ routeOptions: { leaflet: 'fail' } });
 
   test('gives ENGINE_LOAD_FAILED and the fallback input, which still commits', async ({ page }) => {
@@ -209,7 +209,7 @@ test.describe('WP3-01 a failing engine route', () => {
   });
 });
 
-test.describe('WP3-21 tile failure', () => {
+test.describe('WP3-21 tile failure @tile-failure', () => {
   test.use({ routeOptions: { tiles: 'fail' } });
 
   test('the map stays interactive and a keyboard pan commits', async ({ page }) => {
@@ -232,7 +232,7 @@ test.describe('WP3-21 tile failure', () => {
   });
 });
 
-test.describe('WP3-21 the default CSP recipe (§4.8) on a strict-CSP page', () => {
+test.describe('WP3-21 the default CSP recipe (§4.8) on a strict-CSP page @strict-csp', () => {
   test('auto-loads Leaflet with SRI, styles the panes, shows tiles and reverse-geocodes with no violation', async ({
     page,
     baseURL,
@@ -486,7 +486,7 @@ async function loadMapLibre(page: Page): Promise<boolean> {
   });
 }
 
-test.describe('WP3-15 real maplibre-gl 6.14', () => {
+test.describe('WP3-15 real maplibre-gl 6.14 @maplibre-provider', () => {
   test("with maplibre-gl.css in a Document, a user ShadowRoot (step 3') or engineCssUrl: no warning", async ({
     page,
     browserName,
@@ -549,7 +549,12 @@ test.describe('WP3-15 real maplibre-gl 6.14', () => {
   test('[lng, lat] centre, OpenFreeMap style, wheel zoom keeps the value, no rotation, CSS fix', async ({
     page,
     browserName,
+    isMobile,
   }) => {
+    test.skip(
+      isMobile && browserName == 'webkit',
+      'Playwright has no mouse wheel in mobile WebKit',
+    );
     const requests: string[] = [];
     page.on('request', (request) => requests.push(request.url()));
     await openPage(page, '<div id="map" class="map"></div>');

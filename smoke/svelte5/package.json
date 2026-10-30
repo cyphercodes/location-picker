@@ -1,0 +1,17 @@
+{
+  "name": "smoke-svelte5",
+  "private": true,
+  "description": "WP5-12 svelte5: the Svelte 5 recipe on Vite from the packed tarball",
+  "type": "module",
+  "scripts": {
+    "build": "vite build"
+  },
+  "dependencies": {
+    "location-picker": "file:../location-picker.tgz",
+    "svelte": "^5.0.0"
+  },
+  "devDependencies": {
+    "@sveltejs/vite-plugin-svelte": "^7.0.0",
+    "vite": "^8.0.0"
+  }
+}

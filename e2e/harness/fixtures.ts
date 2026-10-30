@@ -6,13 +6,18 @@ import {
   takeBlockedRequests,
   type RouteOptions,
 } from '../../test/fixtures/routes.js';
+import { BROWSER_VERSION_ANNOTATION } from '../scenarios.js';
 
 export interface NetworkFixture {
   /** Returns and clears the blocked requests (for tests that expect a block, like the canary). */
   takeBlocked(): string[];
 }
 
-export const test = base.extend<{ routeOptions: RouteOptions; network: NetworkFixture }>({
+export const test = base.extend<{
+  routeOptions: RouteOptions;
+  network: NetworkFixture;
+  browserVersion: void;
+}>({
   /** Override per file or describe: `test.use({ routeOptions: { leaflet: 'fail' } })`. */
   routeOptions: [{}, { option: true }],
   network: [
@@ -22,6 +27,17 @@ export const test = base.extend<{ routeOptions: RouteOptions; network: NetworkFi
       expect(takeBlockedRequests(context), 'non-local requests (add a route or a mock)').toEqual(
         [],
       );
+    },
+    { auto: true },
+  ],
+  /** Records the engine version for compat.json (e2e/compat-reporter.ts reads the annotation). */
+  browserVersion: [
+    async ({ browser }, use, testInfo) => {
+      testInfo.annotations.push({
+        type: BROWSER_VERSION_ANNOTATION,
+        description: browser.version(),
+      });
+      await use();
     },
     { auto: true },
   ],

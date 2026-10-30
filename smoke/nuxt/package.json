@@ -1,0 +1,14 @@
+{
+  "name": "smoke-nuxt",
+  "private": true,
+  "description": "WP5-12 nuxt: Nuxt SSR + hydration with v-model, from the packed tarball",
+  "type": "module",
+  "scripts": {
+    "build": "nuxt build"
+  },
+  "dependencies": {
+    "location-picker": "file:../location-picker.tgz",
+    "nuxt": "^4.0.0",
+    "vue": "^3.5.0"
+  }
+}

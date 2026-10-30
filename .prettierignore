@@ -13,6 +13,13 @@ test/compat/v1.lock
 site/llms-full.txt
 compat/compat.json
 COMPATIBILITY.md
+smoke/*/dist/
+smoke/*/dist-server/
+smoke/*/.angular/
+smoke/next/.next/
+smoke/nuxt/.nuxt/
+smoke/nuxt/.output/
+smoke/astro/.astro/
 
 # Legacy files that their owners replace (WP7 rewrites these docs); drop the lines then.
 CONTRIBUTING.md

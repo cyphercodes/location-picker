@@ -288,7 +288,7 @@ function expectConsistent(log: readonly Logged[]): void {
 }
 
 test.describe('WP2-24 value semantics on real Leaflet', () => {
-  test('a drag gives live inputs, a final input and one user change at the settled centre', async ({
+  test('a drag gives live inputs, a final input and one user change at the settled centre @pan-drag', async ({
     page,
   }, testInfo) => {
     const input = inputOf(testInfo.project.use.hasTouch);
@@ -313,7 +313,9 @@ test.describe('WP2-24 value semantics on real Leaflet', () => {
     expect(state.states).not.toContain('lp-is-dragging');
   });
 
-  test('zoom gestures (wheel or pinch) never change the value', async ({ page }, testInfo) => {
+  test('zoom gestures (wheel or pinch) never change the value @zoom-gesture', async ({
+    page,
+  }, testInfo) => {
     const input = inputOf(testInfo.project.use.hasTouch);
     await openPage(page, '<div id="a" class="map"></div>');
     await create(page, 'a', { value: EIFFEL, zoom: 12 });
@@ -341,7 +343,7 @@ test.describe('WP2-24 value semantics on real Leaflet', () => {
     expect(await logOf(page, 'a')).toEqual([]);
   });
 
-  test('keyboard only: Tab, Enter commits the centre, arrows commit, +/- only zoom', async ({
+  test('keyboard only: Tab, Enter commits the centre, arrows commit, +/- only zoom @keyboard-only', async ({
     page,
   }) => {
     await openPage(page, '<div id="a" class="map"></div>');
@@ -391,7 +393,7 @@ test.describe('WP2-24 value semantics on real Leaflet', () => {
     expect((await pickerState(page, 'a')).value).toBe(change?.value);
   });
 
-  test('the pin lifts while dragging, except under prefers-reduced-motion (WP2-15)', async ({
+  test('the pin lifts while dragging, except under prefers-reduced-motion (WP2-15) @reduced-motion', async ({
     page,
   }, testInfo) => {
     const input = inputOf(testInfo.project.use.hasTouch);
@@ -425,7 +427,9 @@ test.describe('WP2-24 value semantics on real Leaflet', () => {
 });
 
 test.describe('WP2-24 layout, theming and isolation', () => {
-  test('RTL puts the controls at inline-end and keeps the pin on the centre', async ({ page }) => {
+  test('RTL puts the controls at inline-end and keeps the pin on the centre @rtl', async ({
+    page,
+  }) => {
     await openPage(page, '<div id="a" class="map" dir="rtl"></div><div id="b" class="map"></div>');
     await create(page, 'a', { value: EIFFEL, locate: 'button' });
     await create(page, 'b', { value: EIFFEL, locate: 'button' });
@@ -451,7 +455,7 @@ test.describe('WP2-24 layout, theming and isolation', () => {
     }
   });
 
-  test('dark mode tokens follow color-scheme; --lp-tile-filter reaches the tile pane', async ({
+  test('dark mode tokens follow color-scheme; --lp-tile-filter reaches the tile pane @dark-mode', async ({
     page,
   }) => {
     await openPage(
@@ -485,7 +489,7 @@ test.describe('WP2-24 layout, theming and isolation', () => {
     expect(schemes).toEqual(['auto', 'dark']);
   });
 
-  test('two pickers on one page stay independent', async ({ page }, testInfo) => {
+  test('two pickers on one page stay independent @multiple-pickers', async ({ page }, testInfo) => {
     const input = inputOf(testInfo.project.use.hasTouch);
     await openPage(page, '<div id="a" class="map"></div><div id="b" class="map"></div>');
     await create(page, 'a', { value: EIFFEL, zoom: 15 });
@@ -522,7 +526,7 @@ test.describe('WP2-24 layout, theming and isolation', () => {
     expect(await page.locator('head script[src*="leaflet@1.9.4"]').count()).toBe(1);
   });
 
-  test('200% page zoom (half the CSS viewport, twice the DPR): pin geometry and a drag commit', async ({
+  test('200% page zoom (half the CSS viewport, twice the DPR): pin geometry and a drag commit @zoom-200', async ({
     browser,
   }, testInfo) => {
     const { viewport, deviceScaleFactor = 1, hasTouch } = testInfo.project.use;
@@ -567,7 +571,7 @@ test.describe('WP2-24 layout, theming and isolation', () => {
 });
 
 test.describe('WP2-24 lifecycle', () => {
-  test('20 destroy/re-create cycles leave listeners, observers and nodes stable', async ({
+  test('20 destroy/re-create cycles leave listeners, observers and nodes stable @destroy-recreate', async ({
     page,
   }) => {
     await page.addInitScript(trackListeners);

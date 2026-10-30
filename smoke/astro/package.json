@@ -1,0 +1,13 @@
+{
+  "name": "smoke-astro",
+  "private": true,
+  "description": "WP5-12 astro: a static Astro page with a bundled client script, from the packed tarball",
+  "type": "module",
+  "scripts": {
+    "build": "astro build"
+  },
+  "dependencies": {
+    "astro": "^7.0.0",
+    "location-picker": "file:../location-picker.tgz"
+  }
+}

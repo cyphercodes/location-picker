@@ -1,0 +1,15 @@
+{
+  "name": "smoke-next",
+  "private": true,
+  "description": "WP5-12 next: App Router SSR + hydration of a client component, from the packed tarball",
+  "scripts": {
+    "build": "next build",
+    "start": "next start"
+  },
+  "dependencies": {
+    "location-picker": "file:../location-picker.tgz",
+    "next": "^16.0.0",
+    "react": "^19.2.0",
+    "react-dom": "^19.2.0"
+  }
+}

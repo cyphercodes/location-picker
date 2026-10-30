@@ -1,0 +1,33 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Compat reference page</title>
+    <style>
+      body {
+        margin: 0;
+        padding: 16px;
+        font-family: system-ui, sans-serif;
+      }
+      location-picker {
+        height: 360px;
+      }
+    </style>
+    <script src="/dist/location-picker.global.js"></script>
+  </head>
+  <body>
+    <form>
+      <label for="where">Where is it?</label>
+      <location-picker
+        id="where"
+        name="location"
+        value="48.8584,2.2945"
+        zoom="15"
+        search
+        locate="button"
+      ></location-picker>
+      <p>Picked: <output id="out">48.8584,2.2945</output></p>
+    </form>
+  </body>
+</html>

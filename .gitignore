@@ -18,3 +18,14 @@ __screenshots__/
 example/*.local.html
 .env
 .env.*
+
+# Compat run outputs (workflow artifacts, never committed)
+compat/screenshots/
+# Smoke app builds (CI only, WP5-12)
+smoke/*/dist/
+smoke/*/dist-server/
+smoke/*/.angular/
+smoke/next/.next/
+smoke/nuxt/.nuxt/
+smoke/nuxt/.output/
+smoke/astro/.astro/

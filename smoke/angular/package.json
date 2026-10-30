@@ -1,0 +1,30 @@
+{
+  "name": "smoke-angular",
+  "private": true,
+  "description": "WP5-12 angular: SSR + hydration, formControlName + ngDefaultControl with child bound inputs",
+  "type": "module",
+  "scripts": {
+    "build": "ng build"
+  },
+  "dependencies": {
+    "@angular/common": "^22.2.0",
+    "@angular/compiler": "^22.2.0",
+    "@angular/core": "^22.2.0",
+    "@angular/forms": "^22.2.0",
+    "@angular/platform-browser": "^22.2.0",
+    "@angular/platform-server": "^22.2.0",
+    "@angular/ssr": "^22.2.0",
+    "express": "^5.1.0",
+    "location-picker": "file:../location-picker.tgz",
+    "rxjs": "~7.8.0",
+    "tslib": "^2.8.0"
+  },
+  "devDependencies": {
+    "@angular/build": "^22.2.0",
+    "@angular/cli": "^22.2.0",
+    "@angular/compiler-cli": "^22.2.0",
+    "@types/express": "^5.0.0",
+    "@types/node": "^22.0.0",
+    "typescript": "~6.0.0"
+  }
+}

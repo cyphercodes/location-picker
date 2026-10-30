@@ -209,7 +209,7 @@ test.describe('field mode', () => {
 
   test(
     'keyboard only: Tab, Enter opens, arrows move, Shift+Tab to Confirm, Enter commits, focus returns',
-    { tag: ['@field-keyboard-only', '@keyboard-only'] },
+    { tag: ['@field-keyboard', '@keyboard-only'] },
     async ({ page }) => {
       const errors = await openPage(
         page,
@@ -288,7 +288,7 @@ test.describe('field mode', () => {
 
   test(
     'a field inside a form inside a modal dialog: the sheet opens above it, Escape closes only the sheet',
-    { tag: ['@field-in-dialog', '@dialog'] },
+    { tag: ['@field-in-dialog-form', '@dialog'] },
     async ({ page }) => {
       const errors = await openPage(
         page,
@@ -366,7 +366,7 @@ test.describe('field mode', () => {
 
   test(
     'axe: no serious or critical violation with the sheet open',
-    { tag: ['@field-a11y'] },
+    { tag: ['@field-screen-reader'] },
     async ({ page }) => {
       await openPage(
         page,

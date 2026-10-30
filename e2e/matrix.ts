@@ -67,6 +67,13 @@ export const FULL_MATRIX: readonly MatrixEnvironment[] = [
   ...DEVICES.map(device),
 ];
 
+/** This run's matrix: COMPAT_FULL=1 picks the full one; COMPAT_BROWSER narrows it to one engine (a compat.yml job). */
+export function selectMatrix(env: NodeJS.ProcessEnv = process.env): readonly MatrixEnvironment[] {
+  const matrix = env.COMPAT_FULL === '1' ? FULL_MATRIX : SMALL_MATRIX;
+  const browser = env.COMPAT_BROWSER;
+  return browser ? matrix.filter((entry) => entry.browser === browser) : matrix;
+}
+
 export function toProject(env: MatrixEnvironment): Project {
   const base = env.device ? devices[env.device] : {};
   return {

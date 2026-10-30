@@ -1,0 +1,574 @@
+{
+  "schema": 1,
+  "generatedAt": "2026-10-30T01:36:28.211Z",
+  "packageVersion": "3.0.0-alpha.0",
+  "commit": "a48fdec79e542ab9e0ae00ce3a226852c253f332",
+  "tools": {
+    "playwright": "1.63.0",
+    "node": "v24.21.0"
+  },
+  "environments": [
+    {
+      "id": "chromium-375x667-dpr2-touch",
+      "browser": "chromium",
+      "browserVersion": "153.0.8010.12",
+      "device": null,
+      "viewport": {
+        "width": 375,
+        "height": 667
+      },
+      "dpr": 2,
+      "input": "touch",
+      "emulated": true
+    },
+    {
+      "id": "chromium-1440x900-dpr1-mouse",
+      "browser": "chromium",
+      "browserVersion": "153.0.8010.12",
+      "device": null,
+      "viewport": {
+        "width": 1440,
+        "height": 900
+      },
+      "dpr": 1,
+      "input": "mouse",
+      "emulated": true
+    }
+  ],
+  "scenarios": [
+    {
+      "id": "render",
+      "title": "Renders the default picker and reaches ready",
+      "tags": [
+        "render"
+      ],
+      "ownerWp": "WP4"
+    },
+    {
+      "id": "pan-drag",
+      "title": "Pan by dragging the map (mouse or touch) commits once",
+      "tags": [
+        "input"
+      ],
+      "ownerWp": "WP2"
+    },
+    {
+      "id": "zoom-gesture",
+      "title": "Wheel and pinch zoom never change the value",
+      "tags": [
+        "input"
+      ],
+      "ownerWp": "WP2"
+    },
+    {
+      "id": "keyboard-only",
+      "title": "Keyboard only: focus, arrows and Enter commit",
+      "tags": [
+        "input",
+        "a11y"
+      ],
+      "ownerWp": "WP2"
+    },
+    {
+      "id": "a11y-tree",
+      "title": "Accessibility tree: roles, names and no axe violations",
+      "tags": [
+        "a11y"
+      ],
+      "ownerWp": "WP4"
+    },
+    {
+      "id": "form-submit",
+      "title": "Inside a <form>: submit sends the value",
+      "tags": [
+        "form"
+      ],
+      "ownerWp": "WP4"
+    },
+    {
+      "id": "form-reset",
+      "title": "form.reset() brings back the default value",
+      "tags": [
+        "form"
+      ],
+      "ownerWp": "WP4"
+    },
+    {
+      "id": "form-restore",
+      "title": "Back/forward navigation restores the value",
+      "tags": [
+        "form",
+        "navigation"
+      ],
+      "ownerWp": "WP4"
+    },
+    {
+      "id": "form-required",
+      "title": "required blocks submission until a location is chosen",
+      "tags": [
+        "form"
+      ],
+      "ownerWp": "WP4"
+    },
+    {
+      "id": "dialog",
+      "title": "Inside a <dialog> opened with showModal()",
+      "tags": [
+        "layout"
+      ],
+      "ownerWp": "WP4"
+    },
+    {
+      "id": "hidden-then-shown",
+      "title": "Initialised while hidden, then shown (no grey map)",
+      "tags": [
+        "layout"
+      ],
+      "ownerWp": "WP2"
+    },
+    {
+      "id": "resize-orientation",
+      "title": "Container resize and orientation change",
+      "tags": [
+        "layout"
+      ],
+      "ownerWp": "WP2"
+    },
+    {
+      "id": "multiple-pickers",
+      "title": "Several pickers on one page stay independent",
+      "tags": [
+        "layout"
+      ],
+      "ownerWp": "WP2"
+    },
+    {
+      "id": "destroy-recreate",
+      "title": "Destroy and re-create (SPA route change)",
+      "tags": [
+        "lifecycle"
+      ],
+      "ownerWp": "WP2"
+    },
+    {
+      "id": "moved-element",
+      "title": "The element moved to another place in the DOM",
+      "tags": [
+        "lifecycle"
+      ],
+      "ownerWp": "WP4"
+    },
+    {
+      "id": "rtl",
+      "title": "Right-to-left layout",
+      "tags": [
+        "theming",
+        "i18n"
+      ],
+      "ownerWp": "WP2"
+    },
+    {
+      "id": "dark-mode",
+      "title": "Dark colour scheme",
+      "tags": [
+        "theming"
+      ],
+      "ownerWp": "WP2"
+    },
+    {
+      "id": "reduced-motion",
+      "title": "prefers-reduced-motion: no pin animation",
+      "tags": [
+        "theming",
+        "a11y"
+      ],
+      "ownerWp": "WP2"
+    },
+    {
+      "id": "zoom-200",
+      "title": "200% page zoom",
+      "tags": [
+        "theming",
+        "a11y"
+      ],
+      "ownerWp": "WP2"
+    },
+    {
+      "id": "strict-csp",
+      "title": "Strict Content-Security-Policy page (the documented recipe)",
+      "tags": [
+        "security"
+      ],
+      "ownerWp": "WP3"
+    },
+    {
+      "id": "tile-failure",
+      "title": "Map tiles fail to load",
+      "tags": [
+        "network"
+      ],
+      "ownerWp": "WP3"
+    },
+    {
+      "id": "engine-load-failure",
+      "title": "The map engine script fails to load",
+      "tags": [
+        "network"
+      ],
+      "ownerWp": "WP3"
+    },
+    {
+      "id": "slow-engine-load",
+      "title": "A slow map engine (3 s)",
+      "tags": [
+        "network"
+      ],
+      "ownerWp": "WP3"
+    },
+    {
+      "id": "geolocation-granted",
+      "title": "Geolocation granted",
+      "tags": [
+        "geolocation"
+      ],
+      "ownerWp": "WP2"
+    },
+    {
+      "id": "geolocation-denied",
+      "title": "Geolocation denied",
+      "tags": [
+        "geolocation"
+      ],
+      "ownerWp": "WP2"
+    },
+    {
+      "id": "geolocation-timeout",
+      "title": "Geolocation times out",
+      "tags": [
+        "geolocation"
+      ],
+      "ownerWp": "WP2"
+    },
+    {
+      "id": "geolocation-insecure",
+      "title": "Geolocation in an insecure context",
+      "tags": [
+        "geolocation"
+      ],
+      "ownerWp": "WP2"
+    },
+    {
+      "id": "iframe-without-geolocation",
+      "title": "Inside an iframe without allow=\"geolocation\"",
+      "tags": [
+        "geolocation"
+      ],
+      "ownerWp": "WP4"
+    },
+    {
+      "id": "google-provider",
+      "title": "Google Maps provider (mocked Maps JavaScript API)",
+      "tags": [
+        "provider"
+      ],
+      "ownerWp": "WP3"
+    },
+    {
+      "id": "maplibre-provider",
+      "title": "MapLibre provider (real maplibre-gl, WebGL2 permitting)",
+      "tags": [
+        "provider"
+      ],
+      "ownerWp": "WP3"
+    },
+    {
+      "id": "v1-page",
+      "title": "The frozen v1 file on a 2018-style page",
+      "tags": [
+        "v1"
+      ],
+      "ownerWp": "WP1"
+    },
+    {
+      "id": "field-phone",
+      "title": "Field mode on phone viewports",
+      "tags": [
+        "field"
+      ],
+      "ownerWp": "WP4"
+    },
+    {
+      "id": "field-open-confirm-cancel",
+      "title": "Field mode: open, confirm and cancel",
+      "tags": [
+        "field"
+      ],
+      "ownerWp": "WP4"
+    },
+    {
+      "id": "field-back-button",
+      "title": "Field mode: the back button closes the sheet",
+      "tags": [
+        "field"
+      ],
+      "ownerWp": "WP4"
+    },
+    {
+      "id": "field-keyboard",
+      "title": "Field mode: keyboard only",
+      "tags": [
+        "field",
+        "a11y"
+      ],
+      "ownerWp": "WP4"
+    },
+    {
+      "id": "field-screen-reader",
+      "title": "Field mode: screen reader semantics",
+      "tags": [
+        "field",
+        "a11y"
+      ],
+      "ownerWp": "WP4"
+    },
+    {
+      "id": "field-rotation",
+      "title": "Field mode: rotation while the sheet is open",
+      "tags": [
+        "field"
+      ],
+      "ownerWp": "WP4"
+    },
+    {
+      "id": "field-in-dialog-form",
+      "title": "Field mode: a field inside a form inside a dialog",
+      "tags": [
+        "field"
+      ],
+      "ownerWp": "WP4"
+    },
+    {
+      "id": "field-auto-breakpoint",
+      "title": "presentation=\"auto\" switches at the breakpoint",
+      "tags": [
+        "field"
+      ],
+      "ownerWp": "WP4"
+    }
+  ],
+  "results": [
+    {
+      "env": "chromium-375x667-dpr2-touch",
+      "scenario": "render",
+      "status": "pass",
+      "durationMs": 158,
+      "screenshot": "screenshots/chromium-375x667-dpr2-touch/render.png"
+    },
+    {
+      "env": "chromium-375x667-dpr2-touch",
+      "scenario": "pan-drag",
+      "status": "pass",
+      "durationMs": 691
+    },
+    {
+      "env": "chromium-375x667-dpr2-touch",
+      "scenario": "zoom-gesture",
+      "status": "pass",
+      "durationMs": 610
+    },
+    {
+      "env": "chromium-375x667-dpr2-touch",
+      "scenario": "keyboard-only",
+      "status": "pass",
+      "durationMs": 1264
+    },
+    {
+      "env": "chromium-375x667-dpr2-touch",
+      "scenario": "multiple-pickers",
+      "status": "pass",
+      "durationMs": 600
+    },
+    {
+      "env": "chromium-375x667-dpr2-touch",
+      "scenario": "destroy-recreate",
+      "status": "pass",
+      "durationMs": 167
+    },
+    {
+      "env": "chromium-375x667-dpr2-touch",
+      "scenario": "rtl",
+      "status": "pass",
+      "durationMs": 94
+    },
+    {
+      "env": "chromium-375x667-dpr2-touch",
+      "scenario": "dark-mode",
+      "status": "pass",
+      "durationMs": 95
+    },
+    {
+      "env": "chromium-375x667-dpr2-touch",
+      "scenario": "reduced-motion",
+      "status": "pass",
+      "durationMs": 822
+    },
+    {
+      "env": "chromium-375x667-dpr2-touch",
+      "scenario": "zoom-200",
+      "status": "pass",
+      "durationMs": 598
+    },
+    {
+      "env": "chromium-375x667-dpr2-touch",
+      "scenario": "strict-csp",
+      "status": "pass",
+      "durationMs": 480
+    },
+    {
+      "env": "chromium-375x667-dpr2-touch",
+      "scenario": "tile-failure",
+      "status": "pass",
+      "durationMs": 458
+    },
+    {
+      "env": "chromium-375x667-dpr2-touch",
+      "scenario": "engine-load-failure",
+      "status": "pass",
+      "durationMs": 195
+    },
+    {
+      "env": "chromium-375x667-dpr2-touch",
+      "scenario": "slow-engine-load",
+      "status": "pass",
+      "durationMs": 3098
+    },
+    {
+      "env": "chromium-375x667-dpr2-touch",
+      "scenario": "google-provider",
+      "status": "pass",
+      "durationMs": 180
+    },
+    {
+      "env": "chromium-375x667-dpr2-touch",
+      "scenario": "maplibre-provider",
+      "status": "pass",
+      "durationMs": 2230
+    },
+    {
+      "env": "chromium-375x667-dpr2-touch",
+      "scenario": "v1-page",
+      "status": "pass",
+      "durationMs": 495
+    },
+    {
+      "env": "chromium-1440x900-dpr1-mouse",
+      "scenario": "render",
+      "status": "pass",
+      "durationMs": 126,
+      "screenshot": "screenshots/chromium-1440x900-dpr1-mouse/render.png"
+    },
+    {
+      "env": "chromium-1440x900-dpr1-mouse",
+      "scenario": "pan-drag",
+      "status": "pass",
+      "durationMs": 431
+    },
+    {
+      "env": "chromium-1440x900-dpr1-mouse",
+      "scenario": "zoom-gesture",
+      "status": "pass",
+      "durationMs": 523
+    },
+    {
+      "env": "chromium-1440x900-dpr1-mouse",
+      "scenario": "keyboard-only",
+      "status": "pass",
+      "durationMs": 1272
+    },
+    {
+      "env": "chromium-1440x900-dpr1-mouse",
+      "scenario": "multiple-pickers",
+      "status": "pass",
+      "durationMs": 761
+    },
+    {
+      "env": "chromium-1440x900-dpr1-mouse",
+      "scenario": "destroy-recreate",
+      "status": "pass",
+      "durationMs": 249
+    },
+    {
+      "env": "chromium-1440x900-dpr1-mouse",
+      "scenario": "rtl",
+      "status": "pass",
+      "durationMs": 105
+    },
+    {
+      "env": "chromium-1440x900-dpr1-mouse",
+      "scenario": "dark-mode",
+      "status": "pass",
+      "durationMs": 109
+    },
+    {
+      "env": "chromium-1440x900-dpr1-mouse",
+      "scenario": "reduced-motion",
+      "status": "pass",
+      "durationMs": 1114
+    },
+    {
+      "env": "chromium-1440x900-dpr1-mouse",
+      "scenario": "zoom-200",
+      "status": "pass",
+      "durationMs": 522
+    },
+    {
+      "env": "chromium-1440x900-dpr1-mouse",
+      "scenario": "strict-csp",
+      "status": "pass",
+      "durationMs": 486
+    },
+    {
+      "env": "chromium-1440x900-dpr1-mouse",
+      "scenario": "tile-failure",
+      "status": "pass",
+      "durationMs": 461
+    },
+    {
+      "env": "chromium-1440x900-dpr1-mouse",
+      "scenario": "engine-load-failure",
+      "status": "pass",
+      "durationMs": 177
+    },
+    {
+      "env": "chromium-1440x900-dpr1-mouse",
+      "scenario": "slow-engine-load",
+      "status": "pass",
+      "durationMs": 3088
+    },
+    {
+      "env": "chromium-1440x900-dpr1-mouse",
+      "scenario": "google-provider",
+      "status": "pass",
+      "durationMs": 187
+    },
+    {
+      "env": "chromium-1440x900-dpr1-mouse",
+      "scenario": "maplibre-provider",
+      "status": "pass",
+      "durationMs": 2188
+    },
+    {
+      "env": "chromium-1440x900-dpr1-mouse",
+      "scenario": "v1-page",
+      "status": "pass",
+      "durationMs": 465
+    }
+  ],
+  "notCovered": [
+    "Real iOS/Android hardware (emulation only)",
+    "Branded browsers (Chrome, Edge, Safari, Samsung Internet): the runs use the Playwright builds of Chromium, Firefox and WebKit",
+    "Real screen readers (VoiceOver, TalkBack, NVDA, JAWS): only the accessibility tree is checked",
+    "Google Maps with a real API key: the Maps JavaScript API is mocked",
+    "Live OpenStreetMap tiles, Photon and jsDelivr: every external request is answered by a local fixture"
+  ]
+}

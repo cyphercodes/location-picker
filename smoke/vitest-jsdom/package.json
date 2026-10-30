@@ -1,0 +1,20 @@
+{
+  "name": "smoke-vitest-jsdom",
+  "private": true,
+  "description": "WP5-12 vitest-jsdom: a React Testing Library component test rendering <location-picker> in jsdom",
+  "type": "module",
+  "scripts": {
+    "test": "vitest run"
+  },
+  "dependencies": {
+    "location-picker": "file:../location-picker.tgz",
+    "react": "^19.2.0",
+    "react-dom": "^19.2.0"
+  },
+  "devDependencies": {
+    "@testing-library/dom": "^10.0.0",
+    "@testing-library/react": "^16.0.0",
+    "jsdom": "^30.0.0",
+    "vitest": "^5.0.0"
+  }
+}
