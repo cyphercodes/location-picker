@@ -6,56 +6,56 @@
 > (`.github/workflows/compat.yml`) writes from the Playwright end-to-end suite. Documentation links here instead of
 > stating browser support by hand.
 
-- Run: 2026-10-30 (`2026-10-30T02:40:22.992Z`), location-picker 3.0.0-alpha.0, commit `45e62e825bea`
-- Tools: Playwright 1.63.0, Node v24.22.1
-- Coverage: 147 emulated environments x 39 scenarios; 4557 results: 4459 pass, 0 fail, 98 skip
+- Run: 2026-10-30 (`2026-10-30T01:36:28.211Z`), location-picker 3.0.0-alpha.0, commit `a48fdec79e54`
+- Tools: Playwright 1.63.0, Node v24.21.0
+- Coverage: 2 emulated environments x 39 scenarios; 34 results: 34 pass, 0 fail, 0 skip
 - Every environment is a Playwright browser build with emulated viewport, device pixel ratio and input.
 
 ## Scenarios
 
 Each cell counts the environments of that engine where the scenario passed, out of those that ran it.
 
-| Scenario | Id | Owner | Chromium | Firefox | WebKit |
-| --- | --- | --- | --- | --- | --- |
-| Renders the default picker and reaches ready | `render` | WP4 | 49/49 | 48/48 | 50/50 |
-| Pan by dragging the map (mouse or touch) commits once | `pan-drag` | WP2 | 49/49 | 48/48 | 50/50 |
-| Wheel and pinch zoom never change the value | `zoom-gesture` | WP2 | 49/49 | 48/48 | 50/50 |
-| Keyboard only: focus, arrows and Enter commit | `keyboard-only` | WP2 | 49/49 | 48/48 | 50/50 |
-| Accessibility tree: roles, names and no axe violations | `a11y-tree` | WP4 | 49/49 | 48/48 | 50/50 |
-| Inside a &lt;form&gt;: submit sends the value | `form-submit` | WP4 | 49/49 | 48/48 | 50/50 |
-| form.reset() brings back the default value | `form-reset` | WP4 | 49/49 | 48/48 | 50/50 |
-| Back/forward navigation restores the value | `form-restore` | WP4 | 49/49 | 48/48 | 50/50 |
-| required blocks submission until a location is chosen | `form-required` | WP4 | 49/49 | 48/48 | 50/50 |
-| Inside a &lt;dialog&gt; opened with showModal() | `dialog` | WP4 | 49/49 | 48/48 | 50/50 |
-| Initialised while hidden, then shown (no grey map) | `hidden-then-shown` | WP2 | 49/49 | 48/48 | 50/50 |
-| Container resize and orientation change | `resize-orientation` | WP2 | 49/49 | 48/48 | skipped (50) |
-| Several pickers on one page stay independent | `multiple-pickers` | WP2 | 49/49 | 48/48 | 50/50 |
-| Destroy and re-create (SPA route change) | `destroy-recreate` | WP2 | 49/49 | 48/48 | 50/50 |
-| The element moved to another place in the DOM | `moved-element` | WP4 | 49/49 | 48/48 | 50/50 |
-| Right-to-left layout | `rtl` | WP2 | 49/49 | 48/48 | 50/50 |
-| Dark colour scheme | `dark-mode` | WP2 | 49/49 | 48/48 | 50/50 |
-| prefers-reduced-motion: no pin animation | `reduced-motion` | WP2 | 49/49 | 48/48 | 50/50 |
-| 200% page zoom | `zoom-200` | WP2 | 49/49 | 48/48 | 50/50 |
-| Strict Content-Security-Policy page (the documented recipe) | `strict-csp` | WP3 | 49/49 | 48/48 | 50/50 |
-| Map tiles fail to load | `tile-failure` | WP3 | 49/49 | 48/48 | 50/50 |
-| The map engine script fails to load | `engine-load-failure` | WP3 | 49/49 | 48/48 | 50/50 |
-| A slow map engine (3 s) | `slow-engine-load` | WP3 | 49/49 | 48/48 | 50/50 |
-| Geolocation granted | `geolocation-granted` | WP2 | 49/49 | 48/48 | 50/50 |
-| Geolocation denied | `geolocation-denied` | WP2 | 49/49 | 48/48 | 50/50 |
-| Geolocation times out | `geolocation-timeout` | WP2 | 49/49 | 48/48 | 50/50 |
-| Geolocation in an insecure context | `geolocation-insecure` | WP2 | 49/49 | 48/48 | 50/50 |
-| Inside an iframe without allow="geolocation" | `iframe-without-geolocation` | WP4 | 49/49 | 48/48 | 50/50 |
-| Google Maps provider (mocked Maps JavaScript API) | `google-provider` | WP3 | 49/49 | 48/48 | 50/50 |
-| MapLibre provider (real maplibre-gl, WebGL2 permitting) | `maplibre-provider` | WP3 | 49/49 | skipped (48) | 50/50 |
-| The frozen v1 file on a 2018-style page | `v1-page` | WP1 | 49/49 | 48/48 | 50/50 |
-| Field mode on phone viewports | `field-phone` | WP4 | no test yet | no test yet | no test yet |
-| Field mode: open, confirm and cancel | `field-open-confirm-cancel` | WP4 | no test yet | no test yet | no test yet |
-| Field mode: the back button closes the sheet | `field-back-button` | WP4 | no test yet | no test yet | no test yet |
-| Field mode: keyboard only | `field-keyboard` | WP4 | no test yet | no test yet | no test yet |
-| Field mode: screen reader semantics | `field-screen-reader` | WP4 | no test yet | no test yet | no test yet |
-| Field mode: rotation while the sheet is open | `field-rotation` | WP4 | no test yet | no test yet | no test yet |
-| Field mode: a field inside a form inside a dialog | `field-in-dialog-form` | WP4 | no test yet | no test yet | no test yet |
-| presentation="auto" switches at the breakpoint | `field-auto-breakpoint` | WP4 | no test yet | no test yet | no test yet |
+| Scenario | Id | Owner | Chromium |
+| --- | --- | --- | --- |
+| Renders the default picker and reaches ready | `render` | WP4 | 2/2 |
+| Pan by dragging the map (mouse or touch) commits once | `pan-drag` | WP2 | 2/2 |
+| Wheel and pinch zoom never change the value | `zoom-gesture` | WP2 | 2/2 |
+| Keyboard only: focus, arrows and Enter commit | `keyboard-only` | WP2 | 2/2 |
+| Accessibility tree: roles, names and no axe violations | `a11y-tree` | WP4 | no test yet |
+| Inside a &lt;form&gt;: submit sends the value | `form-submit` | WP4 | no test yet |
+| form.reset() brings back the default value | `form-reset` | WP4 | no test yet |
+| Back/forward navigation restores the value | `form-restore` | WP4 | no test yet |
+| required blocks submission until a location is chosen | `form-required` | WP4 | no test yet |
+| Inside a &lt;dialog&gt; opened with showModal() | `dialog` | WP4 | no test yet |
+| Initialised while hidden, then shown (no grey map) | `hidden-then-shown` | WP2 | no test yet |
+| Container resize and orientation change | `resize-orientation` | WP2 | no test yet |
+| Several pickers on one page stay independent | `multiple-pickers` | WP2 | 2/2 |
+| Destroy and re-create (SPA route change) | `destroy-recreate` | WP2 | 2/2 |
+| The element moved to another place in the DOM | `moved-element` | WP4 | no test yet |
+| Right-to-left layout | `rtl` | WP2 | 2/2 |
+| Dark colour scheme | `dark-mode` | WP2 | 2/2 |
+| prefers-reduced-motion: no pin animation | `reduced-motion` | WP2 | 2/2 |
+| 200% page zoom | `zoom-200` | WP2 | 2/2 |
+| Strict Content-Security-Policy page (the documented recipe) | `strict-csp` | WP3 | 2/2 |
+| Map tiles fail to load | `tile-failure` | WP3 | 2/2 |
+| The map engine script fails to load | `engine-load-failure` | WP3 | 2/2 |
+| A slow map engine (3 s) | `slow-engine-load` | WP3 | 2/2 |
+| Geolocation granted | `geolocation-granted` | WP2 | no test yet |
+| Geolocation denied | `geolocation-denied` | WP2 | no test yet |
+| Geolocation times out | `geolocation-timeout` | WP2 | no test yet |
+| Geolocation in an insecure context | `geolocation-insecure` | WP2 | no test yet |
+| Inside an iframe without allow="geolocation" | `iframe-without-geolocation` | WP4 | no test yet |
+| Google Maps provider (mocked Maps JavaScript API) | `google-provider` | WP3 | 2/2 |
+| MapLibre provider (real maplibre-gl, WebGL2 permitting) | `maplibre-provider` | WP3 | 2/2 |
+| The frozen v1 file on a 2018-style page | `v1-page` | WP1 | 2/2 |
+| Field mode on phone viewports | `field-phone` | WP4 | no test yet |
+| Field mode: open, confirm and cancel | `field-open-confirm-cancel` | WP4 | no test yet |
+| Field mode: the back button closes the sheet | `field-back-button` | WP4 | no test yet |
+| Field mode: keyboard only | `field-keyboard` | WP4 | no test yet |
+| Field mode: screen reader semantics | `field-screen-reader` | WP4 | no test yet |
+| Field mode: rotation while the sheet is open | `field-rotation` | WP4 | no test yet |
+| Field mode: a field inside a form inside a dialog | `field-in-dialog-form` | WP4 | no test yet |
+| presentation="auto" switches at the breakpoint | `field-auto-breakpoint` | WP4 | no test yet |
 
 "no test yet" means the scenario is defined but no automated test covers it in this run.
 
@@ -63,153 +63,8 @@ Each cell counts the environments of that engine where the scenario passed, out 
 
 | Environment | Engine | Version | Device | Viewport | DPR | Input | Pass | Fail | Skip | Screenshot |
 | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- |
-| `chromium-320x568-dpr1-mouse` | Chromium | 153.0.8010.12 | - | 320x568 | 1 | mouse | 31 | 0 | 0 | `screenshots/chromium-320x568-dpr1-mouse/render.png` |
-| `chromium-320x568-dpr1-touch` | Chromium | 153.0.8010.12 | - | 320x568 | 1 | touch | 31 | 0 | 0 | `screenshots/chromium-320x568-dpr1-touch/render.png` |
-| `chromium-320x568-dpr2-mouse` | Chromium | 153.0.8010.12 | - | 320x568 | 2 | mouse | 31 | 0 | 0 | `screenshots/chromium-320x568-dpr2-mouse/render.png` |
-| `chromium-320x568-dpr2-touch` | Chromium | 153.0.8010.12 | - | 320x568 | 2 | touch | 31 | 0 | 0 | `screenshots/chromium-320x568-dpr2-touch/render.png` |
-| `chromium-320x568-dpr3-mouse` | Chromium | 153.0.8010.12 | - | 320x568 | 3 | mouse | 31 | 0 | 0 | `screenshots/chromium-320x568-dpr3-mouse/render.png` |
-| `chromium-320x568-dpr3-touch` | Chromium | 153.0.8010.12 | - | 320x568 | 3 | touch | 31 | 0 | 0 | `screenshots/chromium-320x568-dpr3-touch/render.png` |
-| `chromium-375x667-dpr1-mouse` | Chromium | 153.0.8010.12 | - | 375x667 | 1 | mouse | 31 | 0 | 0 | `screenshots/chromium-375x667-dpr1-mouse/render.png` |
-| `chromium-375x667-dpr1-touch` | Chromium | 153.0.8010.12 | - | 375x667 | 1 | touch | 31 | 0 | 0 | `screenshots/chromium-375x667-dpr1-touch/render.png` |
-| `chromium-375x667-dpr2-mouse` | Chromium | 153.0.8010.12 | - | 375x667 | 2 | mouse | 31 | 0 | 0 | `screenshots/chromium-375x667-dpr2-mouse/render.png` |
-| `chromium-375x667-dpr2-touch` | Chromium | 153.0.8010.12 | - | 375x667 | 2 | touch | 31 | 0 | 0 | `screenshots/chromium-375x667-dpr2-touch/render.png` |
-| `chromium-375x667-dpr3-mouse` | Chromium | 153.0.8010.12 | - | 375x667 | 3 | mouse | 31 | 0 | 0 | `screenshots/chromium-375x667-dpr3-mouse/render.png` |
-| `chromium-375x667-dpr3-touch` | Chromium | 153.0.8010.12 | - | 375x667 | 3 | touch | 31 | 0 | 0 | `screenshots/chromium-375x667-dpr3-touch/render.png` |
-| `chromium-390x844-dpr1-mouse` | Chromium | 153.0.8010.12 | - | 390x844 | 1 | mouse | 31 | 0 | 0 | `screenshots/chromium-390x844-dpr1-mouse/render.png` |
-| `chromium-390x844-dpr1-touch` | Chromium | 153.0.8010.12 | - | 390x844 | 1 | touch | 31 | 0 | 0 | `screenshots/chromium-390x844-dpr1-touch/render.png` |
-| `chromium-390x844-dpr2-mouse` | Chromium | 153.0.8010.12 | - | 390x844 | 2 | mouse | 31 | 0 | 0 | `screenshots/chromium-390x844-dpr2-mouse/render.png` |
-| `chromium-390x844-dpr2-touch` | Chromium | 153.0.8010.12 | - | 390x844 | 2 | touch | 31 | 0 | 0 | `screenshots/chromium-390x844-dpr2-touch/render.png` |
-| `chromium-390x844-dpr3-mouse` | Chromium | 153.0.8010.12 | - | 390x844 | 3 | mouse | 31 | 0 | 0 | `screenshots/chromium-390x844-dpr3-mouse/render.png` |
-| `firefox-320x568-dpr1-mouse` | Firefox | 155.0 | - | 320x568 | 1 | mouse | 30 | 0 | 1 | `screenshots/firefox-320x568-dpr1-mouse/render.png` |
-| `firefox-320x568-dpr1-touch` | Firefox | 155.0 | - | 320x568 | 1 | touch | 30 | 0 | 1 | `screenshots/firefox-320x568-dpr1-touch/render.png` |
-| `firefox-320x568-dpr2-mouse` | Firefox | 155.0 | - | 320x568 | 2 | mouse | 30 | 0 | 1 | `screenshots/firefox-320x568-dpr2-mouse/render.png` |
-| `firefox-320x568-dpr2-touch` | Firefox | 155.0 | - | 320x568 | 2 | touch | 30 | 0 | 1 | `screenshots/firefox-320x568-dpr2-touch/render.png` |
-| `firefox-320x568-dpr3-mouse` | Firefox | 155.0 | - | 320x568 | 3 | mouse | 30 | 0 | 1 | `screenshots/firefox-320x568-dpr3-mouse/render.png` |
-| `firefox-320x568-dpr3-touch` | Firefox | 155.0 | - | 320x568 | 3 | touch | 30 | 0 | 1 | `screenshots/firefox-320x568-dpr3-touch/render.png` |
-| `firefox-375x667-dpr1-mouse` | Firefox | 155.0 | - | 375x667 | 1 | mouse | 30 | 0 | 1 | `screenshots/firefox-375x667-dpr1-mouse/render.png` |
-| `firefox-375x667-dpr1-touch` | Firefox | 155.0 | - | 375x667 | 1 | touch | 30 | 0 | 1 | `screenshots/firefox-375x667-dpr1-touch/render.png` |
-| `firefox-375x667-dpr2-mouse` | Firefox | 155.0 | - | 375x667 | 2 | mouse | 30 | 0 | 1 | `screenshots/firefox-375x667-dpr2-mouse/render.png` |
-| `firefox-375x667-dpr2-touch` | Firefox | 155.0 | - | 375x667 | 2 | touch | 30 | 0 | 1 | `screenshots/firefox-375x667-dpr2-touch/render.png` |
-| `firefox-375x667-dpr3-mouse` | Firefox | 155.0 | - | 375x667 | 3 | mouse | 30 | 0 | 1 | `screenshots/firefox-375x667-dpr3-mouse/render.png` |
-| `firefox-375x667-dpr3-touch` | Firefox | 155.0 | - | 375x667 | 3 | touch | 30 | 0 | 1 | `screenshots/firefox-375x667-dpr3-touch/render.png` |
-| `firefox-390x844-dpr1-mouse` | Firefox | 155.0 | - | 390x844 | 1 | mouse | 30 | 0 | 1 | `screenshots/firefox-390x844-dpr1-mouse/render.png` |
-| `firefox-390x844-dpr1-touch` | Firefox | 155.0 | - | 390x844 | 1 | touch | 30 | 0 | 1 | `screenshots/firefox-390x844-dpr1-touch/render.png` |
-| `firefox-390x844-dpr2-mouse` | Firefox | 155.0 | - | 390x844 | 2 | mouse | 30 | 0 | 1 | `screenshots/firefox-390x844-dpr2-mouse/render.png` |
-| `firefox-390x844-dpr2-touch` | Firefox | 155.0 | - | 390x844 | 2 | touch | 30 | 0 | 1 | `screenshots/firefox-390x844-dpr2-touch/render.png` |
-| `webkit-320x568-dpr1-mouse` | WebKit | 26.6 | - | 320x568 | 1 | mouse | 30 | 0 | 1 | `screenshots/webkit-320x568-dpr1-mouse/render.png` |
-| `webkit-320x568-dpr1-touch` | WebKit | 26.6 | - | 320x568 | 1 | touch | 30 | 0 | 1 | `screenshots/webkit-320x568-dpr1-touch/render.png` |
-| `webkit-320x568-dpr2-mouse` | WebKit | 26.6 | - | 320x568 | 2 | mouse | 30 | 0 | 1 | `screenshots/webkit-320x568-dpr2-mouse/render.png` |
-| `webkit-320x568-dpr2-touch` | WebKit | 26.6 | - | 320x568 | 2 | touch | 30 | 0 | 1 | `screenshots/webkit-320x568-dpr2-touch/render.png` |
-| `webkit-320x568-dpr3-mouse` | WebKit | 26.6 | - | 320x568 | 3 | mouse | 30 | 0 | 1 | `screenshots/webkit-320x568-dpr3-mouse/render.png` |
-| `webkit-320x568-dpr3-touch` | WebKit | 26.6 | - | 320x568 | 3 | touch | 30 | 0 | 1 | `screenshots/webkit-320x568-dpr3-touch/render.png` |
-| `webkit-375x667-dpr1-mouse` | WebKit | 26.6 | - | 375x667 | 1 | mouse | 30 | 0 | 1 | `screenshots/webkit-375x667-dpr1-mouse/render.png` |
-| `webkit-375x667-dpr1-touch` | WebKit | 26.6 | - | 375x667 | 1 | touch | 30 | 0 | 1 | `screenshots/webkit-375x667-dpr1-touch/render.png` |
-| `webkit-375x667-dpr2-mouse` | WebKit | 26.6 | - | 375x667 | 2 | mouse | 30 | 0 | 1 | `screenshots/webkit-375x667-dpr2-mouse/render.png` |
-| `webkit-375x667-dpr2-touch` | WebKit | 26.6 | - | 375x667 | 2 | touch | 30 | 0 | 1 | `screenshots/webkit-375x667-dpr2-touch/render.png` |
-| `webkit-375x667-dpr3-mouse` | WebKit | 26.6 | - | 375x667 | 3 | mouse | 30 | 0 | 1 | `screenshots/webkit-375x667-dpr3-mouse/render.png` |
-| `webkit-375x667-dpr3-touch` | WebKit | 26.6 | - | 375x667 | 3 | touch | 30 | 0 | 1 | `screenshots/webkit-375x667-dpr3-touch/render.png` |
-| `webkit-390x844-dpr1-mouse` | WebKit | 26.6 | - | 390x844 | 1 | mouse | 30 | 0 | 1 | `screenshots/webkit-390x844-dpr1-mouse/render.png` |
-| `webkit-390x844-dpr1-touch` | WebKit | 26.6 | - | 390x844 | 1 | touch | 30 | 0 | 1 | `screenshots/webkit-390x844-dpr1-touch/render.png` |
-| `webkit-390x844-dpr2-mouse` | WebKit | 26.6 | - | 390x844 | 2 | mouse | 30 | 0 | 1 | `screenshots/webkit-390x844-dpr2-mouse/render.png` |
-| `webkit-390x844-dpr2-touch` | WebKit | 26.6 | - | 390x844 | 2 | touch | 30 | 0 | 1 | `screenshots/webkit-390x844-dpr2-touch/render.png` |
-| `webkit-390x844-dpr3-mouse` | WebKit | 26.6 | - | 390x844 | 3 | mouse | 30 | 0 | 1 | `screenshots/webkit-390x844-dpr3-mouse/render.png` |
-| `chromium-390x844-dpr3-touch` | Chromium | 153.0.8010.12 | - | 390x844 | 3 | touch | 31 | 0 | 0 | `screenshots/chromium-390x844-dpr3-touch/render.png` |
-| `chromium-412x915-dpr1-mouse` | Chromium | 153.0.8010.12 | - | 412x915 | 1 | mouse | 31 | 0 | 0 | `screenshots/chromium-412x915-dpr1-mouse/render.png` |
-| `chromium-412x915-dpr1-touch` | Chromium | 153.0.8010.12 | - | 412x915 | 1 | touch | 31 | 0 | 0 | `screenshots/chromium-412x915-dpr1-touch/render.png` |
-| `chromium-412x915-dpr2-mouse` | Chromium | 153.0.8010.12 | - | 412x915 | 2 | mouse | 31 | 0 | 0 | `screenshots/chromium-412x915-dpr2-mouse/render.png` |
-| `chromium-412x915-dpr2-touch` | Chromium | 153.0.8010.12 | - | 412x915 | 2 | touch | 31 | 0 | 0 | `screenshots/chromium-412x915-dpr2-touch/render.png` |
-| `chromium-412x915-dpr3-mouse` | Chromium | 153.0.8010.12 | - | 412x915 | 3 | mouse | 31 | 0 | 0 | `screenshots/chromium-412x915-dpr3-mouse/render.png` |
-| `chromium-412x915-dpr3-touch` | Chromium | 153.0.8010.12 | - | 412x915 | 3 | touch | 31 | 0 | 0 | `screenshots/chromium-412x915-dpr3-touch/render.png` |
-| `chromium-768x1024-dpr1-mouse` | Chromium | 153.0.8010.12 | - | 768x1024 | 1 | mouse | 31 | 0 | 0 | `screenshots/chromium-768x1024-dpr1-mouse/render.png` |
-| `chromium-768x1024-dpr1-touch` | Chromium | 153.0.8010.12 | - | 768x1024 | 1 | touch | 31 | 0 | 0 | `screenshots/chromium-768x1024-dpr1-touch/render.png` |
-| `chromium-768x1024-dpr2-mouse` | Chromium | 153.0.8010.12 | - | 768x1024 | 2 | mouse | 31 | 0 | 0 | `screenshots/chromium-768x1024-dpr2-mouse/render.png` |
-| `chromium-768x1024-dpr2-touch` | Chromium | 153.0.8010.12 | - | 768x1024 | 2 | touch | 31 | 0 | 0 | `screenshots/chromium-768x1024-dpr2-touch/render.png` |
-| `chromium-768x1024-dpr3-mouse` | Chromium | 153.0.8010.12 | - | 768x1024 | 3 | mouse | 31 | 0 | 0 | `screenshots/chromium-768x1024-dpr3-mouse/render.png` |
-| `chromium-768x1024-dpr3-touch` | Chromium | 153.0.8010.12 | - | 768x1024 | 3 | touch | 31 | 0 | 0 | `screenshots/chromium-768x1024-dpr3-touch/render.png` |
-| `chromium-1024x768-dpr1-mouse` | Chromium | 153.0.8010.12 | - | 1024x768 | 1 | mouse | 31 | 0 | 0 | `screenshots/chromium-1024x768-dpr1-mouse/render.png` |
-| `chromium-1024x768-dpr1-touch` | Chromium | 153.0.8010.12 | - | 1024x768 | 1 | touch | 31 | 0 | 0 | `screenshots/chromium-1024x768-dpr1-touch/render.png` |
-| `chromium-1024x768-dpr2-mouse` | Chromium | 153.0.8010.12 | - | 1024x768 | 2 | mouse | 31 | 0 | 0 | `screenshots/chromium-1024x768-dpr2-mouse/render.png` |
-| `firefox-390x844-dpr3-mouse` | Firefox | 155.0 | - | 390x844 | 3 | mouse | 30 | 0 | 1 | `screenshots/firefox-390x844-dpr3-mouse/render.png` |
-| `firefox-390x844-dpr3-touch` | Firefox | 155.0 | - | 390x844 | 3 | touch | 30 | 0 | 1 | `screenshots/firefox-390x844-dpr3-touch/render.png` |
-| `firefox-412x915-dpr1-mouse` | Firefox | 155.0 | - | 412x915 | 1 | mouse | 30 | 0 | 1 | `screenshots/firefox-412x915-dpr1-mouse/render.png` |
-| `firefox-412x915-dpr1-touch` | Firefox | 155.0 | - | 412x915 | 1 | touch | 30 | 0 | 1 | `screenshots/firefox-412x915-dpr1-touch/render.png` |
-| `firefox-412x915-dpr2-mouse` | Firefox | 155.0 | - | 412x915 | 2 | mouse | 30 | 0 | 1 | `screenshots/firefox-412x915-dpr2-mouse/render.png` |
-| `firefox-412x915-dpr2-touch` | Firefox | 155.0 | - | 412x915 | 2 | touch | 30 | 0 | 1 | `screenshots/firefox-412x915-dpr2-touch/render.png` |
-| `firefox-412x915-dpr3-mouse` | Firefox | 155.0 | - | 412x915 | 3 | mouse | 30 | 0 | 1 | `screenshots/firefox-412x915-dpr3-mouse/render.png` |
-| `firefox-412x915-dpr3-touch` | Firefox | 155.0 | - | 412x915 | 3 | touch | 30 | 0 | 1 | `screenshots/firefox-412x915-dpr3-touch/render.png` |
-| `firefox-768x1024-dpr1-mouse` | Firefox | 155.0 | - | 768x1024 | 1 | mouse | 30 | 0 | 1 | `screenshots/firefox-768x1024-dpr1-mouse/render.png` |
-| `firefox-768x1024-dpr1-touch` | Firefox | 155.0 | - | 768x1024 | 1 | touch | 30 | 0 | 1 | `screenshots/firefox-768x1024-dpr1-touch/render.png` |
-| `firefox-768x1024-dpr2-mouse` | Firefox | 155.0 | - | 768x1024 | 2 | mouse | 30 | 0 | 1 | `screenshots/firefox-768x1024-dpr2-mouse/render.png` |
-| `firefox-768x1024-dpr2-touch` | Firefox | 155.0 | - | 768x1024 | 2 | touch | 30 | 0 | 1 | `screenshots/firefox-768x1024-dpr2-touch/render.png` |
-| `firefox-768x1024-dpr3-mouse` | Firefox | 155.0 | - | 768x1024 | 3 | mouse | 30 | 0 | 1 | `screenshots/firefox-768x1024-dpr3-mouse/render.png` |
-| `firefox-768x1024-dpr3-touch` | Firefox | 155.0 | - | 768x1024 | 3 | touch | 30 | 0 | 1 | `screenshots/firefox-768x1024-dpr3-touch/render.png` |
-| `firefox-1024x768-dpr1-mouse` | Firefox | 155.0 | - | 1024x768 | 1 | mouse | 30 | 0 | 1 | `screenshots/firefox-1024x768-dpr1-mouse/render.png` |
-| `firefox-1024x768-dpr1-touch` | Firefox | 155.0 | - | 1024x768 | 1 | touch | 30 | 0 | 1 | `screenshots/firefox-1024x768-dpr1-touch/render.png` |
-| `webkit-390x844-dpr3-touch` | WebKit | 26.6 | - | 390x844 | 3 | touch | 30 | 0 | 1 | `screenshots/webkit-390x844-dpr3-touch/render.png` |
-| `webkit-412x915-dpr1-mouse` | WebKit | 26.6 | - | 412x915 | 1 | mouse | 30 | 0 | 1 | `screenshots/webkit-412x915-dpr1-mouse/render.png` |
-| `webkit-412x915-dpr1-touch` | WebKit | 26.6 | - | 412x915 | 1 | touch | 30 | 0 | 1 | `screenshots/webkit-412x915-dpr1-touch/render.png` |
-| `webkit-412x915-dpr2-mouse` | WebKit | 26.6 | - | 412x915 | 2 | mouse | 30 | 0 | 1 | `screenshots/webkit-412x915-dpr2-mouse/render.png` |
-| `webkit-412x915-dpr2-touch` | WebKit | 26.6 | - | 412x915 | 2 | touch | 30 | 0 | 1 | `screenshots/webkit-412x915-dpr2-touch/render.png` |
-| `webkit-412x915-dpr3-mouse` | WebKit | 26.6 | - | 412x915 | 3 | mouse | 30 | 0 | 1 | `screenshots/webkit-412x915-dpr3-mouse/render.png` |
-| `webkit-412x915-dpr3-touch` | WebKit | 26.6 | - | 412x915 | 3 | touch | 30 | 0 | 1 | `screenshots/webkit-412x915-dpr3-touch/render.png` |
-| `webkit-768x1024-dpr1-mouse` | WebKit | 26.6 | - | 768x1024 | 1 | mouse | 30 | 0 | 1 | `screenshots/webkit-768x1024-dpr1-mouse/render.png` |
-| `webkit-768x1024-dpr1-touch` | WebKit | 26.6 | - | 768x1024 | 1 | touch | 30 | 0 | 1 | `screenshots/webkit-768x1024-dpr1-touch/render.png` |
-| `webkit-768x1024-dpr2-mouse` | WebKit | 26.6 | - | 768x1024 | 2 | mouse | 30 | 0 | 1 | `screenshots/webkit-768x1024-dpr2-mouse/render.png` |
-| `webkit-768x1024-dpr2-touch` | WebKit | 26.6 | - | 768x1024 | 2 | touch | 30 | 0 | 1 | `screenshots/webkit-768x1024-dpr2-touch/render.png` |
-| `webkit-768x1024-dpr3-mouse` | WebKit | 26.6 | - | 768x1024 | 3 | mouse | 30 | 0 | 1 | `screenshots/webkit-768x1024-dpr3-mouse/render.png` |
-| `webkit-768x1024-dpr3-touch` | WebKit | 26.6 | - | 768x1024 | 3 | touch | 30 | 0 | 1 | `screenshots/webkit-768x1024-dpr3-touch/render.png` |
-| `webkit-1024x768-dpr1-mouse` | WebKit | 26.6 | - | 1024x768 | 1 | mouse | 30 | 0 | 1 | `screenshots/webkit-1024x768-dpr1-mouse/render.png` |
-| `webkit-1024x768-dpr1-touch` | WebKit | 26.6 | - | 1024x768 | 1 | touch | 30 | 0 | 1 | `screenshots/webkit-1024x768-dpr1-touch/render.png` |
-| `webkit-1024x768-dpr2-mouse` | WebKit | 26.6 | - | 1024x768 | 2 | mouse | 30 | 0 | 1 | `screenshots/webkit-1024x768-dpr2-mouse/render.png` |
-| `webkit-1024x768-dpr2-touch` | WebKit | 26.6 | - | 1024x768 | 2 | touch | 30 | 0 | 1 | `screenshots/webkit-1024x768-dpr2-touch/render.png` |
-| `chromium-1024x768-dpr2-touch` | Chromium | 153.0.8010.12 | - | 1024x768 | 2 | touch | 31 | 0 | 0 | `screenshots/chromium-1024x768-dpr2-touch/render.png` |
-| `chromium-1024x768-dpr3-mouse` | Chromium | 153.0.8010.12 | - | 1024x768 | 3 | mouse | 31 | 0 | 0 | `screenshots/chromium-1024x768-dpr3-mouse/render.png` |
-| `chromium-1024x768-dpr3-touch` | Chromium | 153.0.8010.12 | - | 1024x768 | 3 | touch | 31 | 0 | 0 | `screenshots/chromium-1024x768-dpr3-touch/render.png` |
-| `chromium-1440x900-dpr1-mouse` | Chromium | 153.0.8010.12 | - | 1440x900 | 1 | mouse | 31 | 0 | 0 | `screenshots/chromium-1440x900-dpr1-mouse/render.png` |
-| `chromium-1440x900-dpr1-touch` | Chromium | 153.0.8010.12 | - | 1440x900 | 1 | touch | 31 | 0 | 0 | `screenshots/chromium-1440x900-dpr1-touch/render.png` |
-| `chromium-1440x900-dpr2-mouse` | Chromium | 153.0.8010.12 | - | 1440x900 | 2 | mouse | 31 | 0 | 0 | `screenshots/chromium-1440x900-dpr2-mouse/render.png` |
-| `chromium-1440x900-dpr2-touch` | Chromium | 153.0.8010.12 | - | 1440x900 | 2 | touch | 31 | 0 | 0 | `screenshots/chromium-1440x900-dpr2-touch/render.png` |
-| `chromium-1440x900-dpr3-mouse` | Chromium | 153.0.8010.12 | - | 1440x900 | 3 | mouse | 31 | 0 | 0 | `screenshots/chromium-1440x900-dpr3-mouse/render.png` |
-| `chromium-1440x900-dpr3-touch` | Chromium | 153.0.8010.12 | - | 1440x900 | 3 | touch | 31 | 0 | 0 | `screenshots/chromium-1440x900-dpr3-touch/render.png` |
-| `chromium-2560x1440-dpr1-mouse` | Chromium | 153.0.8010.12 | - | 2560x1440 | 1 | mouse | 31 | 0 | 0 | `screenshots/chromium-2560x1440-dpr1-mouse/render.png` |
-| `chromium-2560x1440-dpr1-touch` | Chromium | 153.0.8010.12 | - | 2560x1440 | 1 | touch | 31 | 0 | 0 | `screenshots/chromium-2560x1440-dpr1-touch/render.png` |
-| `chromium-2560x1440-dpr2-mouse` | Chromium | 153.0.8010.12 | - | 2560x1440 | 2 | mouse | 31 | 0 | 0 | `screenshots/chromium-2560x1440-dpr2-mouse/render.png` |
-| `chromium-2560x1440-dpr2-touch` | Chromium | 153.0.8010.12 | - | 2560x1440 | 2 | touch | 31 | 0 | 0 | `screenshots/chromium-2560x1440-dpr2-touch/render.png` |
-| `chromium-2560x1440-dpr3-mouse` | Chromium | 153.0.8010.12 | - | 2560x1440 | 3 | mouse | 31 | 0 | 0 | `screenshots/chromium-2560x1440-dpr3-mouse/render.png` |
-| `chromium-2560x1440-dpr3-touch` | Chromium | 153.0.8010.12 | - | 2560x1440 | 3 | touch | 31 | 0 | 0 | `screenshots/chromium-2560x1440-dpr3-touch/render.png` |
-| `chromium-pixel9-360x732-dpr3-touch` | Chromium | 153.0.8010.12 | Pixel 9 | 360x732 | 3 | touch | 31 | 0 | 0 | `screenshots/chromium-pixel9-360x732-dpr3-touch/render.png` |
-| `firefox-1024x768-dpr2-mouse` | Firefox | 155.0 | - | 1024x768 | 2 | mouse | 30 | 0 | 1 | `screenshots/firefox-1024x768-dpr2-mouse/render.png` |
-| `firefox-1024x768-dpr2-touch` | Firefox | 155.0 | - | 1024x768 | 2 | touch | 30 | 0 | 1 | `screenshots/firefox-1024x768-dpr2-touch/render.png` |
-| `firefox-1024x768-dpr3-mouse` | Firefox | 155.0 | - | 1024x768 | 3 | mouse | 30 | 0 | 1 | `screenshots/firefox-1024x768-dpr3-mouse/render.png` |
-| `firefox-1024x768-dpr3-touch` | Firefox | 155.0 | - | 1024x768 | 3 | touch | 30 | 0 | 1 | `screenshots/firefox-1024x768-dpr3-touch/render.png` |
-| `firefox-1440x900-dpr1-mouse` | Firefox | 155.0 | - | 1440x900 | 1 | mouse | 30 | 0 | 1 | `screenshots/firefox-1440x900-dpr1-mouse/render.png` |
-| `firefox-1440x900-dpr1-touch` | Firefox | 155.0 | - | 1440x900 | 1 | touch | 30 | 0 | 1 | `screenshots/firefox-1440x900-dpr1-touch/render.png` |
-| `firefox-1440x900-dpr2-mouse` | Firefox | 155.0 | - | 1440x900 | 2 | mouse | 30 | 0 | 1 | `screenshots/firefox-1440x900-dpr2-mouse/render.png` |
-| `firefox-1440x900-dpr2-touch` | Firefox | 155.0 | - | 1440x900 | 2 | touch | 30 | 0 | 1 | `screenshots/firefox-1440x900-dpr2-touch/render.png` |
-| `firefox-1440x900-dpr3-mouse` | Firefox | 155.0 | - | 1440x900 | 3 | mouse | 30 | 0 | 1 | `screenshots/firefox-1440x900-dpr3-mouse/render.png` |
-| `firefox-1440x900-dpr3-touch` | Firefox | 155.0 | - | 1440x900 | 3 | touch | 30 | 0 | 1 | `screenshots/firefox-1440x900-dpr3-touch/render.png` |
-| `firefox-2560x1440-dpr1-mouse` | Firefox | 155.0 | - | 2560x1440 | 1 | mouse | 30 | 0 | 1 | `screenshots/firefox-2560x1440-dpr1-mouse/render.png` |
-| `firefox-2560x1440-dpr1-touch` | Firefox | 155.0 | - | 2560x1440 | 1 | touch | 30 | 0 | 1 | `screenshots/firefox-2560x1440-dpr1-touch/render.png` |
-| `firefox-2560x1440-dpr2-mouse` | Firefox | 155.0 | - | 2560x1440 | 2 | mouse | 30 | 0 | 1 | `screenshots/firefox-2560x1440-dpr2-mouse/render.png` |
-| `firefox-2560x1440-dpr2-touch` | Firefox | 155.0 | - | 2560x1440 | 2 | touch | 30 | 0 | 1 | `screenshots/firefox-2560x1440-dpr2-touch/render.png` |
-| `firefox-2560x1440-dpr3-mouse` | Firefox | 155.0 | - | 2560x1440 | 3 | mouse | 30 | 0 | 1 | `screenshots/firefox-2560x1440-dpr3-mouse/render.png` |
-| `firefox-2560x1440-dpr3-touch` | Firefox | 155.0 | - | 2560x1440 | 3 | touch | 30 | 0 | 1 | `screenshots/firefox-2560x1440-dpr3-touch/render.png` |
-| `webkit-1024x768-dpr3-mouse` | WebKit | 26.6 | - | 1024x768 | 3 | mouse | 30 | 0 | 1 | `screenshots/webkit-1024x768-dpr3-mouse/render.png` |
-| `webkit-1024x768-dpr3-touch` | WebKit | 26.6 | - | 1024x768 | 3 | touch | 30 | 0 | 1 | `screenshots/webkit-1024x768-dpr3-touch/render.png` |
-| `webkit-1440x900-dpr1-mouse` | WebKit | 26.6 | - | 1440x900 | 1 | mouse | 30 | 0 | 1 | `screenshots/webkit-1440x900-dpr1-mouse/render.png` |
-| `webkit-1440x900-dpr1-touch` | WebKit | 26.6 | - | 1440x900 | 1 | touch | 30 | 0 | 1 | `screenshots/webkit-1440x900-dpr1-touch/render.png` |
-| `webkit-1440x900-dpr2-mouse` | WebKit | 26.6 | - | 1440x900 | 2 | mouse | 30 | 0 | 1 | `screenshots/webkit-1440x900-dpr2-mouse/render.png` |
-| `webkit-1440x900-dpr2-touch` | WebKit | 26.6 | - | 1440x900 | 2 | touch | 30 | 0 | 1 | `screenshots/webkit-1440x900-dpr2-touch/render.png` |
-| `webkit-1440x900-dpr3-mouse` | WebKit | 26.6 | - | 1440x900 | 3 | mouse | 30 | 0 | 1 | `screenshots/webkit-1440x900-dpr3-mouse/render.png` |
-| `webkit-1440x900-dpr3-touch` | WebKit | 26.6 | - | 1440x900 | 3 | touch | 30 | 0 | 1 | `screenshots/webkit-1440x900-dpr3-touch/render.png` |
-| `webkit-2560x1440-dpr1-mouse` | WebKit | 26.6 | - | 2560x1440 | 1 | mouse | 30 | 0 | 1 | `screenshots/webkit-2560x1440-dpr1-mouse/render.png` |
-| `webkit-2560x1440-dpr1-touch` | WebKit | 26.6 | - | 2560x1440 | 1 | touch | 30 | 0 | 1 | `screenshots/webkit-2560x1440-dpr1-touch/render.png` |
-| `webkit-2560x1440-dpr2-mouse` | WebKit | 26.6 | - | 2560x1440 | 2 | mouse | 30 | 0 | 1 | `screenshots/webkit-2560x1440-dpr2-mouse/render.png` |
-| `webkit-2560x1440-dpr2-touch` | WebKit | 26.6 | - | 2560x1440 | 2 | touch | 30 | 0 | 1 | `screenshots/webkit-2560x1440-dpr2-touch/render.png` |
-| `webkit-2560x1440-dpr3-mouse` | WebKit | 26.6 | - | 2560x1440 | 3 | mouse | 30 | 0 | 1 | `screenshots/webkit-2560x1440-dpr3-mouse/render.png` |
-| `webkit-2560x1440-dpr3-touch` | WebKit | 26.6 | - | 2560x1440 | 3 | touch | 30 | 0 | 1 | `screenshots/webkit-2560x1440-dpr3-touch/render.png` |
-| `webkit-iphone15-393x659-dpr3-touch` | WebKit | 26.6 | iPhone 15 | 393x659 | 3 | touch | 30 | 0 | 1 | `screenshots/webkit-iphone15-393x659-dpr3-touch/render.png` |
-| `webkit-ipadpro11-834x1194-dpr2-touch` | WebKit | 26.6 | iPad Pro 11 | 834x1194 | 2 | touch | 30 | 0 | 1 | `screenshots/webkit-ipadpro11-834x1194-dpr2-touch/render.png` |
+| `chromium-375x667-dpr2-touch` | Chromium | 153.0.8010.12 | - | 375x667 | 2 | touch | 17 | 0 | 0 | `screenshots/chromium-375x667-dpr2-touch/render.png` |
+| `chromium-1440x900-dpr1-mouse` | Chromium | 153.0.8010.12 | - | 1440x900 | 1 | mouse | 17 | 0 | 0 | `screenshots/chromium-1440x900-dpr1-mouse/render.png` |
 
 ## Not covered
 
