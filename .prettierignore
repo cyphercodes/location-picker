@@ -14,7 +14,6 @@ site/llms-full.txt
 compat/compat.json
 COMPATIBILITY.md
 
-# Legacy files that their owners replace (WP6 removes example/, WP7 rewrites these docs); drop the lines then.
-example/
+# Legacy files that their owners replace (WP7 rewrites these docs); drop the lines then.
 CONTRIBUTING.md
 code-of-conduct.md

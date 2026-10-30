@@ -44,7 +44,6 @@
     "_site/**",
     "coverage/**",
     "node_modules/**",
-    "example/**",
     "src/compat/location-picker.min.js",
     "custom-elements.json",
     "types-matrix/cells/**",
