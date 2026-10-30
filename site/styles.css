@@ -906,7 +906,29 @@ location-picker {
 
 /* ---------- landing hero ---------- */
 .hero {
+  position: relative;
+  isolation: isolate;
   padding-block: 28px 8px;
+}
+/* A soft glow behind the picker; decorative only. */
+.hero::before {
+  content: '';
+  position: absolute;
+  inset: -61px 0 auto;
+  block-size: 720px;
+  z-index: -1;
+  pointer-events: none;
+  background:
+    radial-gradient(
+      520px 360px at 78% 42%,
+      color-mix(in srgb, var(--accent) 13%, transparent),
+      transparent 70%
+    ),
+    radial-gradient(
+      420px 300px at 12% 10%,
+      color-mix(in srgb, #6366f1 8%, transparent),
+      transparent 70%
+    );
 }
 .hero .wrap {
   display: grid;
