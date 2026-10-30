@@ -549,7 +549,12 @@ test.describe('WP3-15 real maplibre-gl 6.14 @maplibre-provider', () => {
   test('[lng, lat] centre, OpenFreeMap style, wheel zoom keeps the value, no rotation, CSS fix', async ({
     page,
     browserName,
+    isMobile,
   }) => {
+    test.skip(
+      isMobile && browserName == 'webkit',
+      'Playwright has no mouse wheel in mobile WebKit',
+    );
     const requests: string[] = [];
     page.on('request', (request) => requests.push(request.url()));
     await openPage(page, '<div id="map" class="map"></div>');
