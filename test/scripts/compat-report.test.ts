@@ -103,8 +103,12 @@ describe('compat scenarios (e2e/scenarios.ts)', () => {
     const unknown: string[] = [];
     for (const file of files) {
       const text = readFileSync(join('e2e', file), 'utf8');
-      // `tag: ['@rtl']` and title tags (`'RTL works @rtl'`).
-      const tags = [...text.matchAll(/['"`\s]@([a-z][a-z0-9-]*)['"`]/g)].map((m) => m[1] ?? '');
+      // `tag: ['@rtl']` (or `tag: '@rtl'`) and title tags (`'RTL works @rtl'`); JSON-LD keys like '@type' are not tags.
+      const tagged = [...text.matchAll(/\btag:\s*(\[[^\]]*\]|['"`][^'"`]*['"`])/g)].flatMap((m) =>
+        [...(m[1] ?? '').matchAll(/@([a-z][a-z0-9-]*)/g)].map((t) => t[1] ?? ''),
+      );
+      const titled = [...text.matchAll(/\s@([a-z][a-z0-9-]*)['"`]/g)].map((m) => m[1] ?? '');
+      const tags = [...tagged, ...titled];
       const called = [...text.matchAll(/\bscenarios\(([^)]*)\)/g)].flatMap((m) =>
         [...(m[1] ?? '').matchAll(/['"`]([^'"`]+)['"`]/g)].map((q) => q[1] ?? ''),
       );
