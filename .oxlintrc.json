@@ -41,6 +41,7 @@
   ],
   "ignorePatterns": [
     "dist/**",
+    "_site/**",
     "coverage/**",
     "node_modules/**",
     "example/**",

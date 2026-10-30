@@ -3,6 +3,7 @@ dist/
 custom-elements.json
 coverage/
 test-results/
+_site/
 playwright-report/
 blob-report/
 .vitest/
