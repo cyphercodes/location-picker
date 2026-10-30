@@ -104,12 +104,15 @@ export class Sheet {
       ? new Observer(([entry]) => {
           const { width = 0, height = 0 } = entry?.contentRect ?? {};
           const visible = width > 0 && height > 0;
-          const handle = host.core?.handle;
-          if (handle) {
+          const core = host.core;
+          const handle = core?.handle;
+          if (core && handle) {
             handle.resize();
-            const snapshot = host.core?.snapshot;
-            if (visible && !this.#visible && snapshot)
-              handle.setView(snapshot.latLng ?? snapshot.center, snapshot.zoom, { animate: false });
+            // Shown again: back on the value (a map mounted while hidden measured nothing). Never under a gesture
+            // that started first: that would end it and drop the pan.
+            const { latLng, center, zoom } = core.snapshot;
+            if (visible && !this.#visible && !core.refs.base.classList.contains('lp-is-dragging'))
+              handle.setView(latLng ?? center, zoom, { animate: false });
           }
           this.#visible = visible;
         })
