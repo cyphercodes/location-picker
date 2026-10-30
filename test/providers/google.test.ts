@@ -575,6 +575,22 @@ describe('WP3-14: pairing', () => {
     expect(codes(log)).toEqual([]);
   });
 
+  it('a switch inside the 700 ms announce window cancels the pending Google announcement', async () => {
+    const google = install({ mode: 'importLibrary' });
+    const element = target();
+    const { core, root } = shadowPicker(element, {
+      provider: erased(googleProvider()),
+      search: true,
+    });
+    await core.ready;
+    await waitFor(() => root.querySelector('gmp-place-autocomplete'), 2000, 'search');
+    await google.selectPlace({ ...EIFFEL, formattedAddress: 'Eiffel Tower, Paris' });
+    core.update({ provider: erased(createFakeAdapter({ name: 'leaflet' }).adapter) });
+    await sleep(750);
+    expect(must(root.querySelector('[aria-live="polite"]')).textContent).not.toContain('Eiffel');
+    core.destroy();
+  });
+
   it('provider switch google -> leaflet clears the Google address; Photon looks it up after ready, and back', async () => {
     const google = install({ mode: 'importLibrary' });
     const photon = stubPhoton();
@@ -582,13 +598,16 @@ describe('WP3-14: pairing', () => {
     leaflet.adapter.geocoder = photonGeocoder();
     const element = document.createElement('div');
     element.style.cssText = 'display:block;width:320px;height:240px';
-    document.body.append(element);
-    const { core } = shadowPicker(element, {
+    const addressInput = document.createElement('input');
+    document.body.append(element, addressInput);
+    const { core, root } = shadowPicker(element, {
       provider: erased(googleProvider()),
       search: true,
       reverseGeocode: true,
+      addressInput,
     });
     const log = record(element);
+    const live = (): string => must(root.querySelector('[aria-live="polite"]')).textContent ?? '';
     await core.ready;
     await waitFor(
       () => element.shadowRoot?.querySelector('gmp-place-autocomplete'),
@@ -597,10 +616,16 @@ describe('WP3-14: pairing', () => {
     );
     await google.selectPlace({ ...EIFFEL, formattedAddress: 'Eiffel Tower, Paris' });
     expect(core.snapshot.address).toBe('Eiffel Tower, Paris');
+    expect(addressInput.value).toBe('Eiffel Tower, Paris');
+    await sleep(750);
+    expect(live()).toContain('Eiffel Tower, Paris');
     core.update({ provider: erased(leaflet.adapter) });
     await Promise.resolve();
     expect(core.snapshot.address).toBeNull();
     expect(core.snapshot.value).toBe('48.85837,2.294481');
+    // No Google content stays next to a non-Google map: not in the bound input, not in the live region.
+    expect(addressInput.value).toBe('');
+    expect(live()).not.toContain('Eiffel Tower, Paris');
     await core.ready;
     await waitFor(() => photon.urls.length, 2000, 'a Photon reverse request');
     expect(photon.urls.map((url) => url.pathname)).toEqual(['/reverse']);
