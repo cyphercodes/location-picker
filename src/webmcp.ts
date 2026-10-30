@@ -1,4 +1,5 @@
-// placeholder: owned by WP4 (types copied from api.d.ts; registerWebMcpTools registers nothing)
+// location-picker/webmcp (experimental, feature-detected): opt-in WebMCP tools that let a browser agent read and set
+// the picked location without dragging the map. The `webmcp` attribute of <location-picker> lazy-loads this entry.
 export type WebMcpToolName = 'get_location' | 'set_location' | 'search_places';
 
 /** Options for {@link registerWebMcpTools}. */
@@ -23,15 +24,4 @@ export interface WebMcpRegistration {
   unregister(): void;
 }
 
-export function isWebMcpSupported(): boolean {
-  return false;
-}
-
-export function registerWebMcpTools(
-  target: EventTarget,
-  options?: WebMcpOptions,
-): WebMcpRegistration {
-  void target;
-  void options;
-  return { supported: false, tools: [], unregister() {} };
-}
+export { isWebMcpSupported, registerWebMcpTools } from './webmcp/tools.js';

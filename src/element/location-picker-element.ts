@@ -23,6 +23,7 @@ import type {
 } from '../core.js';
 import type { LocationPickerError } from '../core/errors.js';
 import type { CoreHost, PickerSnapshot, ResolvedConfig } from '../internal/contracts.js';
+import type { WebMcpRegistration } from '../webmcp.js';
 import type { LatLng, LatLngInput } from '../utils.js';
 import { readLatLngInput, resolveConfig } from '../core/config.js';
 import {
@@ -191,6 +192,8 @@ class Controller {
   readonly first: { promise: Promise<void>; resolve(): void; reject(error: unknown): void };
   lastReady: Promise<unknown> | undefined;
   derived: [Promise<unknown>, Promise<LocationPickerElement>] | undefined;
+  /** The `webmcp` attribute's registration (the entry is loaded lazily); undefined while not registered. */
+  webmcp: Promise<WebMcpRegistration> | undefined;
 
   constructor(el: LocationPickerElement) {
     this.el = el;
@@ -274,6 +277,7 @@ class Controller {
     } else if (state.value && prev.precision != next.precision) {
       state.value = this.canonical(latLngOf(state.value));
     }
+    this.updateWebMcp();
     // The validity message comes from `messages`, the form value's zoom from the config.
     if (rawKey(prev.value) == rawKey(next.value)) return this.updateForm();
     if (!state.dirty) this.write(next.value, { dirty: false, cause: 'write' });
@@ -349,6 +353,28 @@ class Controller {
     const { core } = this;
     if (core) return Promise.resolve(run(core));
     return new Promise((resolve) => this.pending.push((ready) => resolve(run(ready))));
+  }
+
+  /** WebMCP tools are registered while the `webmcp` attribute is set and the map is mounted (connected). */
+  updateWebMcp(): void {
+    const on = this.mounted && !!this.config.webmcp;
+    const { webmcp } = this;
+    if (on == !!webmcp) return;
+    if (webmcp) {
+      // Runs after the registration itself, even when the entry is still loading.
+      webmcp.then((registration) => registration.unregister(), noop);
+      this.webmcp = undefined;
+      return;
+    }
+    const registration = import('../webmcp.js').then(({ registerWebMcpTools }) =>
+      registerWebMcpTools(this.el),
+    );
+    registration.catch((cause: unknown) =>
+      this.report(
+        createError('ENGINE_LOAD_FAILED', { cause, vars: { url: 'location-picker/webmcp' } }),
+      ),
+    );
+    this.webmcp = registration;
   }
 
   // ---- forms -----------------------------------------------------------------------------------------------------
@@ -498,6 +524,7 @@ class Controller {
       this.mounted = true;
       this.captureSeed(core);
       this.checkNames();
+      this.updateWebMcp();
     };
     // §3.6 parser timing: defined before the parser reached the bound inputs; never write one before reading it.
     const doc = el.ownerDocument;
@@ -523,6 +550,7 @@ class Controller {
     this.lastReady = core.ready;
     this.core = undefined;
     this.mounted = false;
+    this.updateWebMcp();
     core.destroy();
     try {
       this.internals?.states?.clear();
