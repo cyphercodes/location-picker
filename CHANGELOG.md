@@ -5,7 +5,7 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
-## [3.0.0] - 2026-10-30 (unreleased)
+## [3.0.0] - 2026-10-30
 
 A rewrite around one use case: capturing one precise point in a form. The default map is now OpenStreetMap through Leaflet, with no API key; Google Maps and MapLibre are opt-in providers. The upgrade guide with every v1 and v2 API is [docs/migration.md](docs/migration.md).
 
@@ -34,6 +34,7 @@ The MIT License applies to this release and to all prior versions of location-pi
 
 - Writing `value` while the user is moving the map (for example from an `input` listener that writes the live value back) stops the move without a commit. Update framework state from `change`; Vue's `v-model` is not affected.
 - The class option `webmcp: true` does not register WebMCP tools yet; call `registerWebMcpTools(picker)`. The element's `webmcp` attribute works. Planned for 3.1.
+- Field mode (`presentation="field"`): a value set while the sheet is closed, and an address that resolves after Confirm, update the field's text but are not announced to screen readers. The sheet itself and the field's label and value are accessible.
 
 ### Breaking
 

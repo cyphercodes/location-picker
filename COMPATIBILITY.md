@@ -6,7 +6,7 @@
 > (`.github/workflows/compat.yml`) writes from the Playwright end-to-end suite. Documentation links here instead of
 > stating browser support by hand.
 
-- Run: 2026-10-30 (`2026-10-30T03:18:14.872Z`), location-picker 3.0.0-alpha.0, commit `da7d9dbb0456`
+- Run: 2026-10-30 (`2026-10-30T04:14:09.566Z`), location-picker 3.0.0-alpha.0, commit `3d93af4525d6`
 - Tools: Playwright 1.63.0, Node v24.22.1
 - Coverage: 147 emulated environments x 39 scenarios; 5733 results: 5635 pass, 0 fail, 98 skip
 - Every environment is a Playwright browser build with emulated viewport, device pixel ratio and input.
