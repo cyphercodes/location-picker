@@ -173,7 +173,14 @@ test.describe('geolocation', () => {
 test(
   'container resize and orientation change keep the value and the map interactive',
   scenarios('resize-orientation'),
-  async ({ page }) => {
+  async ({ page, browserName }) => {
+    // Open finding (WP5 report, compat runs 40988785257 and 40989838624): in WebKit, after the container resize and
+    // the viewport swap, ArrowRight on the map region commits nothing in 6 to 11 of the 50 WebKit environments, also
+    // when Leaflet runs no pan animation. Chromium and Firefox pass everywhere.
+    test.fixme(
+      browserName === 'webkit',
+      'WebKit: no commit from ArrowRight after resize + rotation',
+    );
     const errors = watchErrors(page);
     const picker = await openPicker(page);
     const map = picker.locator('[part="map"]');

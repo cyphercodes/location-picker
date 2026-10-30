@@ -1,7 +1,8 @@
 <script setup>
 // docs/frameworks.md Vue 3 / Nuxt recipe, server-rendered: the import is safe during SSR. Vue's SSR compiler refuses
 // v-model on any element but input/textarea/select ("v-model can only be used on <input>…", custom elements too),
-// so a server-rendered template binds :value and @input, which is what v-model does on the client.
+// so the template binds :value and @change (v-model.lazy semantics). With @input instead, Vue writes each live value
+// back during the pan, and that write stops the pan without a commit (reported as a WP2/WP4 finding).
 import 'location-picker';
 
 const location = ref('48.8584,2.2945');
@@ -14,7 +15,7 @@ const address = ref(null);
     <location-picker
       id="loc"
       :value="location"
-      @input="location = $event.detail.value"
+      @change="location = $event.detail.value"
       :zoom="15"
       name="location"
       lat-name="lat"

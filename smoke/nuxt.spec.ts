@@ -11,7 +11,9 @@ import {
   watchConsole,
 } from './harness.js';
 
-test('SSR + hydration: v-model follows a pan and the form posts lat/lng', async ({ page }) => {
+test('SSR + hydration: :value + @change follow a pan and the form posts lat/lng', async ({
+  page,
+}) => {
   const problems = watchConsole(page);
   const response = await page.goto('/');
   expect(await response?.text()).toMatch(/<location-picker[^>]*id="loc"/);
