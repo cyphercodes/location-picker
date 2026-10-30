@@ -28,7 +28,7 @@ const toggles = (el: LocationPickerElement): string[] => {
   return log;
 };
 const isOpen = (el: LocationPickerElement): boolean =>
-  !!el.matches(':state(open)') && sheet(el).open && sheet(el).matches(':modal');
+  el.matches(':state(open)') && sheet(el).open && sheet(el).matches(':modal');
 /** Opens the sheet and waits for the lazy chunk, the mount and the ready microtask. */
 async function open(el: LocationPickerElement): Promise<void> {
   el.showPicker();
@@ -313,6 +313,7 @@ describe('A10 presentation switching', () => {
       matches: true,
       addEventListener: (_: string, fn: () => void) => listeners.push(fn),
     };
+    // oxlint-disable-next-line typescript/no-unsafe-type-assertion -- the two members the element uses
     vi.spyOn(window, 'matchMedia').mockReturnValue(query as unknown as MediaQueryList);
     const { el } = render('<location-picker presentation="auto" value="1,2"></location-picker>');
     expect(part(el, 'field')).toBeTruthy();
