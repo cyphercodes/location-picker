@@ -32,7 +32,7 @@ export default defineConfig({
       {
         extends: true,
         // Pre-bundled up front: discovering a dependency mid-run reloads the page and fails the running files.
-        optimizeDeps: { include: ['axe-core'] },
+        optimizeDeps: { include: ['axe-core', 'leaflet'] },
         test: {
           name: 'browser',
           include: ['test/**/*.browser.test.ts'],

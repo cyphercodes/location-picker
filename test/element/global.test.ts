@@ -51,6 +51,8 @@ const STATICS: Readonly<Record<string, readonly string[]>> = {
 };
 
 const FILE = 'dist/location-picker.global.js';
+/** `import("…")` with a literal specifier: what a chunk load looks like. */
+const LITERAL_IMPORT = /\bimport\s*\(\s*(?:\/\*[^]*?\*\/\s*)?["'`]/;
 /** Own keys every class has, which are not statics. */
 const BUILTIN = new Set(['length', 'name', 'prototype']);
 
@@ -73,9 +75,10 @@ describe.skipIf(skipUnbuilt)('WP4-15 the script build', () => {
     Reflect.deleteProperty(globalThis, 'LocationPicker');
   });
 
-  it('is one self-contained file: no import(), no require(), no chunk reference', () => {
+  it('is one self-contained file: no chunk import(), no require(), no chunk reference', () => {
     expect(source.length).toBeGreaterThan(1000);
-    expect(source).not.toMatch(/\bimport\s*\(/);
+    // The one import() left loads a page-given engine URL (MapLibre's opt-in `engineUrl`), never a chunk.
+    expect(source).not.toMatch(LITERAL_IMPORT);
     expect(source).not.toMatch(/\brequire\s*\(/);
     expect(source).not.toMatch(/_chunks/);
     expect(source).not.toMatch(/^\s*(import|export)\s/m);
