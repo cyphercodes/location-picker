@@ -17,3 +17,6 @@ __screenshots__/
 example/*.local.html
 .env
 .env.*
+
+# Compat run outputs (workflow artifacts, never committed)
+compat/screenshots/
