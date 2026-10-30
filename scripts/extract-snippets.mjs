@@ -208,7 +208,7 @@ const LIBRARY_SCRIPT = /<script\b[^>]*\bsrc=["'][^"']*location-picker[^"']*["']/
 /** What the template fixtures render for the bound inputs (§12.7). */
 export const SEED = { lat: '48.8584', lng: '2.2945' };
 
-const SKELETON = (body, head = '') =>
+const skeleton = (body, head = '') =>
   '<!doctype html>\n<html lang="en">\n<head>\n<meta charset="utf-8">\n' +
   '<meta name="viewport" content="width=device-width, initial-scale=1">\n<title>doc snippet</title>\n' +
   `${head}</head>\n<body>\n${body}\n</body>\n</html>\n`;
@@ -234,7 +234,7 @@ export function pageFor(block) {
       '<div id="map" style="height:300px"></div>\n<input id="lat" name="lat"><input id="lng" name="lng">\n' +
       `<script type="module">\n${block.code}\n</script>`;
     const head = `<script type="importmap">${JSON.stringify(IMPORT_MAP)}</script>\n`;
-    return { ...page, html: SKELETON(body, head) };
+    return { ...page, html: skeleton(body, head) };
   }
   if (block.lang === 'blade' || block.lang === 'django') {
     let html = renderTemplate(block.code);
@@ -245,13 +245,13 @@ export function pageFor(block) {
     if (!LIBRARY_SCRIPT.test(html)) html += `\n<script src="${IIFE}"></script>`;
     return {
       ...page,
-      html: SKELETON(html),
+      html: skeleton(html),
       seed: `${SEED.lat},${SEED.lng}`,
       fields: ['lat', 'lng'],
     };
   }
   const full = /^\s*(<!doctype|<html[\s>])/i.test(block.code);
-  return { ...page, html: full ? block.code : SKELETON(block.code) };
+  return { ...page, html: full ? block.code : skeleton(block.code) };
 }
 
 /** The §12.7 Blade/Django fixture substitution. */
@@ -319,9 +319,9 @@ const ENTRY_FILES = {
 function dependsOn(block) {
   const files = new Set();
   const code = block.code;
-  if (BROWSER_KINDS.has(block.lang)) {
-    const usesElement = /<location-picker\b/.test(code) || block.lang !== 'html';
-    if (usesElement) {
+  // html and template pages load the IIFE; js blocks import entries (below).
+  if (block.lang !== 'js' && BROWSER_KINDS.has(block.lang)) {
+    if (/<location-picker\b/.test(code)) {
       files.add('src/global.ts').add('src/element.ts');
       const google = /provider=["']google|api-key=|map-id=|YOUR_BROWSER_KEY/.test(code);
       if (google) files.add('src/google.ts').add('e2e/fixtures/google-maps-mock.js');
@@ -447,7 +447,9 @@ function typeCheck(work, group, blocks, { compilerOptions = {}, shims = [], tsc,
       diagnostics.get(block.id).push(`${block.file}:${block.line + Number(match[2])} ${match[3]}`);
     else if (/error TS\d+/.test(line)) unmatched.push(line.trim());
   }
-  if (run.status !== 0 && [...diagnostics.values()].every((list) => list.length === 0)) {
+  // Errors outside the blocks (a shim, the program setup) or a crash fail every block of the group.
+  const attributed = [...diagnostics.values()].some((list) => list.length > 0);
+  if (unmatched.length || (run.status !== 0 && !attributed)) {
     const why = unmatched.join(' | ') || output.trim() || `exit ${run.status}`;
     for (const list of diagnostics.values()) list.push(`${group}: ${why}`);
   }
