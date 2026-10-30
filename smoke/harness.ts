@@ -39,9 +39,19 @@ export function valueOf(picker: Locator): Promise<string> {
   return picker.evaluate((el: LocationPickerElement) => el.value);
 }
 
+/** True when Leaflet runs no pan or zoom animation (its keyboard handler drops arrow keys during one). */
+function engineIdle(picker: Locator): Promise<boolean> {
+  return picker.evaluate((el: LocationPickerElement) => {
+    const map: object = Object(el.map);
+    const panAnim: unknown = Reflect.get(map, '_panAnim');
+    return !Reflect.get(Object(panAnim), '_inProgress') && !Reflect.get(map, '_animatingZoom');
+  });
+}
+
 /**
  * A user pan: ArrowRight on the map region animates the map (live `input` events) and commits once with `change`.
- * Returns the committed value, once the element holds it.
+ * Returns the committed value, once the element holds it. A press that lands while a framework write still
+ * animates the map is dropped by Leaflet, so it presses again (at most 3 times).
  */
 export async function pan(picker: Locator): Promise<string> {
   await picker.evaluate((el: LocationPickerElement) => {
@@ -54,11 +64,25 @@ export async function pan(picker: Locator): Promise<string> {
     });
     Reflect.set(el, '__smokeCommitted', committed);
   });
-  await picker.locator('[part="map"]').press('ArrowRight');
-  const value = await picker.evaluate((el): Promise<string> => Reflect.get(el, '__smokeCommitted'));
-  expect(value).toMatch(LAT_LNG);
-  await expect.poll(() => valueOf(picker)).toBe(value);
-  return value;
+  for (let attempt = 1; attempt <= 3; attempt++) {
+    // oxlint-disable-next-line no-await-in-loop -- one press at a time, each after the map settled
+    await expect.poll(() => engineIdle(picker)).toBe(true);
+    // oxlint-disable-next-line no-await-in-loop
+    await picker.locator('[part="map"]').press('ArrowRight');
+    // oxlint-disable-next-line no-await-in-loop
+    const value = await picker.evaluate((el): Promise<string | null> =>
+      Promise.race([
+        Reflect.get(el, '__smokeCommitted'),
+        new Promise<null>((resolve) => setTimeout(() => resolve(null), 3000)),
+      ]),
+    );
+    if (value === null) continue;
+    expect(value).toMatch(LAT_LNG);
+    // oxlint-disable-next-line no-await-in-loop
+    await expect.poll(() => valueOf(picker)).toBe(value);
+    return value;
+  }
+  throw new Error('three ArrowRight presses on the map committed nothing');
 }
 
 /** Clicks `submit` and returns the fields the server's POST handler received. */
