@@ -537,6 +537,9 @@ export class PickerCore {
     this.#provider = name;
     if (this.#address === null && !this.#addressResult) return;
     this.#setAddress(null, null);
+    // Nor may the live region keep (or still be about to announce) the old provider's address.
+    this.#clearTimer('announce');
+    this.refs.status.textContent = '';
     this.#inputs?.write(undefined, null, 'none');
     this.#emitSnapshot('address');
   }
@@ -893,8 +896,11 @@ export class PickerCore {
     };
     try {
       let ui: SearchHandle;
-      if (adapter.createSearch) ui = await adapter.createSearch(search);
-      else {
+      // A refused (GEOCODER_MISMATCH) or disabled geocoder disables the provider's own search UI too (§5.1).
+      if (adapter.createSearch) {
+        if (config.geocoder !== undefined && !(await this.#geocoder)) return;
+        ui = await adapter.createSearch(search);
+      } else {
         const geocoder = await this.#geocoder;
         if (!geocoder?.search || ctx.signal.aborted) return;
         const { createCombobox } = await SEARCH_UI.load();
