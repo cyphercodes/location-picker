@@ -46,6 +46,13 @@ const PARTS = [
   'hint',
   'error-message',
   'fallback',
+  // A13.3 field mode
+  'field',
+  'field-value',
+  'field-button',
+  'sheet',
+  'sheet-header',
+  'cancel-button',
 ];
 const STATES: readonly PickerStateName[] = [
   'unset',
@@ -105,10 +112,11 @@ describe.skipIf(skipUnbuilt)('WP4-17 custom-elements.json', () => {
     expect(expected.filter((attr) => !listed.includes(attr))).toEqual([]);
   });
 
-  it('lists the 5 events, with their detail types', () => {
+  it('lists the 5 picker events with their detail types, and the field-mode toggle', () => {
     const events = read().events ?? [];
-    expect(names(events)).toEqual(['input', 'change', 'addresschange', 'ready', 'error']);
-    for (const event of events) expect(event.description).toMatch(/CustomEvent<\w+>/);
+    expect(names(events)).toEqual(['input', 'change', 'addresschange', 'ready', 'error', 'toggle']);
+    for (const event of events.slice(0, 5)) expect(event.description).toMatch(/CustomEvent<\w+>/);
+    expect(events[5]?.description).toMatch(/^ToggleEvent/);
   });
 
   it('lists every part, slot, state and CSS property of §3.7', () => {
@@ -116,6 +124,7 @@ describe.skipIf(skipUnbuilt)('WP4-17 custom-elements.json', () => {
     expect(PARTS.filter((part) => !names(element.cssParts).includes(part))).toEqual([]);
     expect(names(element.slots)).toEqual(expect.arrayContaining(['marker', 'controls', 'error']));
     expect(STATES.filter((state) => !names(element.cssStates).includes(state))).toEqual([]);
+    expect(names(element.cssStates)).toContain('open');
     const properties = element.cssProperties ?? [];
     expect(CSS_PROPERTIES.filter((p) => !names(properties).includes(p))).toEqual([]);
     expect(properties.filter((property) => !property.default).map((p) => p.name)).toEqual([]);

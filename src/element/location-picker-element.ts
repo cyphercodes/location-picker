@@ -22,10 +22,18 @@ import type {
   SetLocationOptions,
 } from '../core.js';
 import type { LocationPickerError } from '../core/errors.js';
-import type { CoreHost, PickerSnapshot, ResolvedConfig } from '../internal/contracts.js';
+import type {
+  CoreHost,
+  PickerSnapshot,
+  ResolvedConfig,
+  SnapshotCause,
+} from '../internal/contracts.js';
 import type { WebMcpRegistration } from '../webmcp.js';
 import type { LatLng, LatLngInput } from '../utils.js';
-import { readLatLngInput, resolveConfig } from '../core/config.js';
+import type * as SheetModule from './sheet.js';
+import type { Sheet, SheetHost } from './sheet.js';
+import { BoundInputs } from '../core/bind-inputs.js';
+import { DEFAULTS, readLatLngInput, resolveConfig } from '../core/config.js';
 import {
   LAT_LNG_IGNORED,
   WRONG_GUESSES,
@@ -36,10 +44,12 @@ import {
 } from '../core/diagnostics.js';
 import { createError, reportError } from '../core/errors.js';
 import { PickerCore } from '../core/picker-core.js';
+import { adoptCss, adoptStyles } from '../core/styles.js';
 import { version } from '../core/version.js';
 import { formatLatLng } from '../utils/format.js';
 import { parseLatLng } from '../utils/parse.js';
 import { ATTRIBUTES, UPGRADE_PROPERTIES, type AttributeSpec } from './attributes.js';
+import { FIELD_CSS, FieldControl, PHONE_QUERY, SHOW_PICKER_INLINE } from './field.js';
 import {
   parseFormState,
   submitValue,
@@ -64,7 +74,8 @@ export type LocationPickerElementEventMap = Omit<
  * Attribute-spelled props for JSX/templates (kebab-case is SSR-correct; hyphen-less spellings are also accepted at
  * runtime). React 19, Vue 3 and Preact assign a non-hyphenated prop as a PROPERTY when `key in el`; every such key
  * here (`value`, `lat`, `lng`, `center`, `zoom`, `precision`, `name`, `form`, `required`, `disabled`, `provider`,
- * `attribution`, `search`, `placeholder`, `locate`, `marker`, `webmcp`) has a setter with the attribute's meaning.
+ * `attribution`, `search`, `placeholder`, `locate`, `marker`, `webmcp`, `presentation`) has a setter with the
+ * attribute's meaning.
  */
 export interface LocationPickerAttributes {
   value?: string;
@@ -101,6 +112,7 @@ export interface LocationPickerAttributes {
   marker?: MarkerMode;
   'gesture-handling'?: GestureHandling;
   webmcp?: boolean;
+  presentation?: 'inline' | 'field' | 'auto';
 }
 
 /** Re-exported for JSX typings convenience. */
@@ -153,8 +165,11 @@ const isRoot = (node: Node): node is Document | ShadowRoot =>
 const specOf = (name: string): AttributeSpec | undefined =>
   ATTRIBUTES.find((spec) => spec.attr == name || spec.alias == name);
 
+/** Snapshot causes that change the committed value even while the field-mode sheet shows a draft. */
+const SILENT_CAUSES: ReadonlySet<SnapshotCause> = new Set(['write', 'reset', 'restore']);
+
 /** All per-element state and behaviour; the element class only forwards to it. */
-class Controller {
+class Controller implements SheetHost {
   readonly el: LocationPickerElement;
   readonly root: ShadowRoot;
   readonly internals: ElementInternals | undefined;
@@ -194,6 +209,24 @@ class Controller {
   derived: [Promise<unknown>, Promise<LocationPickerElement>] | undefined;
   /** The `webmcp` attribute's registration (the entry is loaded lazily); undefined while not registered. */
   webmcp: Promise<WebMcpRegistration> | undefined;
+  /** `el.ready` before the first core follows the first core ever created. */
+  followed = false;
+  // ---- field mode (A10): the compact control renders at once; the sheet and its core load lazily ----
+  field: FieldControl | undefined;
+  /** Field mode is set up for this connection (the field owns the bound inputs). */
+  fieldLive = false;
+  /** Field mode: the bound inputs (the core in the sheet never gets them, so drafts never reach them). */
+  inputs: BoundInputs | undefined;
+  /** The value and address last written into `inputs`. */
+  inputsKey = '';
+  /** Field mode: the bound inputs may still seed the value (no value, no write, no restore yet). */
+  seedable = false;
+  sheet: Sheet | undefined;
+  sheetModule: Promise<typeof SheetModule> | undefined;
+  /** Method locates in flight (their results commit even while the sheet is closed). */
+  locating = 0;
+  media: MediaQueryList | undefined;
+  mediaWatch: AbortController | undefined;
 
   constructor(el: LocationPickerElement) {
     this.el = el;
@@ -212,12 +245,12 @@ class Controller {
     ].filter(Boolean);
     if (missing.length) warnOnce('inert', inert(missing.join(' and ')));
     this.config = this.resolve().config;
-    this.locate = (options) => this.withCore((core) => core.locate(options));
+    this.locate = (options) => this.withCore((core) => this.tracked(core.locate(options)));
     let settle!: Pick<Controller['first'], 'resolve' | 'reject'>;
     const promise = new Promise<void>((resolve, reject) => (settle = { resolve, reject }));
     promise.catch(noop);
     this.first = { promise, ...settle };
-    el.addEventListener('blur', () => this.core?.markInteracted());
+    el.addEventListener('blur', () => this.blurred());
   }
 
   // ---- configuration ---------------------------------------------------------------------------------------------
@@ -265,8 +298,15 @@ class Controller {
       const patch: Partial<ResolvedConfig> = {};
       for (const [key, value] of Object.entries(next)) {
         const current: unknown = Reflect.get(core.config, key);
-        // value and zoom are live state; their attributes are handled below and by the zoom setter.
-        if (key == 'value' || key == 'zoom' || same(current, value)) continue;
+        // value and zoom are live state; their attributes are handled below and by the zoom setter. In field mode the
+        // bound inputs belong to the field, never to the sheet's core.
+        if (
+          key == 'value' ||
+          key == 'zoom' ||
+          (key == 'inputs' && this.field) ||
+          same(current, value)
+        )
+          continue;
         // An unknown provider name resolves to a new failing adapter each time: the same name is no change.
         if (key == 'provider' && this.sameUnknownProvider(current, value)) continue;
         Reflect.set(patch, key, value);
@@ -277,6 +317,7 @@ class Controller {
     } else if (state.value && prev.precision != next.precision) {
       state.value = this.canonical(latLngOf(state.value));
     }
+    if (this.fieldLive && this.mounted && !same(prev.inputs, next.inputs)) this.bindInputs();
     this.updateWebMcp();
     // The validity message comes from `messages`, the form value's zoom from the config.
     if (rawKey(prev.value) == rawKey(next.value)) return this.updateForm();
@@ -299,7 +340,7 @@ class Controller {
     this.reportQueued = true;
     queueMicrotask(() => {
       this.reportQueued = false;
-      if (!this.core) return;
+      if (!this.core && !this.fieldLive) return;
       const { errors, diagnostics } = this.resolve();
       emitDiagnostics(diagnostics);
       for (const error of errors) this.report(error);
@@ -321,6 +362,8 @@ class Controller {
   /** A silent write: through the core when it exists, else straight into the kept state (§3.6). */
   write(value: LatLng | null, options: WriteOptions): void {
     const { core, state } = this;
+    // Any write settles the value: the field's bound inputs no longer seed it (as the core's #bind).
+    this.seedable = false;
     if (core) return core.writeValue(value, options);
     const next = this.canonical(value);
     if (next != state.value || options.address !== undefined) {
@@ -349,7 +392,49 @@ class Controller {
     this.updateForm();
   }
 
+  /** The core's snapshots. In field mode the sheet decides when a gesture or commit becomes the value. */
+  onSnapshot(snapshot: PickerSnapshot, cause: SnapshotCause): void {
+    const drafting = cause == 'live' || cause == 'commit' || !!this.sheet?.open;
+    if (this.field && drafting && !SILENT_CAUSES.has(cause)) return this.sheet?.refresh();
+    this.mirror(snapshot);
+  }
+
+  /** Field mode: puts the committed state back into the sheet's core, silently (Cancel, a late gesture end). */
+  revert(): void {
+    const { core, state } = this;
+    core?.writeValue(latLngOf(state.value), {
+      dirty: state.dirty,
+      cause: 'restore',
+      address: state.address,
+      ...(state.zoom !== undefined && { zoom: state.zoom }),
+    });
+  }
+
+  /** §3.4 `interacted`: the first blur after focus (field mode before the sheet's core exists: the kept state). */
+  blurred(): void {
+    if (this.core) return this.core.markInteracted();
+    if (!this.fieldLive || this.state.interacted) return;
+    this.state.interacted = true;
+    this.updateForm();
+  }
+
+  tracked<T>(locating: Promise<T>): Promise<T> {
+    this.locating++;
+    return locating.finally(() => this.locating--);
+  }
+
+  setState(name: string, on: boolean): void {
+    const states = this.internals?.states;
+    try {
+      if (on) states?.add(name);
+      else states?.delete(name);
+    } catch {
+      // CustomStateSet missing or refusing undashed names (older engines)
+    }
+  }
+
   withCore<T>(run: (core: PickerCore) => T | Promise<T>): Promise<T> {
+    this.needMap();
     const { core } = this;
     if (core) return Promise.resolve(run(core));
     return new Promise((resolve) => this.pending.push((ready) => resolve(run(ready))));
@@ -401,7 +486,150 @@ class Controller {
     );
     const missing =
       el.hasAttribute('required') && !state.value && this.config.messages.valueMissing;
-    updateValidity(internals, missing, this.custom, this.core?.refs.map);
+    updateValidity(internals, missing, this.custom, this.field?.button ?? this.core?.refs.map);
+    if (this.field) this.updateField();
+  }
+
+  // ---- field mode (A10, A13.3) -----------------------------------------------------------------------------------
+
+  /** `presentation`: `auto` is field where the phone query matches (coarse pointer, narrow viewport). */
+  wantsField(): boolean {
+    const presentation = this.el.getAttribute('presentation');
+    return presentation == 'field' || (presentation == 'auto' && !!this.media?.matches);
+  }
+
+  /** Inline or field, whichever `presentation` resolves to now. */
+  start(): void {
+    const view = this.el.ownerDocument.defaultView;
+    if (!this.mediaWatch && view?.matchMedia) {
+      this.media ??= view.matchMedia(PHONE_QUERY);
+      this.mediaWatch = new AbortController();
+      this.media.addEventListener('change', () => this.present(), {
+        signal: this.mediaWatch.signal,
+      });
+    }
+    if (this.wantsField()) return this.startField();
+    this.field?.root.remove();
+    this.field = undefined;
+    this.createCore();
+  }
+
+  /** Switches presentation when it resolves differently; an open sheet finishes first (rotation keeps it open). */
+  present(): void {
+    if (!this.el.isConnected || !this.initialized || this.sheet?.open) return;
+    if (this.wantsField() == !!this.field) return;
+    this.teardown();
+    this.start();
+  }
+
+  /** Field mode on connect: the control at once, then the value (§3.3 precedence) and the bound inputs. */
+  startField(): void {
+    const { el, root, config } = this;
+    adoptStyles(root, 'element', config.nonce);
+    adoptCss(root, `${version}:field`, FIELD_CSS, config.nonce);
+    const field = (this.field ??= new FieldControl(
+      el.ownerDocument,
+      () => this.showPicker(),
+      () => void this.loadSheet(),
+    ));
+    root.prepend(field.root);
+    this.fieldLive = true;
+    if (!this.initialized) {
+      const restored = this.restored;
+      this.restored = undefined;
+      if (!this.written) this.write(config.value, { dirty: false, cause: 'write' });
+      if (restored) this.write(latLngOf(restored.value), this.restoreOptions(restored));
+      this.seedable = !this.written && !restored;
+      this.initialized = true;
+      this.queueReport();
+    }
+    const bind = (): void => {
+      if (!this.fieldLive || this.mounted) return;
+      this.bindInputs();
+      this.mounted = true;
+      this.checkNames();
+      this.updateWebMcp();
+    };
+    // §3.6 parser timing, as for the inline mount.
+    const doc = el.ownerDocument;
+    if (doc.readyState == 'loading' && Object.keys(config.inputs).length)
+      doc.addEventListener('DOMContentLoaded', bind, { once: true });
+    else queueMicrotask(bind);
+    this.updateForm();
+  }
+
+  /** Field mode's bound inputs (the core's #bind, for a core that never sees them): seed once, then mirror silently. */
+  bindInputs(): void {
+    const { el, state, config } = this;
+    const inputs = (this.inputs = new BoundInputs(
+      this.lookupRoot(),
+      config.inputs,
+      (key) => `${key}-input`,
+      (input) => el.contains(input),
+    ));
+    const seed = inputs.read();
+    if (!this.seeded && Object.keys(config.inputs).length) {
+      this.seeded = true;
+      this.seedDefault = seed.defaults;
+    }
+    if (this.seedable && seed.value) {
+      // "15 with a value": the resolved zoom is the no-value default unless one was given.
+      const zoom = !config.centerGiven && config.zoom == DEFAULTS.zoom ? 15 : undefined;
+      this.write(seed.value, { dirty: false, cause: 'write', ...(zoom && { zoom }) });
+    } else if (this.seedable && seed.error) {
+      const { error } = seed;
+      queueMicrotask(() => this.report(error));
+    }
+    this.seedable = false;
+    // The first write: never before the inputs were read, and never "" at init.
+    if (state.value) inputs.write(state.value, state.address ?? undefined, 'none');
+    this.inputsKey = `${state.value}\n${state.address ?? ''}`;
+  }
+
+  /** The field's text, `:state(unset)` before the sheet's core exists, the bound inputs and the sheet. */
+  updateField(): void {
+    const { field, state, config, inputs } = this;
+    field?.render(state.value, state.address, config.messages, config.disabled);
+    if (!this.core) {
+      this.setState('unset', !state.value);
+      this.setState('interacted', state.interacted);
+    }
+    const key = `${state.value}\n${state.address ?? ''}`;
+    if (inputs && key != this.inputsKey) {
+      this.inputsKey = key;
+      inputs.write(state.value, state.address, 'none');
+    }
+    this.sheet?.refresh();
+  }
+
+  /** The sheet chunk, and the sheet with its (unmounted) core: first open, warm-up or a method call. */
+  loadSheet(): Promise<Sheet | undefined> {
+    const module = (this.sheetModule ??= import('./sheet.js'));
+    return module.then(
+      ({ Sheet }) => {
+        if (!this.fieldLive) return undefined;
+        if (!this.sheet) this.createCore((this.sheet = new Sheet(this)));
+        return this.sheet;
+      },
+      (cause: unknown) => {
+        this.sheetModule = undefined;
+        this.report(
+          createError('ENGINE_LOAD_FAILED', { cause, vars: { url: 'location-picker sheet' } }),
+        );
+        return undefined;
+      },
+    );
+  }
+
+  /** Field mode: methods that need the map (setLocation, locate, geocode, lookupAddress) mount it in the closed sheet. */
+  needMap(): void {
+    if (this.fieldLive) void this.loadSheet().then((sheet) => sheet?.mount());
+  }
+
+  showPicker(): void {
+    if (!this.field) return warnOnce('show-picker-inline', SHOW_PICKER_INLINE);
+    if (this.fieldLive && !this.config.disabled)
+      void this.loadSheet().then((sheet) => sheet?.show());
   }
 
   checkNames(): void {
@@ -462,7 +690,7 @@ class Controller {
       Reflect.deleteProperty(el, prop);
       Reflect.set(el, prop, value);
     }
-    if (!this.core) this.createCore();
+    if (!this.core && !this.fieldLive) this.start();
   }
 
   disconnected(): void {
@@ -472,29 +700,25 @@ class Controller {
     });
   }
 
-  createCore(): void {
+  /** The core; in field mode it renders into the sheet, reports to its relay and never sees the bound inputs. */
+  createCore(sheet?: Sheet): void {
     const { el, state } = this;
     const restoring = this.initialized;
-    const init = this.resolve(restoring || this.written ? latLngOf(state.value) : undefined).config;
+    const config = this.resolve(
+      restoring || this.written ? latLngOf(state.value) : undefined,
+    ).config;
+    const init = sheet ? { ...config, inputs: {} } : config;
     let core: PickerCore | undefined;
     const host: CoreHost = {
       mode: 'element',
       host: el,
-      renderRoot: this.root,
+      renderRoot: sheet?.body ?? this.root,
       styleRoot: this.root,
       lookupRoot: this.lookupRoot(),
-      eventTarget: el,
-      setState: (name, on) => {
-        const states = this.internals?.states;
-        try {
-          if (on) states?.add(name);
-          else states?.delete(name);
-        } catch {
-          // CustomStateSet missing or refusing undashed names (older engines)
-        }
-      },
-      onSnapshot: (snapshot) => {
-        if (core && this.core == core) this.mirror(snapshot);
+      eventTarget: sheet?.relay ?? el,
+      setState: (name, on) => this.setState(name, on),
+      onSnapshot: (snapshot, cause) => {
+        if (core && this.core == core) this.onSnapshot(snapshot, cause);
       },
     };
     core = this.core = new PickerCore(host, { ...init, zoom: state.zoom ?? init.zoom });
@@ -514,9 +738,11 @@ class Controller {
     if (restored) core.writeValue(latLngOf(restored.value), this.restoreOptions(restored));
     this.mirror(core.snapshot);
     for (const call of this.pending.splice(0)) call(core);
-    if (!restoring) this.followFirstReady(core, core.ready);
-    this.initialized = true;
+    if (!this.followed) this.followFirstReady(core, core.ready);
+    this.followed = this.initialized = true;
     this.queueReport();
+    // The sheet mounts it on first open (or for a method that needs the map).
+    if (sheet) return;
 
     const start = (): void => {
       if (this.core != core || !el.isConnected) return;
@@ -545,13 +771,22 @@ class Controller {
   }
 
   teardown(): void {
-    const { core } = this;
-    if (!core) return;
-    this.lastReady = core.ready;
-    this.core = undefined;
+    const { core, sheet } = this;
+    this.mediaWatch?.abort();
+    this.mediaWatch = undefined;
+    // An open sheet closes as Cancel; a removed modal dialog would otherwise come back non-modal.
+    this.sheet = undefined;
+    sheet?.destroy();
+    if (!core && !this.fieldLive) return;
+    this.fieldLive = false;
+    this.inputs = undefined;
     this.mounted = false;
     this.updateWebMcp();
-    core.destroy();
+    if (core) {
+      this.lastReady = core.ready;
+      this.core = undefined;
+      core.destroy();
+    }
     try {
       this.internals?.states?.clear();
     } catch {
@@ -585,6 +820,7 @@ class Controller {
       this.checkNames();
       return;
     }
+    if (spec.prop == 'presentation') return this.present();
     // The latest provider write wins: a name written after an adapter replaces it.
     if (spec.attr == 'provider' && value !== null) this.adapter = undefined;
     this.sync(spec.attr);
@@ -629,6 +865,10 @@ function setAttr(el: Element, name: string, value: unknown, alias?: string): voi
  * `on*` listeners during hydration: set `messages`, `mapOptions`, `engine`, `geocoder`, `geolocation` and
  * `addresschange`/`ready`/`error` listeners in a ref callback. Attributes, `value` and `onChange`/`onInput` work.
  *
+ * Field mode (`presentation="field"`, or `"auto"` on phones): a compact control shows the address or coordinates and a
+ * "Choose on map" button; the map opens in a full-screen modal sheet and the value changes only on Confirm. The engine
+ * loads on first open, so `ready` resolves then.
+ *
  * @example
  * <form method="post">
  *   <label for="loc">Store location</label>
@@ -670,12 +910,14 @@ function setAttr(el: Element, name: string, value: unknown, alias?: string): voi
  * @attr marker - pin | none | advanced.
  * @attr gesture-handling
  * @attr webmcp
+ * @attr presentation - inline | field | auto (field where `(pointer: coarse) and (max-width: 640px)` matches).
  *
  * @fires input - CustomEvent<LocationDetail>: live user changes, and the final value before every change and at the end of every gesture.
  * @fires change - CustomEvent<LocationDetail>: committed (user gesture or method call), de-duplicated.
  * @fires addresschange - CustomEvent<AddressDetail>.
  * @fires ready - CustomEvent<ReadyDetail>.
  * @fires error - CustomEvent<LocationPickerError> (cancelable; logged when not canceled).
+ * @fires toggle - ToggleEvent: the field-mode sheet opened (`newState` "open") or closed ("closed").
  *
  * @csspart base
  * @csspart search
@@ -692,6 +934,12 @@ function setAttr(el: Element, name: string, value: unknown, alias?: string): voi
  * @csspart hint
  * @csspart error-message
  * @csspart fallback
+ * @csspart field - Field mode: the compact control.
+ * @csspart field-value - Field mode: the address, the coordinates or the placeholder.
+ * @csspart field-button - Field mode: the button that opens the sheet.
+ * @csspart sheet - Field mode: the full-screen `<dialog>` holding the map.
+ * @csspart sheet-header - Field mode: the sheet's title bar with Cancel and Confirm (`confirm-button`).
+ * @csspart cancel-button - Field mode: closes the sheet without changing the value.
  *
  * @slot marker - Custom pin graphic, anchored by its bottom-centre at the map centre.
  * @slot controls - Extra buttons placed with the built-in controls.
@@ -705,6 +953,7 @@ function setAttr(el: Element, name: string, value: unknown, alias?: string): voi
  * @cssstate locating
  * @cssstate searching
  * @cssstate interacted
+ * @cssstate open - Field mode: the sheet is open.
  *
  * @cssprop [--lp-pin-color=#e11d48]
  * @cssprop [--lp-pin-inner=#fff]
@@ -885,12 +1134,12 @@ export class LocationPickerElement extends Base {
       ? internals.checkValidity()
       : this.validity.valid;
   }
-  /** Focuses the map region and shows the validation bubble there. */
+  /** Focuses the map region (in field mode, the field's button) and shows the validation bubble there. */
   reportValidity(): boolean {
     const ctl = of(this);
     if (typeof ctl.internals?.setValidity != 'function') return this.checkValidity();
     const valid = ctl.internals.reportValidity();
-    if (!valid) ctl.core?.refs.map.focus();
+    if (!valid) (ctl.field?.button ?? ctl.core?.refs.map)?.focus();
     return valid;
   }
   setCustomValidity(message: string): void {
@@ -1020,6 +1269,22 @@ export class LocationPickerElement extends Base {
   declare gestureHandling: GestureHandling;
   /** Register WebMCP tools (prefix from id, then name). For options use `registerWebMcpTools()`. @default false */
   declare webmcp: boolean;
+  /**
+   * `inline`: the map in the page. `field`: a compact control (the address or coordinates, and a "Choose on map"
+   * button) that opens the map in a full-screen modal sheet; the value changes only on Confirm, and the engine loads on
+   * first open. `auto`: `field` while `(pointer: coarse) and (max-width: 640px)` matches, else `inline` (re-evaluated
+   * when it changes, never while the sheet is open). Form participation, names and events are the same in every mode.
+   * Reflects to `presentation`.
+   * @default 'inline'
+   * @example <location-picker presentation="auto" name="location" search locate="button" required></location-picker>
+   */
+  get presentation(): 'inline' | 'field' | 'auto' {
+    const value = this.getAttribute('presentation');
+    return value == 'field' || value == 'auto' ? value : 'inline';
+  }
+  set presentation(value: 'inline' | 'field' | 'auto' | null) {
+    setAttr(this, 'presentation', value || null);
+  }
   /** UI text overrides. Property only. @default {} */
   get messages(): Partial<Messages> {
     return of(this).objects.messages ?? {};
@@ -1070,6 +1335,7 @@ export class LocationPickerElement extends Base {
     if (diagnostic) emitDiagnostics([diagnostic]);
     const opts = numeric ? options : typeof lngOrOptions == 'object' ? lngOrOptions : undefined;
     const ctl = of(this);
+    ctl.needMap();
     if (ctl.core) ctl.core.setLocation(value, opts);
     else ctl.pending.push((core) => core.setLocation(value, opts));
   }
@@ -1089,7 +1355,8 @@ export class LocationPickerElement extends Base {
   }
   /** v1/v2 alias of `locate()` that keeps the current zoom (v2 only re-centred). */
   setCurrentPosition(options?: LocateOptions): Promise<LocationDetail> {
-    return of(this).withCore((core) => core.locate(options, 'method', true));
+    const ctl = of(this);
+    return ctl.withCore((core) => ctl.tracked(core.locate(options, 'method', true)));
   }
   /** @see LocationPicker.geocode */
   geocode(query: string, options?: GeocodeOptions): Promise<GeocodeResult[]> {
@@ -1098,6 +1365,18 @@ export class LocationPickerElement extends Base {
   /** @see LocationPicker.lookupAddress */
   lookupAddress(at?: LatLngInput, options?: GeocodeOptions): Promise<GeocodeResult | null> {
     return of(this).withCore((core) => core.lookupAddress(at, options));
+  }
+  /**
+   * Field mode: opens the map sheet (a modal `<dialog>`; fires `toggle`). The map shows the value, or `center`, and
+   * nothing changes until Confirm. In inline mode it does nothing and warns once.
+   * @example el.showPicker()
+   */
+  showPicker(): void {
+    of(this).showPicker();
+  }
+  /** Field mode: closes the sheet as Cancel does (the value stays as it was; fires `toggle`, no `input`/`change`). */
+  close(): void {
+    of(this).sheet?.close();
   }
 }
 

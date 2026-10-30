@@ -29,7 +29,7 @@
     "name": "location-picker (root: core + element + define)",
     "path": "dist/index.mjs",
     "import": "*",
-    "limit": "22.9 kB",
+    "limit": "24.7 kB",
     "ignore": [
       "./leaflet.mjs",
       "./google.mjs",
@@ -42,7 +42,9 @@
       "../photon.mjs",
       "../webmcp.mjs",
       "./_chunks/combobox-*",
-      "./combobox-*"
+      "./combobox-*",
+      "./_chunks/sheet-*",
+      "./sheet-*"
     ]
   },
   {
@@ -79,6 +81,12 @@
     "limit": "1.7 kB"
   },
   {
+    "name": "field-mode sheet chunk (as shipped)",
+    "path": "dist/_chunks/sheet-*.mjs",
+    "disablePlugins": ["@size-limit/esbuild"],
+    "limit": "3 kB"
+  },
+  {
     "name": "photon: import { photonGeocoder }",
     "path": "dist/photon.mjs",
     "import": "{ photonGeocoder }",
@@ -94,7 +102,7 @@
     "name": "location-picker.global.js (IIFE, as shipped)",
     "path": "dist/location-picker.global.js",
     "disablePlugins": ["@size-limit/esbuild"],
-    "limit": "30.85 kB"
+    "limit": "34.15 kB"
   },
   {
     "name": "location-picker.min.js (frozen v1, as shipped)",

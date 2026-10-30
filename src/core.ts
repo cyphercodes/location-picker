@@ -167,7 +167,7 @@ export interface Messages {
   roleDescription: string;
   /** Screen-reader help for the map region. @default "Drag the map or use the arrow keys to move the pin; plus and minus zoom. Press Enter to choose the point under the pin." */
   instructions: string;
-  /** Confirm button shown while unset when a `center` was given. @default "Use this location" */
+  /** Confirm button shown while unset when a `center` was given; in field mode, the sheet's Confirm button. @default "Use this location" */
   confirm: string;
   /** Locate button label. @default "Use my location" */
   locate: string;
@@ -199,6 +199,12 @@ export interface Messages {
   loadError: string;
   /** Label of the fallback coordinate input shown after a load failure. @default "Latitude, longitude" */
   fallbackLabel: string;
+  /** Field mode: the button that opens the map sheet. @default "Choose on map" */
+  chooseOnMap: string;
+  /** Field mode: the field text while no location is chosen. @default "No location selected" */
+  fieldPlaceholder: string;
+  /** Field mode: the sheet's Cancel button. @default "Cancel" */
+  cancel: string;
 }
 
 // ---------------------------------------------------------------------------------------------------------------

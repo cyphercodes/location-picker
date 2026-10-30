@@ -67,6 +67,8 @@ export const ATTRIBUTES: typeof C.ATTRIBUTES = [
     'none',
   ]),
   row('webmcp', 'webmcp', 'boolean', 'live', 'webmcp'),
+  // Element-only (A13.3): inline, or a compact field that opens the map in a sheet.
+  row('presentation', 'presentation', 'enum', 'live', undefined, ['inline', 'field', 'auto']),
   // Native HTMLElement attributes the picker also reads (their properties stay the platform's own).
   row('lang', 'lang', 'string', 'live', 'lang'),
   row('nonce', 'nonce', 'string', 'connect-only', 'nonce'),
