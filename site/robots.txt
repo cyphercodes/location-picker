@@ -1,0 +1,4 @@
+User-agent: *
+Allow: /
+
+Sitemap: https://cyphercodes.github.io/location-picker/sitemap.xml
