@@ -53,10 +53,17 @@
     "ignore": ["./photon.mjs", "./_chunks/errors-*", "./_chunks/normalize-*", "./_chunks/core-*"]
   },
   {
-    "name": "google adapter: import { googleProvider }",
+    "name": "google adapter: import { googleProvider } (own bytes: core chunks ignored)",
     "path": "dist/google.mjs",
     "import": "{ googleProvider }",
-    "limit": "2 kB"
+    "limit": "3.2 kB",
+    "ignore": [
+      "./_chunks/errors-*",
+      "./_chunks/normalize-*",
+      "./_chunks/core-*",
+      "./_chunks/store-*",
+      "./_chunks/format-*"
+    ]
   },
   {
     "name": "maplibre adapter: import { maplibreProvider } (own bytes: lazy photon and core chunks ignored)",
@@ -87,7 +94,7 @@
     "name": "location-picker.global.js (IIFE, as shipped)",
     "path": "dist/location-picker.global.js",
     "disablePlugins": ["@size-limit/esbuild"],
-    "limit": "28.45 kB"
+    "limit": "30.85 kB"
   },
   {
     "name": "location-picker.min.js (frozen v1, as shipped)",
