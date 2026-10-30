@@ -51,7 +51,20 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        app: [angular, form-post, react19, plain-html, vue3]
+        # AMENDMENTS A5 order: the top 5 first.
+        app:
+          [
+            angular,
+            form-post,
+            react19,
+            plain-html,
+            vue3,
+            svelte5,
+            preact,
+            solid,
+            vitest-jsdom,
+            vitest-happy-dom,
+          ]
     env:
       NG_CLI_ANALYTICS: 'false'
     steps:
@@ -66,15 +79,22 @@ jobs:
         with:
           name: tarball
           path: smoke
-      - run: npx playwright install --with-deps chromium
+      - if: ${{ !startsWith(matrix.app, 'vitest-') }}
+        run: npx playwright install --with-deps chromium
       - name: Install ${{ matrix.app }} with the packed tarball
         working-directory: smoke/${{ matrix.app }}
         run: npm install --no-audit --no-fund
       - name: Build ${{ matrix.app }}
         working-directory: smoke/${{ matrix.app }}
         run: npm run build --if-present
+      # Apps with smoke/<app>.spec.ts are checked in Chromium; the vitest-* apps run their own component test.
       - name: Smoke check
-        run: npx playwright test -c smoke/playwright.config.ts
+        run: |
+          if [ -f "smoke/$SMOKE_APP.spec.ts" ]; then
+            npx playwright test -c smoke/playwright.config.ts
+          else
+            npm test --prefix "smoke/$SMOKE_APP"
+          fi
         env:
           SMOKE_APP: ${{ matrix.app }}
       - uses: actions/upload-artifact@v7

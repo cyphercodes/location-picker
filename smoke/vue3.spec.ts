@@ -23,7 +23,21 @@ test('v-model: a pan updates Vue state, addresschange arrives and the form posts
   const value = await pan(picker);
   await expect(page.locator('#state')).toHaveText(value);
   expect(await valueOf(picker)).toBe(value);
-  await expect(page.locator('#address')).not.toHaveText('No address yet');
+  const reverse = await picker.evaluate((el: LocationPickerElement) => ({
+    property: el.reverseGeocode,
+    attribute: el.getAttribute('reverse-geocode'),
+  }));
+  expect(reverse, 'Vue applies the bare reverse-geocode').toEqual({
+    property: true,
+    attribute: '',
+  });
+  await expect
+    .poll(() => picker.evaluate((el: LocationPickerElement) => el.address), {
+      message: 'the element reverse-geocodes the committed value',
+    })
+    .not.toBeNull();
+  const address = await picker.evaluate((el: LocationPickerElement) => el.address);
+  await expect(page.locator('#address'), '@addresschange reached Vue').toHaveText(address ?? '');
 
   const fields = await submitAndEcho(page, page.getByRole('button', { name: 'Save' }));
   expect(fields.location).toMatch(LAT_LNG);

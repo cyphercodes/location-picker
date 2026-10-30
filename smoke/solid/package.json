@@ -1,0 +1,17 @@
+{
+  "name": "smoke-solid",
+  "private": true,
+  "description": "WP5-12 solid: the Solid recipe on Vite from the packed tarball",
+  "type": "module",
+  "scripts": {
+    "build": "vite build"
+  },
+  "dependencies": {
+    "location-picker": "file:../location-picker.tgz",
+    "solid-js": "^1.9.0"
+  },
+  "devDependencies": {
+    "vite": "^8.0.0",
+    "vite-plugin-solid": "^2.11.0"
+  }
+}

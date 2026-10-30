@@ -1,0 +1,17 @@
+{
+  "name": "smoke-preact",
+  "private": true,
+  "description": "WP5-12 preact: the Preact recipe on Vite from the packed tarball",
+  "type": "module",
+  "scripts": {
+    "build": "vite build"
+  },
+  "dependencies": {
+    "location-picker": "file:../location-picker.tgz",
+    "preact": "^10.27.0"
+  },
+  "devDependencies": {
+    "@preact/preset-vite": "^2.10.0",
+    "vite": "^8.0.0"
+  }
+}

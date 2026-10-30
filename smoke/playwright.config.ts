@@ -10,6 +10,9 @@ const SERVERS: Record<string, string> = {
   react19: 'node serve.mjs react19/dist',
   vue3: 'node serve.mjs vue3/dist',
   angular: 'node angular/dist/smoke/server/server.mjs',
+  svelte5: 'node serve.mjs svelte5/dist',
+  preact: 'node serve.mjs preact/dist',
+  solid: 'node serve.mjs solid/dist',
 };
 
 const app = process.env.SMOKE_APP;
