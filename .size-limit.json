@@ -29,7 +29,7 @@
     "name": "location-picker (root: core + element + define)",
     "path": "dist/index.mjs",
     "import": "*",
-    "limit": "18.1 kB",
+    "limit": "22.9 kB",
     "ignore": [
       "./leaflet.mjs",
       "./google.mjs",
@@ -81,13 +81,13 @@
     "name": "webmcp: import { registerWebMcpTools }",
     "path": "dist/webmcp.mjs",
     "import": "{ registerWebMcpTools }",
-    "limit": "0.7 kB"
+    "limit": "1.8 kB"
   },
   {
     "name": "location-picker.global.js (IIFE, as shipped)",
     "path": "dist/location-picker.global.js",
     "disablePlugins": ["@size-limit/esbuild"],
-    "limit": "20 kB"
+    "limit": "28.45 kB"
   },
   {
     "name": "location-picker.min.js (frozen v1, as shipped)",

@@ -339,8 +339,8 @@ export interface LocationPickerOptions<TMap = unknown> {
   onChange?: (detail: LocationDetail) => void;
   /** Same as `addEventListener('addresschange')`. */
   onAddressChange?: (detail: AddressDetail) => void;
-  /** Same as `addEventListener('ready')`. */
-  onReady?: (detail: ReadyDetail<TMap>) => void;
+  /** Same as `addEventListener('ready')`. (A method signature, so a picker typed for one map engine stays assignable to `LocationPicker`.) */
+  onReady?(detail: ReadyDetail<TMap>): void;
   /** Same as `addEventListener('error')`. Its presence marks errors as handled (they are not logged). */
   onError?: (error: LocationPickerError) => void;
 
@@ -493,8 +493,13 @@ export interface ProviderAdapter<TMap = unknown> {
   /** Create the map inside `ctx.container`. A synchronous return (engine present) makes `picker.map` available synchronously. */
   mount(ctx: MountContext): MapHandle<TMap> | Promise<MapHandle<TMap>>;
   /** Paired geocoder for `search`, `reverseGeocode`, `geocode()`, `lookupAddress()`. @default undefined (no geocoding unless `geocoder` is set) */
+  // The factory is typed through a method signature so it is bivariant in TMap: a ProviderAdapter<LeafletMap> held in a
+  // variable must stay assignable to ProviderAdapter<unknown> (options, `el.provider`, `LocationPicker` fields).
   geocoder?:
-    Geocoder | ((ctx: MountContext, handle: MapHandle<TMap>) => Geocoder | Promise<Geocoder>);
+    | Geocoder
+    | {
+        factory(ctx: MountContext, handle: MapHandle<TMap>): Geocoder | Promise<Geocoder>;
+      }['factory'];
   /** Provider-rendered search UI. Without it the built-in combobox over `geocoder.search` is used. */
   createSearch?(ctx: SearchContext<TMap>): SearchHandle | Promise<SearchHandle>;
 }

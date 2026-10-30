@@ -1,1 +1,1 @@
-// placeholder: owned by WP4. Runtime target of the types-only `location-picker/jsx/*` exports.
+// Runtime target of the types-only `location-picker/jsx/*` exports, so `import type {}` and bundlers both resolve.
