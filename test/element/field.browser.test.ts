@@ -158,6 +158,37 @@ describe('A10 field mode: the sheet', () => {
     expect(fake.mountCount).toBe(1);
   });
 
+  it('Escape with the search listbox open closes the listbox only; a search pick is a draft too', async () => {
+    const { el, log } = render(
+      '<location-picker presentation="field" search value="10,20"></location-picker>',
+    );
+    el.geocoder = {
+      search: async () => [{ lat: 30, lng: 40, label: 'Somewhere', address: 'Somewhere 1' }],
+    };
+    await open(el);
+    const input = await expect
+      .poll(() => el.shadowRoot?.querySelector<HTMLInputElement>('[part~="search-input"]'))
+      .toBeTruthy()
+      .then(() => el.shadowRoot!.querySelector<HTMLInputElement>('[part~="search-input"]')!);
+    await userEvent.click(input);
+    await userEvent.keyboard('some');
+    await expect
+      .poll(() => el.shadowRoot?.querySelectorAll('[part~="search-option"]').length)
+      .toBeGreaterThan(0);
+    await userEvent.keyboard('{Escape}');
+    await flush();
+    expect(isOpen(el)).toBe(true);
+    // A pick commits the draft only: nothing reaches the element before Confirm.
+    await userEvent.keyboard('{ArrowDown}{Enter}');
+    await expect.poll(() => el.shadowRoot?.querySelector('.lp-sheet-confirm')).toBeTruthy();
+    log.length = 0;
+    expect(el.value).toBe('10,20');
+    el.shadowRoot!.querySelector<HTMLButtonElement>('.lp-sheet-confirm')!.click();
+    await flush();
+    expect(summary(log)).toEqual(['input:30,40:search', 'change:30,40:search', 'addresschange']);
+    expect(el.address).toBe('Somewhere 1');
+  });
+
   it('a gesture that ends after the sheet closed is reverted, never committed', async () => {
     const { el, fake, log } = render(
       '<location-picker presentation="field" value="10,20"></location-picker>',
