@@ -74,7 +74,8 @@ export type LocationPickerElementEventMap = Omit<
  * Attribute-spelled props for JSX/templates (kebab-case is SSR-correct; hyphen-less spellings are also accepted at
  * runtime). React 19, Vue 3 and Preact assign a non-hyphenated prop as a PROPERTY when `key in el`; every such key
  * here (`value`, `lat`, `lng`, `center`, `zoom`, `precision`, `name`, `form`, `required`, `disabled`, `provider`,
- * `attribution`, `search`, `placeholder`, `locate`, `marker`, `webmcp`) has a setter with the attribute's meaning.
+ * `attribution`, `search`, `placeholder`, `locate`, `marker`, `webmcp`, `presentation`) has a setter with the
+ * attribute's meaning.
  */
 export interface LocationPickerAttributes {
   value?: string;

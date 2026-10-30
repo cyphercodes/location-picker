@@ -1755,6 +1755,10 @@ In SSR-hydrated React (`hydrateRoot`, e.g. Next.js), React does not apply custom
 `on*` listeners during hydration: set `messages`, `mapOptions`, `engine`, `geocoder`, `geolocation` and
 `addresschange`/`ready`/`error` listeners in a ref callback. Attributes, `value` and `onChange`/`onInput` work.
 
+Field mode (`presentation="field"`, or `"auto"` on phones): a compact control shows the address or coordinates and a
+"Choose on map" button; the map opens in a full-screen modal sheet and the value changes only on Confirm. The engine
+loads on first open, so `ready` resolves then.
+
 **Attributes:**
 
 - `value`: Default value, lenient ("48.8584, 2.2945", DMS, geo:, map URLs). "," or empty = unset.
@@ -1790,6 +1794,7 @@ In SSR-hydrated React (`hydrateRoot`, e.g. Next.js), React does not apply custom
 - `marker`: pin | none | advanced.
 - `gesture-handling`
 - `webmcp`
+- `presentation`: inline | field | auto (field where `(pointer: coarse) and (max-width: 640px)` matches).
 
 **Events:**
 
@@ -1798,8 +1803,11 @@ In SSR-hydrated React (`hydrateRoot`, e.g. Next.js), React does not apply custom
 - `addresschange`: CustomEvent<AddressDetail>.
 - `ready`: CustomEvent<ReadyDetail>.
 - `error`: CustomEvent<LocationPickerError> (cancelable; logged when not canceled).
+- `toggle`: ToggleEvent: the field-mode sheet opened (`newState` "open") or closed ("closed").
 
 **CSS parts:** `base`, `search`, `search-input`, `search-listbox`, `search-option`, `map`, `pin`, `pin-icon`, `pin-shadow`, `confirm-button`, `controls`, `locate-button`, `hint`, `error-message`, `fallback`.
+
+Field mode adds `field` (the compact control), `field-value` (the address, the coordinates or the placeholder), `field-button` (opens the sheet), `sheet` (the full-screen `<dialog>` holding the map), `sheet-header` (its title bar with Cancel and Confirm; Confirm is a `confirm-button`) and `cancel-button` (closes the sheet without changing the value).
 
 **Slots:**
 
@@ -1807,7 +1815,7 @@ In SSR-hydrated React (`hydrateRoot`, e.g. Next.js), React does not apply custom
 - `controls`: Extra buttons placed with the built-in controls.
 - `error`: Content shown when the map fails to load.
 
-**Custom states (`:state(…)`):** `unset`, `loading`, `ready`, `error`, `dragging`, `locating`, `searching`, `interacted`.
+**Custom states (`:state(…)`):** `unset`, `loading`, `ready`, `error`, `dragging`, `locating`, `searching`, `interacted`, `open` (field mode: the sheet is open).
 
 **CSS custom properties (`name=default`):**
 
@@ -1886,6 +1894,7 @@ In SSR-hydrated React (`hydrateRoot`, e.g. Next.js), React does not apply custom
 - `marker`: `MarkerMode`. Pin mode; a custom graphic goes in `slot="marker"`. Default: `'pin'`.
 - `gestureHandling`: `GestureHandling`. Default: `'auto'`.
 - `webmcp`: `boolean`. Register WebMCP tools (prefix from id, then name). For options use `registerWebMcpTools()`. Default: `false`.
+- `presentation`: get `'inline' | 'field' | 'auto'`, set `'inline' | 'field' | 'auto' | null`. `inline`: the map in the page. `field`: a compact control (the address or coordinates, and a "Choose on map" button) that opens the map in a full-screen modal sheet; the value changes only on Confirm, and the engine loads on first open. `auto`: `field` while `(pointer: coarse) and (max-width: 640px)` matches, else `inline` (re-evaluated when it changes, never while the sheet is open). Form participation, names and events are the same in every mode. Reflects to `presentation`. Default: `'inline'`. Example: `<location-picker presentation="auto" name="location" search locate="button" required></location-picker>`
 - `messages`: `Partial<Messages>`. UI text overrides. Property only. Default: `{}`.
 - `address` (read-only): `string | null`. Address of the current value, or null.
 - `map` (read-only): `unknown`. Engine map instance; undefined until ready.
@@ -1897,6 +1906,8 @@ In SSR-hydrated React (`hydrateRoot`, e.g. Next.js), React does not apply custom
 - `setCurrentPosition`: `(options?: LocateOptions): Promise<LocationDetail>`. v1/v2 alias of `locate()` that keeps the current zoom (v2 only re-centred).
 - `geocode`: `(query: string, options?: GeocodeOptions): Promise<GeocodeResult[]>`. See `LocationPicker.geocode`.
 - `lookupAddress`: `(at?: LatLngInput, options?: GeocodeOptions): Promise<GeocodeResult | null>`. See `LocationPicker.lookupAddress`.
+- `showPicker`: `(): void`. Field mode: opens the map sheet (a modal `<dialog>`; fires `toggle`). The map shows the value, or `center`, and nothing changes until Confirm. In inline mode it does nothing and warns once. Example: `el.showPicker()`
+- `close`: `(): void`. Field mode: closes the sheet as Cancel does (the value stays as it was; fires `toggle`, no `input`/`change`).
 - `addEventListener`: `<K extends keyof LocationPickerElementEventMap>(type: K, listener: (this: LocationPickerElement, ev: LocationPickerElementEventMap[K]) => unknown, options?: boolean | AddEventListenerOptions): void`.
 - `addEventListener`: `(type: string, listener: EventListenerOrEventListenerObject, options?: boolean | AddEventListenerOptions): void`.
 - `removeEventListener`: `<K extends keyof LocationPickerElementEventMap>(type: K, listener: (this: LocationPickerElement, ev: LocationPickerElementEventMap[K]) => unknown, options?: boolean | EventListenerOptions): void`.
@@ -1920,7 +1931,8 @@ Interface.
 Attribute-spelled props for JSX/templates (kebab-case is SSR-correct; hyphen-less spellings are also accepted at
 runtime). React 19, Vue 3 and Preact assign a non-hyphenated prop as a PROPERTY when `key in el`; every such key
 here (`value`, `lat`, `lng`, `center`, `zoom`, `precision`, `name`, `form`, `required`, `disabled`, `provider`,
-`attribution`, `search`, `placeholder`, `locate`, `marker`, `webmcp`) has a setter with the attribute's meaning.
+`attribution`, `search`, `placeholder`, `locate`, `marker`, `webmcp`, `presentation`) has a setter with the
+attribute's meaning.
 
 **Members:**
 
@@ -1958,6 +1970,7 @@ here (`value`, `lat`, `lng`, `center`, `zoom`, `precision`, `name`, `form`, `req
 - `marker`: `MarkerMode` (optional).
 - `gesture-handling`: `GestureHandling` (optional).
 - `webmcp`: `boolean` (optional).
+- `presentation`: `'inline' | 'field' | 'auto'` (optional).
 
 ### `HTMLElementTagNameMap`
 
@@ -2171,7 +2184,7 @@ UI strings. English is built in; override any subset with `messages`. Form value
 - `label`: `string`. Accessible name when no `<label>`/`aria-label` exists. Default: `"Location picker"`.
 - `roleDescription`: `string`. Default: `"map"`.
 - `instructions`: `string`. Screen-reader help for the map region. Default: `"Drag the map or use the arrow keys to move the pin; plus and minus zoom. Press Enter to choose the point under the pin."`.
-- `confirm`: `string`. Confirm button shown while unset when a `center` was given. Default: `"Use this location"`.
+- `confirm`: `string`. Confirm button shown while unset when a `center` was given; in field mode, the sheet's Confirm button. Default: `"Use this location"`.
 - `locate`: `string`. Locate button label. Default: `"Use my location"`.
 - `locating`: `string`. Default: `"Finding your location…"`.
 - `searchLabel`: `string`. Accessible label of the search box. Default: `"Search for a place or paste coordinates"`.
@@ -2187,6 +2200,9 @@ UI strings. English is built in; override any subset with `messages`. Form value
 - `cooperativeHint`: `string`. Cooperative-gesture hint. Default: "Use Ctrl + scroll to zoom the map" ("⌘ + scroll" on Apple platforms).
 - `loadError`: `string`. Shown when the engine fails to load. Default: `"The map could not be loaded. Type coordinates instead."`.
 - `fallbackLabel`: `string`. Label of the fallback coordinate input shown after a load failure. Default: `"Latitude, longitude"`.
+- `chooseOnMap`: `string`. Field mode: the button that opens the map sheet. Default: `"Choose on map"`.
+- `fieldPlaceholder`: `string`. Field mode: the field text while no location is chosen. Default: `"No location selected"`.
+- `cancel`: `string`. Field mode: the sheet's Cancel button. Default: `"Cancel"`.
 
 ### `LocationPickerErrorCode`
 
