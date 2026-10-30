@@ -112,4 +112,12 @@ describe.skipIf(skipUnbuilt)('WP5-01: package tree (needs `npm run build`)', () 
       expect(chunks).toHaveLength(1);
     },
   );
+
+  it.skipIf(!existsSync('src/element/sheet.ts'))(
+    'the lazy field-mode sheet ships as its own chunk (the size-limit row path)',
+    () => {
+      const chunks = packed.files.filter((file) => /^dist\/_chunks\/sheet-[^/]+\.mjs$/.test(file));
+      expect(chunks).toHaveLength(1);
+    },
+  );
 });
