@@ -36,7 +36,7 @@ Every failure carries a stable `code` and a `fix`, in the form `[location-picker
 
 An agent, a chat bot, a support team or a no-code automation often needs one exact point from a person: a delivery door, a meeting point, the place of an incident. `https://cyphercodes.github.io/location-picker/pick/` is a hosted page for that, with nothing to install. Send the link; the person moves the map under the pin (or searches, or taps "Use my location") and confirms.
 
-The page is static: no server, no storage, no cookies and no analytics. Everything it knows comes from its URL, and it sends the location only where the URL says, after the person clicks. It uses OpenStreetMap tiles and Photon search. For heavy use, host your own copy: it is the `site/pick/` folder of this MIT-licensed repository.
+The page is static: no server, no storage, no cookies and no analytics. Everything it knows comes from its URL, and it sends the location only where the URL says, after the person clicks. It uses OpenStreetMap tiles and Photon search. For heavy use, host your own copy: `node scripts/build-site.mjs` (after `npm run build`) builds this MIT-licensed repository's static site into `_site/`, with the page at `pick/`.
 
 | Parameter                            | Effect                                                                                                                                                          |
 | ------------------------------------ | --------------------------------------------------------------------------------------------------------------------------------------------------------------- |
