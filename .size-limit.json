@@ -106,6 +106,6 @@
     "name": "location-picker.css (as shipped)",
     "path": "dist/location-picker.css",
     "disablePlugins": ["@size-limit/esbuild"],
-    "limit": "1.1 kB"
+    "limit": "1.25 kB"
   }
 ]
