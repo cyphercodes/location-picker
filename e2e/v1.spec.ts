@@ -38,7 +38,7 @@ async function watchPage(page: Page) {
   };
 }
 
-test('WP1-06: the 2018 gh-pages example works unchanged', async ({ page }) => {
+test('WP1-06: the 2018 gh-pages example works unchanged @v1-page', async ({ page }) => {
   const { errors, geolocationCalls } = await watchPage(page);
   await page.goto(GH_PAGES);
 
@@ -77,7 +77,7 @@ test('WP1-06: the 2018 gh-pages example works unchanged', async ({ page }) => {
   expect(errors).toEqual([]);
 });
 
-test('WP1-07: an OpenWebRX-style page passes its HTMLElement and gets wrapped positions', async ({
+test('WP1-07: an OpenWebRX-style page passes its HTMLElement and gets wrapped positions @v1-page', async ({
   page,
 }) => {
   const { errors, geolocationCalls } = await watchPage(page);
@@ -117,7 +117,9 @@ test('WP1-07: an OpenWebRX-style page passes its HTMLElement and gets wrapped po
   expect(errors).toEqual([]);
 });
 
-test('WP1-08: the pin is the v1 28x44 footprint, anchored at the map centre', async ({ page }) => {
+test('WP1-08: the pin is the v1 28x44 footprint, anchored at the map centre @v1-page', async ({
+  page,
+}) => {
   await page.goto(GH_PAGES);
   const pin = await page.evaluate(() => {
     const map = document.getElementById('map');
@@ -161,7 +163,7 @@ test('WP1-08: the pin is the v1 28x44 footprint, anchored at the map centre', as
   expect(Math.abs(dy + 43)).toBeLessThanOrEqual(0.5);
 });
 
-test.describe('WP1-09/WP1-11: geolocation granted', () => {
+test.describe('WP1-09/WP1-11: geolocation granted @v1-page', () => {
   test.use({
     geolocation: { latitude: 35.6762, longitude: 139.6503 },
     permissions: ['geolocation'],
@@ -182,7 +184,7 @@ test.describe('WP1-09/WP1-11: geolocation granted', () => {
   });
 });
 
-test('WP1-11: a denied position is logged like v1 and the picker stays on Tripoli', async ({
+test('WP1-11: a denied position is logged like v1 and the picker stays on Tripoli @v1-page', async ({
   page,
 }) => {
   const logs: string[] = [];
@@ -210,7 +212,7 @@ test('WP1-11: a denied position is logged like v1 and the picker stays on Tripol
   expect(logs).toContain('Could not determine your location...');
 });
 
-test('WP1-13: the v1 file defines only window.locationPicker and makes no requests', async ({
+test('WP1-13: the v1 file defines only window.locationPicker and makes no requests @v1-page', async ({
   page,
   baseURL,
 }) => {
@@ -240,7 +242,7 @@ test('WP1-13: the v1 file defines only window.locationPicker and makes no reques
   expect([...urls]).toEqual([BLANK, STUB, V1].map((path) => new URL(path, baseURL).href));
 });
 
-test('WP1-17: loading the v1 file twice on one page does not throw', async ({ page }) => {
+test('WP1-17: loading the v1 file twice on one page does not throw @v1-page', async ({ page }) => {
   const errors: string[] = [];
   page.on('pageerror', (error) => errors.push(error.message));
   await openWithScripts(page, [STUB, V1, V1]);
@@ -264,7 +266,7 @@ test('WP1-17: loading the v1 file twice on one page does not throw', async ({ pa
 const iife = existsSync(`.${IIFE}`) ? readFileSync(`.${IIFE}`, 'utf8') : '';
 const iifeBuilt = iife.includes('customElements') && iife.includes('LocationPicker');
 
-test('WP1-17: v1 and the v3 IIFE share a page; the v3 class pin keeps its own geometry', async ({
+test('WP1-17: v1 and the v3 IIFE share a page; the v3 class pin keeps its own geometry @v1-page', async ({
   page,
 }) => {
   test.skip(

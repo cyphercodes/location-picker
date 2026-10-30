@@ -34,7 +34,7 @@ async function openPage(page: Page, head = ''): Promise<void> {
   await page.waitForFunction(() => Reflect.has(window, 'lp'));
 }
 
-test.describe('Google bootstrap through the route table (mode none)', () => {
+test.describe('Google bootstrap through the route table (mode none) @google-provider', () => {
   test.use({ routeOptions: { google: 'none' } });
 
   test('3 pickers with an api key: ONE bootstrap request (key, v=weekly, language, nonce), 3 maps', async ({
@@ -88,7 +88,7 @@ test.describe('Google bootstrap through the route table (mode none)', () => {
   });
 });
 
-test.describe('a classic Google page (mode classic)', () => {
+test.describe('a classic Google page (mode classic) @google-provider', () => {
   test.use({ routeOptions: { google: 'classic' } });
 
   test('googleProvider() sets picker.map synchronously; a user drag commits once (source user)', async ({
