@@ -46,6 +46,8 @@
     "example/**",
     "src/compat/location-picker.min.js",
     "custom-elements.json",
-    "types-matrix/cells/**"
+    "types-matrix/cells/**",
+    "src/jsx/*.d.ts",
+    "types/*.d.ts"
   ]
 }
