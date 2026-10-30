@@ -235,7 +235,7 @@
     "check:package": "node scripts/pack-check.mjs && npm run publint && npm run attw && npm run size",
     "types-matrix": "node types-matrix/run.mjs --ts 5.9.3,7.0.2 --mode bundler,nodenext-esm,nodenext-cjs",
     "types-matrix:full": "node types-matrix/run.mjs",
-    "docs:test": "node -e \"console.log('TODO(WP5): doc snippet tests (scripts/extract-snippets.mjs, e2e/docs.spec.ts)')\""
+    "docs:test": "node scripts/extract-snippets.mjs"
   },
   "devDependencies": {
     "@arethetypeswrong/cli": "0.18.5",

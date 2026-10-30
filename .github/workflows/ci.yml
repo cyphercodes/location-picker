@@ -48,6 +48,27 @@ jobs:
         if: matrix.node == 24
         run: npm run types-matrix -- --concurrency 4
 
+  docs:
+    name: Doc snippets (Chromium)
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v7
+      - uses: actions/setup-node@v7
+        with:
+          node-version: 24
+          cache: npm
+      - run: npm ci
+      - run: npx playwright install --with-deps chromium
+      - run: npm run build
+      # CONTRACT §12.7 / WP5-11: every block of the README, llms.txt, SKILL.md and docs/*.md, by info string.
+      - run: npm run docs:test
+      - uses: actions/upload-artifact@v7
+        if: failure()
+        with:
+          name: docs-test-results
+          path: test-results/
+          retention-days: 7
+
   browser:
     name: Browser + e2e (Node ${{ matrix.node }})
     runs-on: ubuntu-latest
