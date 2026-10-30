@@ -24,3 +24,6 @@ smoke/astro/.astro/
 # Legacy files that their owners replace (WP7 rewrites these docs); drop the lines then.
 CONTRIBUTING.md
 code-of-conduct.md
+
+# Agent worktrees (git-excluded, not part of the repo).
+.claude/
