@@ -183,6 +183,24 @@ describe('WP4-13 lifecycle', () => {
     expect(summary(log.slice(events))).toEqual(['ready']);
   });
 
+  it('an unknown provider fails once; unrelated attribute changes neither remount nor report it again', async () => {
+    define();
+    document.body.innerHTML = '<location-picker provider="bing"></location-picker>';
+    const el = document.querySelector('location-picker')!;
+    const log = record(el);
+    await flush();
+    const before = el.ready;
+    el.center = '1,2';
+    el.placeholder = 'x';
+    el.setAttribute('lang', 'fr');
+    await flush();
+    expect(summary(log)).toEqual(['error:INVALID_OPTION']);
+    expect(el.ready).toBe(before);
+    expect(el.provider).toBe('bing');
+    el.provider = 'leaflet-ish';
+    expect(el.ready).not.toBe(before);
+  });
+
   it('methods called before the first connect apply after ready', async () => {
     const { el, log } = create();
     el.setLocation(3, 4);

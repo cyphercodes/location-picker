@@ -261,9 +261,12 @@ class Controller {
     if (core) {
       const patch: Partial<ResolvedConfig> = {};
       for (const [key, value] of Object.entries(next)) {
+        const current: unknown = Reflect.get(core.config, key);
         // value and zoom are live state; their attributes are handled below and by the zoom setter.
-        if (key != 'value' && key != 'zoom' && !same(Reflect.get(core.config, key), value))
-          Reflect.set(patch, key, value);
+        if (key == 'value' || key == 'zoom' || same(current, value)) continue;
+        // An unknown provider name resolves to a new failing adapter each time: the same name is no change.
+        if (key == 'provider' && this.sameUnknownProvider(current, value)) continue;
+        Reflect.set(patch, key, value);
       }
       core.update(patch);
       if (this.mounted && patch.inputs) this.captureSeed(core);
@@ -276,6 +279,14 @@ class Controller {
     if (!state.dirty) this.write(next.value, { dirty: false, cause: 'write' });
     // D10: only lat/lng changes warn; a value attribute change while dirty is silent (native parity).
     else if (name == 'lat' || name == 'lng') warnOnce('lat-lng-ignored', LAT_LNG_IGNORED);
+  }
+
+  sameUnknownProvider(a: unknown, b: unknown): boolean {
+    const name = (provider: unknown): unknown =>
+      typeof provider == 'object' &&
+      provider !== this.adapter &&
+      Reflect.get(Object(provider), 'name');
+    return !!name(a) && name(a) === name(b);
   }
 
   /** Dispatches the current configuration errors (each distinct one once) and logs its diagnostics, in a microtask. */
