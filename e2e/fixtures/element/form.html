@@ -1,0 +1,38 @@
+<!doctype html>
+<!-- WP4-20 form page: a required picker that submits through ElementInternals (name, lat-name, lng-name,
+     address-name), with the script build loaded last, as the README's CDN example does. -->
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Element form</title>
+    <style>
+      body {
+        margin: 0;
+        font: 16px sans-serif;
+      }
+      location-picker {
+        height: 320px;
+      }
+    </style>
+  </head>
+  <body>
+    <form id="f" method="get" action="/e2e/harness/blank.html">
+      <label for="where">Where is it?</label>
+      <location-picker
+        id="where"
+        name="loc"
+        lat-name="lat"
+        lng-name="lng"
+        address-name="address"
+        center="48.8584,2.2945"
+        zoom="15"
+        required
+        reverse-geocode
+      ></location-picker>
+      <button id="save" type="submit">Save</button>
+      <button id="reset" type="reset">Reset</button>
+    </form>
+    <script src="/dist/location-picker.global.js"></script>
+  </body>
+</html>

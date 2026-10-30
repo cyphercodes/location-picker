@@ -3,7 +3,19 @@
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 import classCss from '../../src/styles/class.css?inline';
 import { nextFrame } from '../fixtures/fake-adapter.js';
-import { create, flush, must, part, render, resetStore, summary } from './helpers.js';
+import { installGoogleMapsMock } from '../fixtures/google-maps-mock.js';
+import {
+  create,
+  define,
+  flush,
+  must,
+  part,
+  picker,
+  record,
+  render,
+  resetStore,
+  summary,
+} from './helpers.js';
 
 const frames: HTMLIFrameElement[] = [];
 beforeEach(() => resetStore());
@@ -117,6 +129,33 @@ describe('WP4-13 lifecycle (browser)', () => {
     await nextFrame();
     expect(fake.calls.resize).toBeGreaterThan(resized);
     expect(fake.calls.setView.at(-1)?.center).toEqual({ lat: 1, lng: 2 });
+  });
+
+  it("el.provider = 'google' replaces el.ready before the setter returns; it resolves with the Google map", async () => {
+    // Leaflet comes from the route table; Google from the in-page §12.6 mock.
+    const google = installGoogleMapsMock(window, { mode: 'importLibrary' });
+    try {
+      define();
+      document.body.innerHTML =
+        '<location-picker value="48.85837,2.294481" style="display:block;width:320px;height:240px"></location-picker>';
+      const el = picker();
+      const log = record(el);
+      await el.ready;
+      const leafletMap = el.map;
+      expect(google.stats.mapInstances).toHaveLength(0);
+
+      const before = el.ready;
+      el.provider = 'google';
+      const after = el.ready;
+      expect(after).not.toBe(before);
+      expect(await after).toBe(el);
+      expect(google.stats.mapInstances).toEqual([el.map]);
+      expect(el.map).not.toBe(leafletMap);
+      expect(el.value).toBe('48.85837,2.294481');
+      expect(summary(log)).toEqual(['ready', 'ready']);
+    } finally {
+      google.uninstall();
+    }
   });
 });
 
