@@ -14,6 +14,7 @@ export function App() {
           lat-name="lat"
           lng-name="lng"
           search
+          zoom={15}
           prop:value={location()}
           on:change={(e) => setLocation(e.detail.value)}
           style={{ display: 'block', height: '320px' }}

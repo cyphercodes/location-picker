@@ -16,6 +16,7 @@ export function HydrateApp() {
         name="location"
         reverse-geocode
         locate="button"
+        zoom={15}
         value={value}
         onChange={(e) => setValue(e.currentTarget.value)}
         ref={(el) => {

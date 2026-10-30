@@ -19,6 +19,7 @@ import 'location-picker';
         name="location"
         lat-input="lat"
         lng-input="lng"
+        zoom="15"
         required
         style="display: block; height: 320px"
       >

@@ -15,6 +15,10 @@ COMPATIBILITY.md
 smoke/*/dist/
 smoke/*/dist-server/
 smoke/*/.angular/
+smoke/next/.next/
+smoke/nuxt/.nuxt/
+smoke/nuxt/.output/
+smoke/astro/.astro/
 
 # Legacy files that their owners replace (WP6 removes example/, WP7 rewrites these docs); drop the lines then.
 example/

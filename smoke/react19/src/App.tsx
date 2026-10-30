@@ -17,6 +17,7 @@ export function App() {
           lat-name="lat"
           lng-name="lng"
           required
+          zoom={15}
           value={value}
           onChange={(e) => setValue(e.currentTarget.value)}
           onerror={(e) => setError(e.detail.code)}

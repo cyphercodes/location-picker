@@ -13,6 +13,9 @@ const SERVERS: Record<string, string> = {
   svelte5: 'node serve.mjs svelte5/dist',
   preact: 'node serve.mjs preact/dist',
   solid: 'node serve.mjs solid/dist',
+  next: 'cd next && npx next start -H 127.0.0.1 -p "$PORT"',
+  nuxt: 'node nuxt/.output/server/index.mjs',
+  astro: 'node serve.mjs astro/dist',
 };
 
 const app = process.env.SMOKE_APP;
@@ -40,7 +43,7 @@ export default defineConfig({
         webServer: {
           command,
           url: `http://127.0.0.1:${port}/`,
-          env: { PORT: String(port) },
+          env: { PORT: String(port), HOST: '127.0.0.1', NITRO_HOST: '127.0.0.1' },
           reuseExistingServer: false,
           timeout: 60_000,
           stdout: 'pipe',

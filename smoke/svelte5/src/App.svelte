@@ -13,6 +13,7 @@
     lat-name="lat"
     lng-name="lng"
     search
+    zoom={15}
     value={location}
     onchange={(e) => (location = e.detail.value)}
     style="display: block; height: 320px"

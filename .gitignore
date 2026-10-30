@@ -24,3 +24,7 @@ compat/screenshots/
 smoke/*/dist/
 smoke/*/dist-server/
 smoke/*/.angular/
+smoke/next/.next/
+smoke/nuxt/.nuxt/
+smoke/nuxt/.output/
+smoke/astro/.astro/

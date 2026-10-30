@@ -14,6 +14,7 @@ const address = ref(null);
     <location-picker
       id="loc"
       v-model="location"
+      :zoom="15"
       name="location"
       lat-name="lat"
       lng-name="lng"

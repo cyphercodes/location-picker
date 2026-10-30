@@ -1,0 +1,35 @@
+---
+// docs/frameworks.md Astro recipe: render the tag in the page; a bundled <script> imports the package.
+---
+
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Astro smoke</title>
+  </head>
+  <body>
+    <form method="post" action="/echo">
+      <label for="loc">Location</label>
+      <location-picker
+        id="loc"
+        name="location"
+        lat-name="lat"
+        lng-name="lng"
+        value="48.8584,2.2945"
+        zoom="15"
+        required
+        style="display: block; height: 360px"></location-picker>
+      <p>State: <output id="state">48.8584,2.2945</output></p>
+      <button>Save</button>
+    </form>
+    <script>
+      import 'location-picker';
+
+      document.getElementById('loc')?.addEventListener('change', (event) => {
+        const state = document.getElementById('state');
+        if (state && event instanceof CustomEvent) state.textContent = event.detail.value;
+      });
+    </script>
+  </body>
+</html>

@@ -62,11 +62,17 @@ jobs:
             svelte5,
             preact,
             solid,
+            next,
+            nuxt,
+            astro,
             vitest-jsdom,
             vitest-happy-dom,
           ]
     env:
       NG_CLI_ANALYTICS: 'false'
+      NEXT_TELEMETRY_DISABLED: '1'
+      NUXT_TELEMETRY_DISABLED: '1'
+      ASTRO_TELEMETRY_DISABLED: '1'
     steps:
       - uses: actions/checkout@v7
       - uses: actions/setup-node@v7

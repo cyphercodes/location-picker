@@ -38,7 +38,7 @@ app.get('/stores/1/edit', (_req, res) => {
     <input type="hidden" name="_method" value="PUT">
     <label for="store-location">Store location</label>
     <location-picker id="store-location" lat-input="lat" lng-input="lng" address-name="address"
-                     required search reverse-geocode style="height: 360px">
+                     zoom="15" required search reverse-geocode style="height: 360px">
       <input id="lat" name="lat" inputmode="decimal" value="${store.lat}" aria-label="Latitude">
       <input id="lng" name="lng" inputmode="decimal" value="${store.lng}" aria-label="Longitude">
     </location-picker>
@@ -57,7 +57,7 @@ app.get('/legacy', (_req, res) => {
     <input type="hidden" name="_method" value="PUT">
     <input type="hidden" name="lat" id="lat" value="${store.lat}">
     <input type="hidden" name="lng" id="lng" value="${store.lng}">
-    <location-picker id="store-location" lat-input="lat" lng-input="lng" style="height: 360px"></location-picker>
+    <location-picker id="store-location" lat-input="lat" lng-input="lng" zoom="15" style="height: 360px"></location-picker>
     <button type="submit">Save</button>
   </form>`,
     ),
