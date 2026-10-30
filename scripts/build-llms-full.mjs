@@ -13,6 +13,7 @@ const REPO = 'https://github.com/cyphercodes/location-picker/blob/master/';
 const SOURCES = [
   'README.md',
   'docs/forms.md',
+  'docs/embed.md',
   'docs/frameworks.md',
   'docs/providers.md',
   'docs/csp.md',

@@ -8,8 +8,9 @@ description: >-
   React, Vue, Angular, Svelte, Solid or Preact, or written into hidden lat/lng inputs (Laravel, Django, Rails,
   jQuery, Livewire, Alpine, htmx). Covers the keyless OpenStreetMap default, Google Maps and MapLibre providers,
   address search, reverse geocoding, a locate-me button, parsing coordinates from text or map URLs, Content
-  Security Policy, SSR and hydration, and upgrading location-picker 1.x or 2.x code (global locationPicker,
-  getMarkerPosition, setCurrentPosition).
+  Security Policy, SSR and hydration, a phone-first field mode, the hosted pick link that asks a person for a
+  location by URL, and upgrading location-picker 1.x or 2.x code (global locationPicker, getMarkerPosition,
+  setCurrentPosition).
 license: MIT
 metadata:
   homepage: https://cyphercodes.github.io/location-picker/
@@ -28,10 +29,13 @@ Do not use it for drawing shapes or routes, several markers, a full mapping appl
    - No bundler: `<script src="https://cdn.jsdelivr.net/npm/location-picker@3"></script>` (keep the `@3`). It defines `<location-picker>` and `window.LocationPicker`.
    - Bundler: `npm i location-picker`, then `import 'location-picker'` once in client code. It defines the element and is a no-op on the server.
    - Need the engine map synchronously, or no custom element: `import { LocationPicker } from 'location-picker/core'`.
-2. **Wire the value.** In a form, use `name` (one `"lat,lng"` field), `lat-name` + `lng-name` (two fields), or `lat-input` + `lng-input` (fill inputs the page already has). In a framework, bind `value` and listen to `change` (committed) or `input` (live). Use the per-framework event names below.
+2. **Wire the value.** In a form, use `name` (one `"lat,lng"` field), `lat-name` + `lng-name` (two fields), or `lat-input` + `lng-input` (fill inputs the page already has). In a framework, bind `value` and update state from `change` (committed); use `input` only to display live updates, and never write the value back from an `input` listener (in 3.0 that stops a pan in progress). Use the per-framework event names below.
 3. **Choose the provider.** Leave it out for OpenStreetMap. For Google Maps add `provider="google" api-key="YOUR_BROWSER_KEY"`. For MapLibre, the project must provide `maplibre-gl` and its CSS.
-4. **Add features only when asked:** `search`, `reverse-geocode` (with `address-name` or `addresschange`), `locate="button"`, `required`, `center` and `zoom`.
-5. **Check the result against "Common mistakes"** before you finish.
+4. **Choose the presentation.** Default inline (the map in the page). For checkout, delivery or sign-up forms that people fill in on phones, use `presentation="auto"`: a compact field with a "Choose on map" button on phones, the inline map elsewhere. In field mode `ready` resolves at the first open, so never gate the form on `el.ready`.
+5. **Add features only when asked:** `search`, `reverse-geocode` (with `address-name` or `addresschange`), `locate="button"`, `required`, `center` and `zoom`.
+6. **Check the result against "Common mistakes"** before you finish.
+
+If the user has no code at all (WordPress, Webflow, Squarespace, Shopify, a Formspree or Netlify form), point them to the snippet generator at https://cyphercodes.github.io/location-picker/embed/ and the platform guide https://github.com/cyphercodes/location-picker/blob/master/docs/embed.md. If an agent or a bot only needs to ask a person for a location, use the pick link (below) instead of building a page.
 
 ## Plain HTML
 
@@ -80,6 +84,33 @@ The element submits like an input. Existing hidden inputs (the most common patte
 - Progressive enhancement: put the inputs inside `<location-picker>`; without JavaScript they are visible and typeable.
 - Validate on the server too: latitude in [-90, 90], longitude in [-180, 180].
 
+## Phones: field mode
+
+<!-- prettier-ignore-start -->
+```html
+<form method="post" action="/deliveries">
+  <label for="drop">Delivery spot</label>
+  <location-picker id="drop" presentation="auto" name="location" search locate="button" reverse-geocode required></location-picker>
+  <button>Continue</button>
+</form>
+<script src="https://cdn.jsdelivr.net/npm/location-picker@3"></script>
+```
+<!-- prettier-ignore-end -->
+
+- `auto` is field mode where `(pointer: coarse) and (max-width: 640px)` matches, else inline; `field` always; `inline` is the default.
+- The map opens in a full-screen sheet; pans, search picks and locates there are a draft. Confirm commits (`input` then `change`); Cancel, Escape and `el.close()` change nothing and fire no `input`/`change`. `el.showPicker()` opens it; `toggle` fires on open and close.
+- Same names, `FormData`, `required` and events as inline. Do not set an inline `height` on a field-mode picker: it stretches the compact field (the inline map defaults to 320px).
+- Texts: `messages.chooseOnMap`, `fieldPlaceholder`, `cancel`, `confirm`. Parts: `field`, `field-value`, `field-button`, `sheet`, `sheet-header`, `cancel-button`; state `:state(open)`.
+
+## Asking a person for a location (agents and bots)
+
+To get one exact point from a person with nothing to install, send them `https://cyphercodes.github.io/location-picker/pick/`. It is a static page (no server, no storage) on OpenStreetMap.
+
+- Start: `lat` and `lng` (a point to confirm or adjust), `zoom` (1 to 19), `q` (search text; the first result is picked), `lang`.
+- Default: the person sees the result with copy buttons (decimal, DMS, `geo:`, map links) and can share it back to you.
+- `redirect=<https URL>`: after a click, the page goes there with `lat`, `lng` and `address` (when known) appended. `https://` only.
+- `return=postmessage&origin=<your origin>`: for a page that opened it with `window.open` or embeds it in an iframe. It posts `{ type: 'location-picker:pick', lat, lng, address }` (`address` may be `null`) to that origin only. Check `event.origin` and `event.data.type` in your listener.
+
 ## React 19 / Next.js App Router
 
 <!-- prettier-ignore-start -->
@@ -91,7 +122,7 @@ import { useState } from 'react';
 
 export function StoreLocationField({ initial = '' }: { initial?: string }) {
   const [value, setValue] = useState(initial);    // "lat,lng" or ""
-  // Attributes, value and onChange/onInput survive SSR hydration; objects (messages…) and onaddresschange go in a ref (§3.9).
+  // Attributes, value and onChange/onInput survive SSR hydration; objects (messages…) and onaddresschange go in a ref (see the React hydration recipe).
   return (
     <>
       <label htmlFor="loc">Location</label>
@@ -212,7 +243,7 @@ export class StoreFormComponent {
 | Preact | `onchange` | `oninput` | `onaddresschange` | `onready` | `onerror` |
 <!-- prettier-ignore-end -->
 
-React's lowercase native handlers are attached on client render only. After `hydrateRoot`, use a ref (React hydration recipe above).
+React's lowercase native handlers are attached on client render only. After `hydrateRoot`, use a ref (React hydration recipe above). Field mode's `toggle` event is `ontoggle` in React, Preact and Svelte, `@toggle` in Vue, `(toggle)` in Angular and `on:toggle` in Solid.
 
 ## Google Maps
 
@@ -323,5 +354,7 @@ Never configure Nominatim as the geocoder or suggest it for the search box. Its 
 - API reference: https://github.com/cyphercodes/location-picker/blob/master/docs/api.md
 - Forms: https://github.com/cyphercodes/location-picker/blob/master/docs/forms.md
 - Frameworks (Svelte, Solid, Preact, Nuxt, Astro, htmx): https://github.com/cyphercodes/location-picker/blob/master/docs/frameworks.md
+- No-code sites (WordPress, Webflow, Squarespace, Shopify): https://github.com/cyphercodes/location-picker/blob/master/docs/embed.md
+- AI agents, WebMCP and the pick link: https://github.com/cyphercodes/location-picker/blob/master/docs/ai-agents.md
 - Providers, Content Security Policy, troubleshooting: https://github.com/cyphercodes/location-picker/blob/master/docs/providers.md, https://github.com/cyphercodes/location-picker/blob/master/docs/csp.md, https://github.com/cyphercodes/location-picker/blob/master/docs/troubleshooting.md
 - Everything in one file: https://cyphercodes.github.io/location-picker/llms-full.txt

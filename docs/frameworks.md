@@ -2,8 +2,9 @@
 
 `<location-picker>` is a standard custom element, so every framework can render it. The rules are the same everywhere:
 
-- **Bind `value`**, a `"lat,lng"` string (`""` while unset). Writing it is silent and idempotent, so bindings never loop.
-- **Listen to `change`** for committed values, or **`input`** for live updates. Every commit fires `input` (final value) then `change`, so bindings that only listen to `input` still see search picks, locate results and `setLocation()`.
+- **Bind `value`**, a `"lat,lng"` string (`""` while unset). Writing it is silent (no events), so bindings never loop.
+- **Update your state from `change`** (committed values). Use **`input`** only to display live updates. Every commit fires `input` (final value) then `change`.
+- **Do not write the live value back from an `input` listener.** In 3.0, setting `value` while the user is moving the map (a drag or an arrow-key pan) stops the move without a commit, so `value` bound together with `onInput`/`oninput`/`on:input`/`@input` loses pans. Vue's `v-model` is not affected: Vue skips writes of an unchanged value.
 - **Spell configuration as HTML attributes** (`lat-name`, `api-key`, `reverse-geocode`). That is SSR-correct; the hyphen-less spellings (`latname`) are accepted too.
 - **Never bind `lat`/`lng`** in a template: they only set the initial value.
 - Objects (`messages`, `mapOptions`, `engine`, `geocoder`, `geolocation`) are properties, set from JavaScript.
@@ -37,6 +38,8 @@
 
 React's lowercase native handlers are attached on client render only. After `hydrateRoot`, use a ref (React hydration recipe below).
 
+Field mode's `toggle` event (the map sheet opened or closed): `ontoggle` in React, Preact and Svelte, `@toggle` in Vue, `(toggle)` in Angular, `on:toggle` in Solid.
+
 ## React 19 and Next.js
 
 Import `location-picker` in a client component, and the JSX typings once. React 19 sets `value`, `search`, `locate` and other props as properties when they exist on the element, and fires `onChange`/`onInput` for the element's events. React 18 sets attributes instead, so `value` binding needs React 19.
@@ -50,7 +53,7 @@ import { useState } from 'react';
 
 export function StoreLocationField({ initial = '' }: { initial?: string }) {
   const [value, setValue] = useState(initial);    // "lat,lng" or ""
-  // Attributes, value and onChange/onInput survive SSR hydration; objects (messages…) and onaddresschange go in a ref (§3.9).
+  // Attributes, value and onChange/onInput survive SSR hydration; objects (messages…) and onaddresschange go in a ref (see the React hydration recipe).
   return (
     <>
       <label htmlFor="loc">Location</label>
@@ -141,6 +144,28 @@ export default defineNuxtConfig({
 });
 ```
 <!-- prettier-ignore-end -->
+
+Vue's server-side compiler refuses `v-model` on custom elements (`v-model can only be used on <input>, <textarea> and <select>`), so server-rendered Nuxt templates bind `:value` and `@change` instead:
+
+<!-- prettier-ignore-start -->
+```vue
+<script setup lang="ts">
+import 'location-picker';
+import { ref } from 'vue';
+const location = ref('');                         // "lat,lng" or ""
+</script>
+<template>
+  <form method="post" action="/api/places">
+    <label for="loc">Location</label>
+    <location-picker id="loc" :value="location" @change="location = $event.detail.value"
+                     name="location" search style="height: 360px" />
+    <button>Save</button>
+  </form>
+</template>
+```
+<!-- prettier-ignore-end -->
+
+Do not use `@input` there: it writes the live value back during a pan (see the rules at the top of this page).
 
 Types for templates: `import type {} from 'location-picker/jsx/vue'`. The element keeps its state across `<KeepAlive>`.
 

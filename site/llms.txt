@@ -2,14 +2,16 @@
 
 > Form-ready map location picker: pan a map under a fixed pin to pick one latitude/longitude. Web component + class, keyless OpenStreetMap by default, Google and MapLibre optional.
 
-Use it when a form needs one precise point (store or sensor location, delivery pin, venue, report location). Not for drawing shapes, several markers, or full mapping apps.
+Use it when a form needs one precise point (store or sensor location, delivery pin, venue). Not for drawing shapes, several markers, or full mapping apps.
 
 - Script tag: `<script src="https://cdn.jsdelivr.net/npm/location-picker@3"></script>` defines `<location-picker>` and `window.LocationPicker`.
 - npm: `npm i location-picker`, then `import 'location-picker'` (defines the element). `location-picker/core` is the class only.
 - Forms: `name="loc"` submits `loc=48.85837,2.294481`; `lat-name`/`lng-name` submit separate fields; `lat-input`/`lng-input` fill existing inputs. `required` works; reset and back/forward are handled.
-- Value: `"lat,lng"` string, latitude first, `""` while unset. Every commit fires `input` then `change` with `detail` `{ value, lat, lng, source, zoom, address }`. Setting `el.value` is silent.
+- Value: `"lat,lng"` string, latitude first, `""` while unset. Every commit fires `input` then `change` with `detail` `{ value, lat, lng, source, zoom, address }`. Setting `el.value` is silent. Update state from `change`; never write it back from `input` (that stops a pan).
 - Options: `search`, `reverse-geocode`, `locate="button"`, `provider="google" api-key="…"`, `center`, `zoom`. Errors carry a `code` and a `fix`.
 - Providers and policies: OSM tiles need visible attribution and use your own tiles for heavy traffic; search uses Photon (fair use); Google results only on Google maps.
+- Phones: `presentation="auto"` (or `"field"`) shows a compact field with a "Choose on map" button; the map opens full screen and the value changes only on Confirm (Cancel changes nothing). Same names, FormData and events; `ready` resolves at the first open. Add `search locate="button"`. Use it in checkout/delivery/sign-up forms; default is inline.
+- To ask a person for a location with nothing to install, send `https://cyphercodes.github.io/location-picker/pick/` with `lat`, `lng`, `zoom`, `q`, `lang`, plus `redirect=<https URL>` (appends `lat`, `lng`, `address` after a click) or `return=postmessage&origin=<origin>` (posts `{ type: 'location-picker:pick', lat, lng, address }`).
 
 ```html
 <!doctype html>
@@ -90,26 +92,29 @@ Nominatim is never a default and never appears in these examples; its usage poli
 
 ## Docs
 
-- [README](https://github.com/cyphercodes/location-picker/blob/master/README.md): quick start, forms, frameworks, Google Maps, the JS class, attributes, policies
-- [API reference](https://github.com/cyphercodes/location-picker/blob/master/docs/api.md): every export, option, property, method and event, with defaults
-- [Forms](https://github.com/cyphercodes/location-picker/blob/master/docs/forms.md): FormData entries, bound inputs, Laravel/Django progressive enhancement, validation, reset
-- [Frameworks](https://github.com/cyphercodes/location-picker/blob/master/docs/frameworks.md): React/Next.js, Vue/Nuxt, Angular, Svelte, Solid, Preact, Astro, jQuery, htmx
-- [Providers and policies](https://github.com/cyphercodes/location-picker/blob/master/docs/providers.md): Leaflet/OSM tiles, Google Maps, MapLibre, Photon, custom geocoders and engines
-- [Content Security Policy](https://github.com/cyphercodes/location-picker/blob/master/docs/csp.md): CSP recipes per setup
-- [Error codes](https://github.com/cyphercodes/location-picker/blob/master/docs/errors.md): every `code` with its fix
+- [README](https://github.com/cyphercodes/location-picker/blob/master/README.md): quick start, forms, field mode, frameworks, Google Maps, the class
+- [API reference](https://github.com/cyphercodes/location-picker/blob/master/docs/api.md): every export, option, property, method and event
+- [Forms](https://github.com/cyphercodes/location-picker/blob/master/docs/forms.md): FormData, bound inputs, Laravel/Django, validation, reset
+- [Frameworks](https://github.com/cyphercodes/location-picker/blob/master/docs/frameworks.md): React/Next.js, Vue/Nuxt, Angular, Svelte, Solid, Preact, Astro, htmx
+- [Providers and policies](https://github.com/cyphercodes/location-picker/blob/master/docs/providers.md): OSM tiles, Google Maps, MapLibre, Photon, custom geocoders
+- [CSP](https://github.com/cyphercodes/location-picker/blob/master/docs/csp.md): recipes per setup
+- [Error codes](https://github.com/cyphercodes/location-picker/blob/master/docs/errors.md): every `code` and fix
 - [Troubleshooting](https://github.com/cyphercodes/location-picker/blob/master/docs/troubleshooting.md): symptoms, causes, fixes
 - [Migration](https://github.com/cyphercodes/location-picker/blob/master/docs/migration.md): every v1 and v2 API in v3
+- [No-code embed](https://github.com/cyphercodes/location-picker/blob/master/docs/embed.md): WordPress, Webflow, Squarespace, Shopify, form services
 
 ## Examples
 
-- [Live demo and lat/long finder](https://cyphercodes.github.io/location-picker/): keyless picker, Google tab, copy coordinates
+- [Live demo and lat/long finder](https://cyphercodes.github.io/location-picker/): keyless picker, copy coordinates
 - [Full demo](https://cyphercodes.github.io/location-picker/example/)
-- [Agent Skill](https://github.com/cyphercodes/location-picker/blob/master/skills/location-picker/SKILL.md): instructions for coding agents, also shipped in the npm package
+- [Snippet generator](https://cyphercodes.github.io/location-picker/embed/): a copy-paste field for site builders
+- [Pick link](https://cyphercodes.github.io/location-picker/pick/): ask a person for a location by URL
+- [Agent Skill](https://github.com/cyphercodes/location-picker/blob/master/skills/location-picker/SKILL.md): for coding agents, shipped in the npm package
 
 ## Optional
 
 - [llms-full.txt](https://cyphercodes.github.io/location-picker/llms-full.txt): the README and all docs in one file
-- [AI agents and WebMCP](https://github.com/cyphercodes/location-picker/blob/master/docs/ai-agents.md): agent resources and the opt-in WebMCP tools
-- [Compatibility](https://cyphercodes.github.io/location-picker/compat/): generated browser, device and framework test results
+- [AI agents and WebMCP](https://github.com/cyphercodes/location-picker/blob/master/docs/ai-agents.md): agent resources, opt-in WebMCP tools
+- [Compatibility](https://cyphercodes.github.io/location-picker/compat/): generated test results
 - [Changelog](https://github.com/cyphercodes/location-picker/blob/master/CHANGELOG.md)
 - [npm package](https://www.npmjs.com/package/location-picker)

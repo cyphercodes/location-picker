@@ -636,7 +636,7 @@ Unknown keys log a warning that lists the valid keys.
 - `lang`: `string` (optional). BCP 47 language for UI, Photon `lang` (when supported) and Google `language`. Default: closest [lang], then navigator.language.
 - `injectStyles`: `boolean` (optional). Adopt the picker CSS into the target's root node (adoptedStyleSheets; `<style nonce>` fallback). `false` + `import 'location-picker/style.css'` for strict CSP. Default: `true`.
 - `nonce`: `string` (optional). CSP nonce for any `<script>`, `<link>` or `<style>` the library inserts. Default: nonce of the document's first `script[nonce]`.
-- `webmcp`: `boolean` (optional). Register WebMCP tools (experimental; no-op when unsupported). Lazy-loads `location-picker/webmcp`. Default: `false`.
+- `webmcp`: `boolean` (optional). Register WebMCP tools (experimental; no-op when unsupported). Lazy-loads `location-picker/webmcp`. Default: `false`. **3.0:** on the class this option does not register tools yet (it arrives in 3.1); call `registerWebMcpTools(picker)` instead. The element's `webmcp` attribute works.
 - `signal`: `AbortSignal` (optional). Aborting it calls `destroy()`.
 - `apiKey`: `string` (optional). Google browser key (restrict by HTTP referrer). Injects Google's official inline bootstrap if google.maps is absent. Selects `provider: 'google'` when `provider` is omitted.
 - `mapId`: `string` (optional). Google map ID; needed only for `marker: 'advanced'`. Selects `'google'` when `provider` is omitted.
