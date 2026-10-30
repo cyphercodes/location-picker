@@ -13,9 +13,6 @@ export const SITE_HOSTS: readonly string[] = [
   'photon.komoot.io',
 ];
 
-/** WP3's Google adapter and its mock land together; until then the keyed Google checks cannot run. */
-export const GOOGLE_READY: boolean = existsSync('e2e/fixtures/google-maps-mock.js');
-
 export function requireBuiltSite(): void {
   if (!existsSync('_site/index.html')) {
     throw new Error('_site/ is missing: run `npm run build && node scripts/build-site.mjs` first');

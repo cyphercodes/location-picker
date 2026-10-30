@@ -26,6 +26,8 @@ async function buildSite() {
   for (const file of ['leaflet.js', 'leaflet.css', 'images']) {
     await cp(join(LEAFLET, file), join(OUT, 'vendor/leaflet', file), { recursive: true });
   }
+  // Leaflet is BSD-2-Clause: its licence travels with the copy.
+  await cp(join(LEAFLET, '../LICENSE'), join(OUT, 'vendor/leaflet/LICENSE'));
   if (existsSync('compat/compat.json')) {
     await cp('compat/compat.json', join(OUT, 'compat/compat.json'));
   }

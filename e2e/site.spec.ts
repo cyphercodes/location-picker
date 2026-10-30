@@ -8,7 +8,6 @@ import { expect, test } from './harness/fixtures.js';
 import {
   collectProblems,
   expectOnlyHosts,
-  GOOGLE_READY,
   lastCopied,
   pan,
   recordClipboard,
@@ -131,7 +130,6 @@ test.describe('WP6-04 Google tab', () => {
     page,
     context,
   }) => {
-    test.skip(!GOOGLE_READY, 'needs WP3 Google (src/google.ts + e2e/fixtures/google-maps-mock.js)');
     const KEY = 'TEST_KEY_wp6_04';
     const carriers: string[] = [];
     page.on('request', (request) => {
@@ -153,7 +151,6 @@ test.describe('WP6-04 Google tab', () => {
   });
 
   test('ten rapid toggles never show two engine containers', async ({ page }) => {
-    test.skip(!GOOGLE_READY, 'needs WP3 Google (src/google.ts + e2e/fixtures/google-maps-mock.js)');
     await page.addInitScript(([store]) => localStorage.setItem(store, 'TEST_KEY_toggle'), [
       KEY_STORE,
     ] as const);
@@ -161,17 +158,19 @@ test.describe('WP6-04 Google tab', () => {
     const picker = page.locator('#picker');
     await waitReady(picker);
     await page.evaluate(() => {
-      const most = { count: 0 };
-      Reflect.set(window, '__mostContainers', most);
+      // Per-frame maxima: map containers, Leaflet map panes and Google maps (.gm-style, as Google and the mock render).
+      const most = { containers: 0, leaflet: 0, google: 0, engines: 0 };
+      Reflect.set(window, '__most', most);
       const host = document.getElementById('picker');
       const sample = (): void => {
         const root = host?.shadowRoot;
-        // Map containers, and engines rendered in them: Leaflet's map pane, or the Google map's own inner div.
-        const containers = root?.querySelectorAll('[part~="map"]').length ?? 0;
-        const leaflet = root?.querySelectorAll('.leaflet-map-pane').length ?? 0;
-        const google =
-          root?.querySelectorAll('[part~="map"] > div:not([class*="leaflet"])').length ?? 0;
-        most.count = Math.max(most.count, containers, leaflet + google);
+        const count = (selector: string): number => root?.querySelectorAll(selector).length ?? 0;
+        const leaflet = count('.leaflet-map-pane');
+        const google = count('.gm-style');
+        most.containers = Math.max(most.containers, count('[part~="map"]'));
+        most.leaflet = Math.max(most.leaflet, leaflet);
+        most.google = Math.max(most.google, google);
+        most.engines = Math.max(most.engines, leaflet + google);
         requestAnimationFrame(sample);
       };
       sample();
@@ -179,14 +178,22 @@ test.describe('WP6-04 Google tab', () => {
     const google = page.getByRole('radio', { name: 'Google Maps' });
     const osm = page.getByRole('radio', { name: 'OpenStreetMap' });
     for (let i = 0; i < 10; i++) await (i % 2 ? osm : google).check();
+    // Settle on Google once, so the sampler provably sees a Google map.
+    await google.check();
+    await expect.poll(() => picker.getAttribute('provider')).toBe('google');
     await waitReady(picker);
-    expect(
-      await page.evaluate(() => Reflect.get(window, '__mostContainers').count),
-    ).toBeLessThanOrEqual(1);
+    await expect
+      .poll(() => picker.evaluate((el) => el.shadowRoot?.querySelectorAll('.gm-style').length))
+      .toBe(1);
+    expect(await page.evaluate(() => Reflect.get(window, '__most'))).toEqual({
+      containers: 1,
+      leaflet: 1,
+      google: 1,
+      engines: 1,
+    });
   });
 
   test('a provider switch leaves no address of the other provider anywhere', async ({ page }) => {
-    test.skip(!GOOGLE_READY, 'needs WP3 Google (src/google.ts + e2e/fixtures/google-maps-mock.js)');
     const GOOGLE_ADDRESS = 'Google address marker, Paris';
     await page.addInitScript(([store]) => localStorage.setItem(store, 'TEST_KEY_switch'), [
       KEY_STORE,
