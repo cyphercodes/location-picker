@@ -1,28 +1,23 @@
 // WP2-24 (plus WP2-23 and the cross-engine half of WP2-15): the built core (dist/core.mjs) on real Leaflet 1.9.4 in
 // Chromium, Firefox and WebKit across the e2e matrix.
 //
-// src/leaflet.ts (WP3) is still a placeholder, so the pages pass a test-local Leaflet adapter that follows §4.2's event
-// mapping. Leaflet and its CSS come from the routed jsDelivr URLs (SRI), loaded through the core's MountContext loaders;
-// tiles come from the routed OSM URL. Touch projects drive touch through synthetic pointer + touch events (Playwright
-// has no touch-drag API); mouse projects use real mouse and wheel input. Keyboard runs everywhere.
+// The pages use the real WP3 adapter (dist/leaflet.mjs, leafletProvider()), wrapped only to record the MountContext it
+// receives. Leaflet and its CSS come from the routed jsDelivr URLs (SRI), auto-loaded by the adapter through the core's
+// MountContext loaders; tiles come from the routed OSM URL. Touch projects drive touch through synthetic pointer +
+// touch events (Playwright has no touch-drag API); mouse projects use real mouse and wheel input. Keyboard runs
+// everywhere.
 import type { Browser, Page } from '@playwright/test';
 import type * as Leaflet from 'leaflet';
 import type * as Core from '../src/core.js';
+import type * as LeafletEntry from '../src/leaflet.js';
 import type { LocateMode, LocationPicker, MountContext } from '../src/core.js';
 import { parseLatLng } from '../src/utils.js';
 import { installRoutes, takeBlockedRequests } from '../test/fixtures/routes.js';
 import { expect, test } from './harness/fixtures.js';
 
 const BLANK = '/e2e/harness/blank.html';
-const URLS = {
-  js: 'https://cdn.jsdelivr.net/npm/leaflet@1.9.4/dist/leaflet.js',
-  jsSri: 'sha256-20nQCchB9co0qIjJZRGuk2/Z9VM+kNiyxNV1lvTlZBo=',
-  css: 'https://cdn.jsdelivr.net/npm/leaflet@1.9.4/dist/leaflet.css',
-  cssSri: 'sha256-p4NxAoJBhIIN+hmNHrzRCf9tD/miZyoHS5obTRR9BMY=',
-};
 const EIFFEL = '48.8584,2.2945';
 
-type Urls = typeof URLS;
 type Input = 'mouse' | 'touch';
 interface Point {
   readonly x: number;
@@ -47,7 +42,7 @@ interface Logged {
 }
 /** window.lp: pickers by target id, their event logs, and the mount contexts the adapter received. */
 interface Harness {
-  /** The test-local Leaflet adapter (works with any library copy: it only talks to its MountContext). */
+  /** leafletProvider() from dist/leaflet.mjs (works with any library copy: it only talks to its MountContext). */
   readonly adapter: Core.ProviderAdapter<Leaflet.Map>;
   create(id: string, options?: PageOptions): Promise<void>;
   readonly pickers: Record<string, LocationPicker<Leaflet.Map>>;
@@ -55,77 +50,19 @@ interface Harness {
   context(id: string): MountContext | undefined;
 }
 
-/**
- * Runs in the page. A minimal Leaflet adapter wired as CONTRACT §4.2 specifies (move -> move, moveend -> moveEnd +
- * interactionEnd, capture-phase pointerdown/wheel/keydown -> interactionStart, pointerup/pointercancel ->
- * interactionEnd); WP3's leafletProvider() replaces it once src/leaflet.ts lands.
- */
-function installHarness(urls: Urls): void {
-  const { core }: { core: typeof Core } = Reflect.get(window, 'lpModules');
+/** Runs in the page: the real leafletProvider(), recording the MountContext of each picker. */
+function installHarness(): void {
+  const { core, leaflet }: { core: typeof Core; leaflet: typeof LeafletEntry } = Reflect.get(
+    window,
+    'lpModules',
+  );
   const contexts = new WeakMap<HTMLElement, MountContext>();
-  const panKeys = /^(Arrow(Up|Down|Left|Right)|\+|-|=)$/;
-
+  const real = leaflet.leafletProvider<Leaflet.Map>();
   const adapter: Core.ProviderAdapter<Leaflet.Map> = {
-    name: 'leaflet-e2e',
-    async load(ctx) {
-      void ctx.loadStylesheet(urls.css, urls.cssSri);
-      await ctx.loadScript(urls.js, urls.jsSri);
-    },
+    ...real,
     mount(ctx) {
       contexts.set(ctx.container, ctx);
-      const L: typeof Leaflet = Reflect.get(window, 'L');
-      const { container, view, events, signal } = ctx;
-      const map = new L.Map(container, {
-        center: [view.center.lat, view.center.lng],
-        zoom: view.zoom,
-        scrollWheelZoom: 'center',
-        doubleClickZoom: 'center',
-        touchZoom: 'center',
-        boxZoom: false,
-        keyboard: true,
-      });
-      new L.TileLayer('https://tile.openstreetmap.org/{z}/{x}/{y}.png', {
-        maxZoom: 19,
-        attribution: '&copy; OpenStreetMap contributors',
-      }).addTo(map);
-      const centre = (): { lat: number; lng: number } => {
-        const { lat, lng } = map.getCenter();
-        return { lat, lng };
-      };
-      map.on('move', () => events.move(centre()));
-      map.on('moveend', () => {
-        events.moveEnd(centre(), map.getZoom());
-        events.interactionEnd();
-      });
-      const capture = { capture: true, signal };
-      const start = (): void => events.interactionStart();
-      container.addEventListener('pointerdown', start, capture);
-      container.addEventListener('wheel', start, capture);
-      container.addEventListener(
-        'keydown',
-        (event) => {
-          if (panKeys.test(event.key)) start();
-        },
-        capture,
-      );
-      container.addEventListener('pointerup', () => events.interactionEnd(), capture);
-      container.addEventListener('pointercancel', () => events.interactionEnd(), capture);
-      return {
-        map,
-        getCenter: centre,
-        getZoom: () => map.getZoom(),
-        setView: (center, zoom, { animate }) =>
-          map.setView([center.lat, center.lng], zoom ?? map.getZoom(), { animate }),
-        setZoom: (zoom) => map.setZoom(zoom),
-        setInteractive(mode) {
-          for (const handler of [map.dragging, map.keyboard])
-            handler[mode == 'full' ? 'enable' : 'disable']();
-          for (const handler of [map.scrollWheelZoom, map.touchZoom, map.doubleClickZoom])
-            handler[mode == 'none' ? 'disable' : 'enable']();
-        },
-        resize: () => map.invalidateSize(false),
-        destroy: () => map.remove(),
-      };
+      return real.mount(ctx);
     },
   };
 
@@ -173,10 +110,12 @@ async function openPage(page: Page, body: string, css = ''): Promise<void> {
   );
   await page.addScriptTag({
     type: 'module',
-    content: `import * as core from '/dist/core.mjs'; window.lpModules = { core };`,
+    content:
+      `import * as core from '/dist/core.mjs'; import * as leaflet from '/dist/leaflet.mjs';` +
+      `window.lpModules = { core, leaflet };`,
   });
   await page.waitForFunction(() => Reflect.has(window, 'lpModules'));
-  await page.evaluate(installHarness, URLS);
+  await page.evaluate(installHarness);
 }
 
 async function create(page: Page, id: string, options: PageOptions = {}): Promise<void> {
@@ -416,9 +355,16 @@ test.describe('WP2-24 value semantics on real Leaflet', () => {
     );
 
     await page.keyboard.press('Enter');
+    // A8: Enter commits the centre the adapter last reported, which is Leaflet's whole-pixel centre (the adapter
+    // reports the one invalidateSize re-derives): within a pixel of `center` (1 px is about 0.00004° here).
+    const { centre } = await pickerState(page, 'a');
+    const [lat, lng] = [+centre.lat.toFixed(6), +centre.lng.toFixed(6)];
+    expect(Math.abs(lat - 48.8584)).toBeLessThan(0.00005);
+    expect(Math.abs(lng - 2.2945)).toBeLessThan(0.00005);
+    const value = `${lat},${lng}`;
     expect(await logOf(page, 'a')).toEqual([
-      { type: 'input', value: EIFFEL, lat: 48.8584, lng: 2.2945, source: 'user', zoom: 15 },
-      { type: 'change', value: EIFFEL, lat: 48.8584, lng: 2.2945, source: 'user', zoom: 15 },
+      { type: 'input', value, lat, lng, source: 'user', zoom: 15 },
+      { type: 'change', value, lat, lng, source: 'user', zoom: 15 },
     ]);
     await expect(page.locator('#a .lp-confirm')).toBeHidden();
     expect((await pickerState(page, 'a')).states).not.toContain('lp-is-unset');

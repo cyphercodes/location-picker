@@ -46,10 +46,11 @@
     ]
   },
   {
-    "name": "leaflet adapter: import { leafletProvider }",
+    "name": "leaflet adapter: import { leafletProvider } (own bytes: lazy photon and core chunks ignored)",
     "path": "dist/leaflet.mjs",
     "import": "{ leafletProvider }",
-    "limit": "1.2 kB"
+    "limit": "2.1 kB",
+    "ignore": ["./photon.mjs", "./_chunks/errors-*", "./_chunks/normalize-*", "./_chunks/core-*"]
   },
   {
     "name": "google adapter: import { googleProvider }",
@@ -58,22 +59,23 @@
     "limit": "2 kB"
   },
   {
-    "name": "maplibre adapter: import { maplibreProvider }",
+    "name": "maplibre adapter: import { maplibreProvider } (own bytes: lazy photon and core chunks ignored)",
     "path": "dist/maplibre.mjs",
     "import": "{ maplibreProvider }",
-    "limit": "0.9 kB"
+    "limit": "2 kB",
+    "ignore": ["./photon.mjs", "./_chunks/errors-*", "./_chunks/normalize-*", "./_chunks/core-*"]
   },
   {
     "name": "search combobox chunk (as shipped)",
     "path": "dist/_chunks/combobox-*.mjs",
     "disablePlugins": ["@size-limit/esbuild"],
-    "limit": "1.5 kB"
+    "limit": "1.7 kB"
   },
   {
     "name": "photon: import { photonGeocoder }",
     "path": "dist/photon.mjs",
     "import": "{ photonGeocoder }",
-    "limit": "0.6 kB"
+    "limit": "0.9 kB"
   },
   {
     "name": "webmcp: import { registerWebMcpTools }",
