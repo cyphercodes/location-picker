@@ -313,7 +313,11 @@ export interface LocationPickerOptions<TMap = unknown> {
   injectStyles?: boolean;
   /** CSP nonce for any `<script>`, `<link>` or `<style>` the library inserts. @default nonce of the document's first `script[nonce]` */
   nonce?: string;
-  /** Register WebMCP tools (experimental; no-op when unsupported). Lazy-loads `location-picker/webmcp`. @default false */
+  /**
+   * Register WebMCP tools (experimental; no-op when unsupported). In 3.0 the `LocationPicker` class does not act on it yet
+   * (planned for 3.1): call `registerWebMcpTools(picker)` from `location-picker/webmcp`. The element's `webmcp` attribute
+   * works. @default false
+   */
   webmcp?: boolean;
   /** Aborting it calls `destroy()`. */
   signal?: AbortSignal;
