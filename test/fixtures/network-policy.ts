@@ -21,12 +21,15 @@ export const ROUTED_URLS: {
   readonly photon: RegExp;
   readonly google: RegExp;
   readonly library: RegExp;
+  readonly openfreemap: RegExp;
 } = {
   leaflet: /^https:\/\/cdn\.jsdelivr\.net\/npm\/leaflet@1\.9\.4\/dist\//,
   tiles: /^https:\/\/tile\.openstreetmap\.org\//,
   photon: /^https:\/\/photon\.komoot\.io\//,
   google: /^https:\/\/maps\.googleapis\.com\//,
   library: /^https:\/\/cdn\.jsdelivr\.net\/npm\/location-picker@3(\.[\d.]+[\w.-]*)?(\/|$)/,
+  /** The MapLibre default style (OPENFREEMAP_STYLE_URL); answered with a sourceless style. */
+  openfreemap: /^https:\/\/tiles\.openfreemap\.org\/styles\//,
 };
 
 export const ALLOWED_EXTERNAL_PATTERNS: readonly RegExp[] = Object.values(ROUTED_URLS);

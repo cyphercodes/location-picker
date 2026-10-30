@@ -166,8 +166,8 @@ describe('providers (§12.4)', () => {
     expect(await lazy).toBe(adapter);
   });
 
-  it('the built-in loaders import the WP3 entries (placeholders throw until WP3 lands)', async () => {
-    await expect(loadProvider('maplibre')).rejects.toMatchObject({ code: 'ENGINE_LOAD_FAILED' });
+  it('the built-in loaders import the WP3 entries and call their factories', async () => {
+    await expect(loadProvider('maplibre')).resolves.toMatchObject({ name: 'maplibre' });
   });
 
   it('checkPairing refuses a geocoder whose pairsWith excludes the provider', () => {
