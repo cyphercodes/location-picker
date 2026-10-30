@@ -9,16 +9,6 @@ on:
     - cron: '41 2 * * 2'
   push:
     tags: ['v*']
-    # TEMPORARY (WP5 lane): a workflow file that is not on master cannot be dispatched, so the lane branch runs it on
-    # push while it iterates. The integrator drops these lines when merging into v3.
-    branches: [v3-compat]
-    paths:
-      [
-        '.github/workflows/compat.yml',
-        'e2e/**',
-        'scripts/compat-report.mjs',
-        'playwright.config.ts',
-      ]
   workflow_dispatch:
 
 permissions:
