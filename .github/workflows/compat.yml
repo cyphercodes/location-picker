@@ -81,7 +81,9 @@ jobs:
           path: all-blob-reports
           merge-multiple: true
       - name: Merge the shards into compat/compat.json (validated against CONTRACT §12.8)
-        run: npx playwright merge-reports --reporter=./e2e/compat-reporter.ts all-blob-reports
+        run: |
+          rm -f compat/compat.json COMPATIBILITY.md
+          npx playwright merge-reports --reporter=./e2e/compat-reporter.ts all-blob-reports
       - name: Generate COMPATIBILITY.md
         run: |
           node scripts/compat-report.mjs

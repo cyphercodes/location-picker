@@ -8,7 +8,7 @@
 import { execFileSync } from 'node:child_process';
 import { copyFileSync, existsSync, mkdirSync, readFileSync, rmSync, writeFileSync } from 'node:fs';
 import { join, resolve } from 'node:path';
-import type { FullConfig, FullResult, Reporter, Suite, TestCase } from '@playwright/test/reporter';
+import type { FullConfig, Reporter, Suite, TestCase } from '@playwright/test/reporter';
 import { REAL_HARDWARE, validateCompatReport } from '../scripts/compat-report.mjs';
 import type { CompatEnvironment, CompatReport, CompatResult } from '../src/internal/contracts.js';
 import type { MatrixEnvironment } from './matrix.js';
@@ -183,23 +183,24 @@ export default class CompatReporter implements Reporter {
     this.root = suite;
   }
 
-  async onEnd(): Promise<{ status: FullResult['status'] } | undefined> {
+  async onEnd(): Promise<void> {
     const config = this.config;
     const root = this.root;
-    if (!config || !root) return undefined;
+    if (!config || !root) return;
 
-    const environments: MatrixEnvironment[] = [];
+    // Merged shards repeat a project once per blob that ran some of its tests.
+    const environments = new Map<string, MatrixEnvironment>();
     const tests: RunTest[] = [];
     for (const projectSuite of root.suites) {
       const env: unknown = projectSuite.project()?.metadata?.env;
       if (!isMatrixEnvironment(env)) continue;
-      environments.push(env);
+      if (!environments.has(env.id)) environments.set(env.id, env);
       for (const test of projectSuite.allTests()) tests.push(runTest(env, test));
     }
 
     const pkg: { version?: unknown } = JSON.parse(readFileSync('package.json', 'utf8'));
     const version = typeof pkg.version === 'string' ? pkg.version : 'unknown';
-    const { report, screenshots } = buildReport(environments, tests, {
+    const { report, screenshots } = buildReport([...environments.values()], tests, {
       generatedAt: new Date().toISOString(),
       packageVersion: version,
       commit: commitOf(),
@@ -207,9 +208,11 @@ export default class CompatReporter implements Reporter {
       node: process.version,
     });
     const errors = validateCompatReport(report);
+    // Throwing makes Playwright exit non-zero in both modes (a returned status does not for merge-reports).
     if (errors.length > 0) {
-      console.error(`[compat] the report does not match CONTRACT §12.8:\n  ${errors.join('\n  ')}`);
-      return { status: 'failed' };
+      throw new Error(
+        `[compat] the report does not match CONTRACT §12.8:\n  ${errors.join('\n  ')}`,
+      );
     }
 
     rmSync(join(this.outDir, 'screenshots'), { recursive: true, force: true });
@@ -225,7 +228,6 @@ export default class CompatReporter implements Reporter {
       `[compat] ${join(this.outDir, 'compat.json')}: ${report.environments.length} environments, ` +
         `${report.results.length} results (${failed} failed), ${screenshots.length} screenshots`,
     );
-    return undefined;
   }
 }
 
