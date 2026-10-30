@@ -474,7 +474,78 @@ test.describe('WP3-22 synchronous .map while leaflet.css takes 3 s', () => {
   });
 });
 
+/** Puts maplibre-gl 6.14 (node_modules, unbundled, so its worker resolves) on window.maplibregl; false without WebGL2. */
+async function loadMapLibre(page: Page): Promise<boolean> {
+  return page.evaluate(async () => {
+    if (!document.createElement('canvas').getContext('webgl2')) return false;
+    const maplibregl: object = await import(
+      '/node_modules/maplibre-gl/dist/maplibre-gl.mjs' as string
+    );
+    Reflect.set(window, 'maplibregl', maplibregl);
+    return true;
+  });
+}
+
 test.describe('WP3-15 real maplibre-gl 6.14', () => {
+  test("with maplibre-gl.css in a Document, a user ShadowRoot (step 3') or engineCssUrl: no warning", async ({
+    page,
+    browserName,
+  }) => {
+    const css = '/node_modules/maplibre-gl/dist/maplibre-gl.css';
+    for (const mode of ['document', 'shadow', 'engineCssUrl'] as const) {
+      const host = mode == 'shadow' ? 'host' : undefined;
+      // oxlint-disable-next-line no-await-in-loop -- one page per mode
+      await openPage(
+        page,
+        '<div id="map" class="map"></div><div id="host"></div>',
+        mode == 'engineCssUrl' ? '' : `<link rel="stylesheet" href="${css}">`,
+      );
+      // oxlint-disable-next-line no-await-in-loop
+      test.skip(!(await loadMapLibre(page)), `no WebGL2 in this ${browserName} build`);
+      // oxlint-disable-next-line no-await-in-loop
+      await create(page, 'map', {
+        init: { provider: 'maplibre', ...(mode == 'engineCssUrl' && { engineCssUrl: css }) },
+        ...(host && { shadowHost: host }),
+      });
+      // oxlint-disable-next-line no-await-in-loop
+      await ready(page, 'map');
+      const state = () =>
+        page.evaluate((shadowHost) => {
+          const root = shadowHost ? document.getElementById(shadowHost)?.shadowRoot : document;
+          const canvas = root?.querySelector('#map .maplibregl-canvas');
+          const describe = (link: HTMLLinkElement) => ({
+            href: new URL(link.href).pathname,
+            integrity: link.integrity,
+            crossorigin: link.getAttribute('crossorigin'),
+          });
+          return {
+            canvas: canvas ? getComputedStyle(canvas).position : 'none',
+            head: [...document.head.querySelectorAll<HTMLLinkElement>('link')].map(describe),
+            root: [
+              ...(document
+                .getElementById('host')
+                ?.shadowRoot?.querySelectorAll<HTMLLinkElement>('link') ?? []),
+            ].map(describe),
+          };
+        }, host);
+      // oxlint-disable-next-line no-await-in-loop
+      await expect.poll(async () => (await state()).canvas).toBe('absolute');
+      // Step 5 runs once the CSS work settled; give it a moment, then nothing may have been reported.
+      // oxlint-disable-next-line no-await-in-loop
+      await page.waitForTimeout(300);
+      // oxlint-disable-next-line no-await-in-loop
+      expect(
+        (await logOf(page)).filter((e) => e.type == 'error'),
+        mode,
+      ).toEqual([]);
+      // oxlint-disable-next-line no-await-in-loop
+      const { head, root } = await state();
+      const link = { href: css, integrity: '', crossorigin: null };
+      expect(head, mode).toEqual([link]);
+      expect(root, mode).toEqual([]);
+    }
+  });
+
   test('[lng, lat] centre, OpenFreeMap style, wheel zoom keeps the value, no rotation, CSS fix', async ({
     page,
     browserName,
