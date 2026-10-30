@@ -309,6 +309,20 @@ describe('A10 field mode: methods, forms and bound inputs', () => {
     expect(submitted).toBe(true);
   });
 
+  it('interacted: a blur after focus marks an empty required field, before the sheet ever loads', async () => {
+    const { el, fake } = render(
+      '<location-picker presentation="field" required></location-picker><button id="after">x</button>',
+    );
+    await flush();
+    expect(el.matches(':state(interacted)')).toBe(false);
+    el.focus();
+    expect(el.shadowRoot?.activeElement).toBe(part(el, 'field-button'));
+    document.querySelector<HTMLButtonElement>('#after')!.focus();
+    expect(el.matches(':state(interacted)')).toBe(true);
+    expect(el.matches(':invalid')).toBe(true);
+    expect(fake.mountCount).toBe(0);
+  });
+
   it('disabled: the button is disabled and showPicker() does nothing', async () => {
     const { el } = render('<location-picker presentation="field" disabled></location-picker>');
     expect(part(el, 'field-button')).toHaveProperty('disabled', true);

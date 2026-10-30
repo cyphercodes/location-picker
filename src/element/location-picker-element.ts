@@ -250,7 +250,7 @@ class Controller implements SheetHost {
     const promise = new Promise<void>((resolve, reject) => (settle = { resolve, reject }));
     promise.catch(noop);
     this.first = { promise, ...settle };
-    el.addEventListener('blur', () => this.core?.markInteracted());
+    el.addEventListener('blur', () => this.blurred());
   }
 
   // ---- configuration ---------------------------------------------------------------------------------------------
@@ -408,6 +408,14 @@ class Controller implements SheetHost {
       address: state.address,
       ...(state.zoom !== undefined && { zoom: state.zoom }),
     });
+  }
+
+  /** §3.4 `interacted`: the first blur after focus (field mode before the sheet's core exists: the kept state). */
+  blurred(): void {
+    if (this.core) return this.core.markInteracted();
+    if (!this.fieldLive || this.state.interacted) return;
+    this.state.interacted = true;
+    this.updateForm();
   }
 
   tracked<T>(locating: Promise<T>): Promise<T> {
@@ -582,7 +590,10 @@ class Controller implements SheetHost {
   updateField(): void {
     const { field, state, config, inputs } = this;
     field?.render(state.value, state.address, config.messages, config.disabled);
-    if (!this.core) this.setState('unset', !state.value);
+    if (!this.core) {
+      this.setState('unset', !state.value);
+      this.setState('interacted', state.interacted);
+    }
     const key = `${state.value}\n${state.address ?? ''}`;
     if (inputs && key != this.inputsKey) {
       this.inputsKey = key;
