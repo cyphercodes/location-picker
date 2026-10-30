@@ -1,0 +1,197 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+    <meta
+      http-equiv="Content-Security-Policy"
+      content="default-src 'self'; script-src 'self'; style-src 'self' 'unsafe-inline'; img-src 'self' data: https://tile.openstreetmap.org; connect-src 'self' https://photon.komoot.io; base-uri 'none'; form-action 'none'; object-src 'none'"
+    />
+    <meta name="referrer" content="strict-origin-when-cross-origin" />
+    <title>Pick a location on the map · location-picker</title>
+    <meta
+      name="description"
+      content="Choose an exact location on a map and send it back: copy the coordinates, share the pin, or return it to the page that asked. No account, no storage, no tracking."
+    />
+    <link rel="canonical" href="https://cyphercodes.github.io/location-picker/pick/" />
+    <meta property="og:title" content="Pick a location on the map" />
+    <meta
+      property="og:description"
+      content="Drop a pin on the exact spot and send it back. Nothing to install."
+    />
+    <meta property="og:image" content="https://cyphercodes.github.io/location-picker/og.png" />
+    <meta name="twitter:card" content="summary_large_image" />
+    <link rel="icon" href="../favicon.svg" type="image/svg+xml" />
+    <link rel="stylesheet" href="../styles.css" />
+    <script type="module" src="pick.js"></script>
+    <script defer src="../vendor/leaflet/leaflet.js"></script>
+    <script defer src="../location-picker.global.js"></script>
+  </head>
+  <body class="pick-page">
+    <header class="pick-header">
+      <a class="brand" href="../" aria-label="location-picker home">
+        <svg viewBox="0 0 28 44" aria-hidden="true">
+          <path
+            d="M14 0C6.3 0 0 6.2 0 13.9 0 24.3 14 44 14 44s14-19.7 14-30.1C28 6.2 21.7 0 14 0z"
+            fill="#e11d48"
+          />
+          <circle cx="14" cy="14" r="5.5" fill="#fff" />
+        </svg>
+      </a>
+      <div>
+        <h1>Pick a location</h1>
+        <p id="pick-prompt">Move the map until the pin marks the exact spot.</p>
+      </div>
+    </header>
+
+    <main class="pick-main">
+      <div class="pick-map">
+        <location-picker
+          id="picker"
+          search
+          reverse-geocode
+          locate="button"
+          engine-css-url="../vendor/leaflet/leaflet.css"
+          aria-label="Location to send"
+        >
+          <noscript>This page needs JavaScript to show the map.</noscript>
+        </location-picker>
+      </div>
+
+      <section class="pick-panel card" aria-labelledby="pick-panel-title">
+        <h2 id="pick-panel-title" class="sr-only">Chosen location</h2>
+        <div class="coords">
+          <div class="coord"><small>Latitude</small><output id="lat-out">–</output></div>
+          <div class="coord"><small>Longitude</small><output id="lng-out">–</output></div>
+        </div>
+        <p class="address">
+          <svg
+            viewBox="0 0 24 24"
+            fill="none"
+            stroke="currentColor"
+            stroke-width="2"
+            stroke-linecap="round"
+            stroke-linejoin="round"
+            aria-hidden="true"
+          >
+            <path d="M20 10c0 6-8 12-8 12s-8-6-8-12a8 8 0 0 1 16 0z" />
+            <circle cx="12" cy="10" r="3" />
+          </svg>
+          <span id="address-out">No location chosen yet.</span>
+        </p>
+
+        <p class="pick-error" id="mode-error" role="alert" hidden></p>
+
+        <div class="pick-action" id="action-show">
+          <button class="btn btn-accent" type="button" id="confirm" disabled>
+            Confirm this location
+          </button>
+        </div>
+        <div class="pick-action" id="action-redirect" hidden>
+          <p>
+            Confirming sends the coordinates to
+            <strong class="dest" id="dest-host"></strong>
+          </p>
+          <button class="btn btn-accent" type="button" id="send-redirect" disabled>
+            Send to <span id="dest-host-button"></span>
+          </button>
+        </div>
+        <div class="pick-action" id="action-post" hidden>
+          <p>
+            Confirming sends the location back to
+            <strong class="dest" id="post-origin"></strong>
+          </p>
+          <button class="btn btn-accent" type="button" id="send-post" disabled>
+            Send location
+          </button>
+        </div>
+        <p class="pick-status" id="post-status" role="status"></p>
+
+        <div class="pick-result" id="result" hidden>
+          <div class="copy-grid">
+            <button class="copy-btn" type="button" data-copy="decimal">
+              <b>Decimal</b><span>–</span>
+            </button>
+            <button class="copy-btn" type="button" data-copy="dms"><b>DMS</b><span>–</span></button>
+            <button class="copy-btn" type="button" data-copy="geo">
+              <b>geo: URI</b><span>–</span>
+            </button>
+            <button class="copy-btn" type="button" data-copy="google">
+              <b>Google Maps link</b><span>–</span>
+            </button>
+            <button class="copy-btn" type="button" data-copy="osm">
+              <b>OpenStreetMap link</b><span>–</span>
+            </button>
+          </div>
+          <div class="pick-result-actions">
+            <button class="btn btn-accent" type="button" id="share" hidden>Send this pin</button>
+            <button class="btn btn-ghost" type="button" id="adjust">Change the location</button>
+          </div>
+        </div>
+      </section>
+
+      <div class="pick-notes">
+        <p class="hint">
+          <strong>Privacy:</strong> this page has no server, no storage and no analytics. The
+          location exists only on this page, in what you copy or share, and at the address it is
+          sent to. Map tiles come from OpenStreetMap and search from Photon (komoot), which see your
+          requests like any map site.
+        </p>
+        <details class="pick-dev">
+          <summary>For developers and AI agents: link parameters</summary>
+          <div class="table-wrap">
+            <table>
+              <thead>
+                <tr>
+                  <th scope="col">Parameter</th>
+                  <th scope="col">Meaning</th>
+                </tr>
+              </thead>
+              <tbody>
+                <tr>
+                  <td><code>lat</code>, <code>lng</code></td>
+                  <td>Start with the pin here (decimal degrees).</td>
+                </tr>
+                <tr>
+                  <td><code>zoom</code></td>
+                  <td>Start zoom, 1 to 19.</td>
+                </tr>
+                <tr>
+                  <td><code>q</code></td>
+                  <td>Start at the first search result for this text.</td>
+                </tr>
+                <tr>
+                  <td><code>lang</code></td>
+                  <td>Language for search results, for example <code>de</code>.</td>
+                </tr>
+                <tr>
+                  <td><code>redirect</code></td>
+                  <td>
+                    An <code>https://</code> address. After a click on the send button, the browser
+                    goes there with <code>lat</code>, <code>lng</code> and, when known,
+                    <code>address</code> added to the query.
+                  </td>
+                </tr>
+                <tr>
+                  <td><code>return=postmessage</code> + <code>origin</code></td>
+                  <td>
+                    Posts <code>{ type: 'location-picker:pick', lat, lng, address }</code> to the
+                    opener or parent window, only to that exact origin (required).
+                  </td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+          <p class="hint">
+            Example:
+            <code
+              >https://cyphercodes.github.io/location-picker/pick/?q=Eiffel+Tower&amp;redirect=https://example.com/done</code
+            >. For heavy use, host this page yourself: it is a static folder in the MIT-licensed
+            <a href="https://github.com/cyphercodes/location-picker">location-picker repository</a>.
+          </p>
+        </details>
+      </div>
+    </main>
+    <div class="toast" id="toast" role="status" aria-live="polite"></div>
+  </body>
+</html>
