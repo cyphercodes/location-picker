@@ -89,16 +89,7 @@ const CELLS = {
     na: { bundler: 'TS1202: `import x = require()` is not ESM syntax under module esnext' },
   },
   'v1-esm': {},
-  // The statics include the provider and Photon constants, so their placeholders excuse a failure too.
-  global: {
-    pending: [
-      'types/global.d.ts',
-      'src/global.ts',
-      'src/leaflet.ts',
-      'src/maplibre.ts',
-      'src/photon.ts',
-    ],
-  },
+  global: { pending: ['types/global.d.ts', 'src/global.ts'] },
   'global+google': { google: true, pending: ['types/global.d.ts', 'src/google.ts'] },
   google: { google: true, pending: ['src/google.ts'] },
   dual: {

@@ -88,8 +88,11 @@ function location(target: Picker): object {
 
 const inRange = (value: unknown, limit: number): value is number =>
   typeof value == 'number' && Math.abs(value) <= limit;
-/** Text meant as coordinates (numbers, DMS, a geo: URI or a map URL): its parse error is the answer, not a search. */
-const COORDINATES = /^(?=.*\d)[\d\s.,;:°º'"′″+\-NSEW]+$|^(?:geo:|https?:\/\/)/i;
+/**
+ * Text meant as coordinates (two numbers, DMS, a geo: URI or a map URL): its parse error is the answer, not a search.
+ * A postcode such as "NW1" or "E14" is one number, so it is still looked up.
+ */
+const COORDINATES = /^(?=.*\d\D+\d)[\d\s.,;:°º'"′″+\-NSEW]+$|^(?:geo:|https?:\/\/)/i;
 
 async function setLocation(target: Picker, { lat, lng, text }: Input): Promise<object> {
   if (typeof text == 'string' && text.trim()) {

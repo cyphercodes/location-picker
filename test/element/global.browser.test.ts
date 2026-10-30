@@ -6,6 +6,14 @@ import { afterEach, describe, expect, it } from 'vitest';
 
 const CDN = 'https://cdn.jsdelivr.net/npm/location-picker@3';
 const frames: HTMLIFrameElement[] = [];
+const sleep = (ms: number): Promise<void> => new Promise((resolve) => setTimeout(resolve, ms));
+interface Mounted {
+  readonly value: string;
+  readonly provider: string;
+  readonly map: unknown;
+  readonly ready: Promise<unknown>;
+  destroy(): void;
+}
 afterEach(() => {
   for (const frame of frames.splice(0)) frame.remove();
 });
@@ -31,23 +39,30 @@ describe('WP4-15 the script build in a page', () => {
     expect(await response.text()).not.toMatch(/\bimport\s*\(\s*(?:\/\*[^]*?\*\/\s*)?["'`]/);
   });
 
-  it('sets the class global, defines the element, makes no chunk request', async () => {
+  it('sets the class global, defines the element, mounts Leaflet, makes no chunk request', async () => {
     const win = await page(
-      '<div id="m" style="height:200px"></div><location-picker></location-picker>',
+      '<div id="m" style="height:200px"></div><location-picker search></location-picker>',
     );
     const LocationPicker = win.LocationPicker;
     expect(typeof LocationPicker).toBe('function');
     expect(win.locationPicker).toBeUndefined();
     expect(Reflect.get(Object(LocationPicker), 'LocationPicker')).toBe(LocationPicker);
-    const element = win.document.querySelector('location-picker');
     expect(win.customElements.get('location-picker')).toBe(
       Reflect.get(Object(LocationPicker), 'LocationPickerElement'),
     );
-    expect(element?.shadowRoot).toBeTruthy();
+    const element = win.document.querySelector('location-picker');
     // oxlint-disable-next-line typescript/no-unsafe-type-assertion -- the global's constructor signature
-    const Ctor = LocationPicker as new (target: string) => { value: string; destroy(): void };
+    const Ctor = LocationPicker as new (target: string) => Mounted;
     const picker = new Ctor('#m');
-    expect(picker.value).toBe('');
+    // Both go through the bundled loaders: the engine, the paired Photon geocoder and the search combobox.
+    await picker.ready;
+    await Reflect.get(Object(element), 'ready');
+    expect(picker.provider).toBe('leaflet');
+    expect(picker.map).toBeTruthy();
+    const search = element?.shadowRoot?.querySelector('[part~="search"]');
+    // oxlint-disable-next-line no-await-in-loop -- polls until the combobox rendered
+    for (let i = 0; i < 50 && !search?.querySelector('[role="combobox"]'); i++) await sleep(10);
+    expect(search?.querySelector('[role="combobox"]')).toBeTruthy();
     picker.destroy();
     const requested = win.performance.getEntriesByType('resource').map((entry) => entry.name);
     expect(requested.filter((url) => url.includes('location-picker'))).toEqual([CDN]);

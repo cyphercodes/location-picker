@@ -56,7 +56,11 @@ describe('WP4-14 accessibility (axe-core)', () => {
       geocoder,
     });
     await el.ready;
-    await flush();
+    // The built-in combobox loads as a chunk after the mount; axe must see it, not an empty slot.
+    const search = part(el, 'search');
+    // oxlint-disable-next-line no-await-in-loop -- polls until the chunk rendered
+    for (let i = 0; i < 50 && !search.querySelector('[role="combobox"]'); i++) await flush();
+    expect(search.querySelector('[role="combobox"]')).toBeTruthy();
     expectNamedRegion(el);
     expect(await violations(el)).toEqual([]);
   });

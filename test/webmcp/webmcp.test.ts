@@ -234,6 +234,10 @@ describe('WP4-16 WebMCP', () => {
       'input:48.8584,2.2945:api',
       'change:48.8584,2.2945:api',
     ]);
+    // A postcode with hemisphere-like letters is a place to look up, not malformed coordinates.
+    el.value = '';
+    await tool(tools, 'location_picker_set_location').execute({ text: 'NW1' });
+    expect(el.value).toBe('48.8584,2.2945');
     await expect(
       tool(tools, 'location_picker_set_location').execute({ text: 'nowhere' }),
     ).rejects.toThrow(/No place found/);
