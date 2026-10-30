@@ -295,6 +295,9 @@ test.describe('WP6-08 compatibility page', () => {
       route.fulfill({ body: JSON.stringify(report), contentType: 'application/json' }),
     );
     await page.goto(`${SITE}compat/`);
+    // The per-result table is built when its section is first opened.
+    await expect(page.locator('#compat-results')).toHaveCount(0);
+    await page.locator('.compat-details summary').click();
     await expect(page.locator('#compat-results tbody tr')).toHaveCount(report.results.length);
     await expect(page.locator('#compat-matrix tbody tr')).toHaveCount(report.scenarios.length);
     await expect(page.locator('#generated')).toContainText(

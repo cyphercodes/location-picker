@@ -64,9 +64,15 @@ function render(report) {
   );
 
   // Scenario x browser engine: passed / run.
+  // Wide tables scroll inside a keyboard-focusable, named region (axe: scrollable-region-focusable).
   const matrix = el(
     'div',
-    { class: 'table-wrap' },
+    {
+      class: 'table-wrap',
+      tabindex: '0',
+      role: 'region',
+      'aria-label': 'Results per scenario and browser engine',
+    },
     el(
       'table',
       { id: 'compat-matrix' },
@@ -113,48 +119,16 @@ function render(report) {
     ),
   );
 
+  // Every result is thousands of rows: build that table only when someone opens it, so the page stays light.
   const details = el(
     'details',
     { class: 'compat-details' },
     el('summary', {}, `Every result (${report.results.length})`),
-    el(
-      'div',
-      { class: 'table-wrap' },
-      el(
-        'table',
-        { id: 'compat-results' },
-        el(
-          'thead',
-          {},
-          el(
-            'tr',
-            {},
-            ['Environment', 'Scenario', 'Status', 'Time', 'Note'].map((h) =>
-              el('th', { scope: 'col' }, h),
-            ),
-          ),
-        ),
-        el(
-          'tbody',
-          {},
-          report.results.map((result) =>
-            el(
-              'tr',
-              {},
-              el('td', {}, describeEnv(envs.get(result.env)) ?? result.env),
-              el('td', {}, scenarios.get(result.scenario)?.title ?? result.scenario),
-              el(
-                'td',
-                {},
-                el('span', { class: 'pill', 'data-status': result.status }, result.status),
-              ),
-              el('td', {}, `${Math.round(result.durationMs)} ms`),
-              el('td', {}, result.note ?? ''),
-            ),
-          ),
-        ),
-      ),
-    ),
+  );
+  details.addEventListener(
+    'toggle',
+    () => details.append(resultsTable(report.results, envs, scenarios)),
+    { once: true },
   );
 
   const notCovered = el(
@@ -175,6 +149,47 @@ function render(report) {
     matrix,
     details,
     notCovered,
+  );
+}
+
+function resultsTable(results, envs, scenarios) {
+  return el(
+    'div',
+    { class: 'table-wrap', tabindex: '0', role: 'region', 'aria-label': 'Every result' },
+    el(
+      'table',
+      { id: 'compat-results' },
+      el(
+        'thead',
+        {},
+        el(
+          'tr',
+          {},
+          ['Environment', 'Scenario', 'Status', 'Time', 'Note'].map((h) =>
+            el('th', { scope: 'col' }, h),
+          ),
+        ),
+      ),
+      el(
+        'tbody',
+        {},
+        results.map((result) =>
+          el(
+            'tr',
+            {},
+            el('td', {}, describeEnv(envs.get(result.env)) ?? result.env),
+            el('td', {}, scenarios.get(result.scenario)?.title ?? result.scenario),
+            el(
+              'td',
+              {},
+              el('span', { class: 'pill', 'data-status': result.status }, result.status),
+            ),
+            el('td', {}, `${Math.round(result.durationMs)} ms`),
+            el('td', {}, result.note ?? ''),
+          ),
+        ),
+      ),
+    ),
   );
 }
 
