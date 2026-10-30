@@ -1,0 +1,97 @@
+name: Compat
+
+# The full LOCKED 16 compatibility matrix (CONTRACT §13 WP5-10, AMENDMENTS A4/A13.4): every e2e test tagged with a
+# compat scenario (e2e/scenarios.ts) across 3 engines x 8 viewports x DPR 1/2/3 x mouse/touch plus the device
+# profiles. Shards write blob reports; the report job merges them into compat/compat.json (e2e/compat-reporter.ts)
+# and COMPATIBILITY.md (scripts/compat-report.mjs). Both, and the screenshots, are artifacts: never committed here.
+on:
+  schedule:
+    - cron: '41 2 * * 2'
+  push:
+    tags: ['v*']
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: compat-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  matrix:
+    name: ${{ matrix.browser }} ${{ matrix.shard }}/3
+    runs-on: ubuntu-latest
+    timeout-minutes: 120
+    strategy:
+      fail-fast: false
+      matrix:
+        browser: [chromium, firefox, webkit]
+        shard: [1, 2, 3]
+    env:
+      COMPAT_FULL: '1'
+      COMPAT_BROWSER: ${{ matrix.browser }}
+      COMPAT_BLOB: report-${{ matrix.browser }}-${{ matrix.shard }}.zip
+    steps:
+      - uses: actions/checkout@v7
+      - uses: actions/setup-node@v7
+        with:
+          node-version: 24
+          cache: npm
+      - run: npm ci
+      - run: npx playwright install --with-deps ${{ matrix.browser }}
+      - run: npm run build
+      - name: Compat matrix (${{ matrix.browser }}, shard ${{ matrix.shard }}/3)
+        run: npx playwright test --shard=${{ matrix.shard }}/3 --workers=4 --trace=off
+      - uses: actions/upload-artifact@v7
+        if: ${{ !cancelled() }}
+        with:
+          name: compat-blob-${{ matrix.browser }}-${{ matrix.shard }}
+          path: blob-report/
+          if-no-files-found: error
+          retention-days: 7
+
+  report:
+    name: compat.json and COMPATIBILITY.md
+    needs: matrix
+    if: ${{ !cancelled() }}
+    runs-on: ubuntu-latest
+    env:
+      PLAYWRIGHT_SKIP_BROWSER_DOWNLOAD: '1'
+    steps:
+      - uses: actions/checkout@v7
+      - uses: actions/setup-node@v7
+        with:
+          node-version: 24
+          cache: npm
+      - run: npm ci
+      - uses: actions/download-artifact@v8
+        with:
+          pattern: compat-blob-*
+          path: all-blob-reports
+          merge-multiple: true
+      - name: Merge the shards into compat/compat.json (validated against CONTRACT §12.8)
+        run: npx playwright merge-reports --reporter=./e2e/compat-reporter.ts all-blob-reports
+      - name: Generate COMPATIBILITY.md
+        run: |
+          node scripts/compat-report.mjs
+          cat COMPATIBILITY.md >> "$GITHUB_STEP_SUMMARY"
+      - uses: actions/upload-artifact@v7
+        with:
+          name: compat-report
+          path: |
+            compat/compat.json
+            COMPATIBILITY.md
+          if-no-files-found: error
+          retention-days: 90
+      - uses: actions/upload-artifact@v7
+        with:
+          name: compat-screenshots
+          path: compat/screenshots/
+          if-no-files-found: error
+          retention-days: 30
+      - name: Fail when a shard failed
+        if: ${{ needs.matrix.result != 'success' }}
+        run: |
+          echo "::error::compat shards: ${{ needs.matrix.result }}; see the Failures section of COMPATIBILITY.md"
+          exit 1
