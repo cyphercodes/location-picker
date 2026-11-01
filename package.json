@@ -254,7 +254,7 @@
     "esbuild": "0.28.2",
     "jsdom": "30.1.3",
     "leaflet": "1.9.4",
-    "maplibre-gl": "6.14.0",
+    "maplibre-gl": "6.16.0",
     "oxlint": "1.88.0",
     "oxlint-tsgolint": "7.0.2004",
     "playwright": "1.63.0",
