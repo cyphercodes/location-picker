@@ -81,7 +81,8 @@ describe.skipIf(skipUnbuilt)(
         const owners = new Map<string, string[]>();
         for (const file of files(join(packed.pkg, 'dist'), new RegExp(`\\.${ext}$`))) {
           const code = readFileSync(file, 'utf8');
-          for (const [, module = ''] of code.matchAll(/^\/\/#region (\S+)$/gm)) {
+          // rolldown marks each module `//#region src/…` (up to 1.2.14) or `// src/…` (1.2.19 on).
+          for (const [, module = ''] of code.matchAll(/^\/\/(?:#region)? (src\/\S+)$/gm)) {
             owners.set(module, [...(owners.get(module) ?? []), relative(packed.pkg, file)]);
           }
         }

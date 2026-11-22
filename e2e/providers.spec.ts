@@ -1,7 +1,8 @@
 // WP3-21 (slow engine, tile failure, the default CSP recipe, the engine CSS order in real engines), the real-engine
 // half of WP3-02 and WP3-15, and WP3-19 (every external request is an allowed, fixture-answered URL). The pages load
-// the built package (dist/*.mjs) and real Leaflet 1.9.4 / maplibre-gl 6.14.0 from node_modules, through the §12.6
+// the built package (dist/*.mjs) and real Leaflet 1.9.4 / maplibre-gl from node_modules, through the §12.6
 // route table; spec-local page routes add the variants the table has no option for (no CORS, errors, hangs, CSP).
+import { readFileSync } from 'node:fs';
 import type { Page, Request, Route } from '@playwright/test';
 import type * as L from 'leaflet';
 import type * as Core from '../src/core.js';
@@ -474,7 +475,13 @@ test.describe('WP3-22 synchronous .map while leaflet.css takes 3 s', () => {
   });
 });
 
-/** Puts maplibre-gl 6.14 (node_modules, unbundled, so its worker resolves) on window.maplibregl; false without WebGL2. */
+/** The installed maplibre-gl version: the CSS URL in the ENGINE_CSS_MISSING fix names it. */
+const maplibrePkg: { version?: unknown } = JSON.parse(
+  readFileSync('node_modules/maplibre-gl/package.json', 'utf8'),
+);
+const MAPLIBRE_VERSION = String(maplibrePkg.version);
+
+/** Puts maplibre-gl (node_modules, unbundled, so its worker resolves) on window.maplibregl; false without WebGL2. */
 async function loadMapLibre(page: Page): Promise<boolean> {
   return page.evaluate(async () => {
     if (!document.createElement('canvas').getContext('webgl2')) return false;
@@ -486,7 +493,7 @@ async function loadMapLibre(page: Page): Promise<boolean> {
   });
 }
 
-test.describe('WP3-15 real maplibre-gl 6.14 @maplibre-provider', () => {
+test.describe('WP3-15 real maplibre-gl @maplibre-provider', () => {
   test("with maplibre-gl.css in a Document, a user ShadowRoot (step 3') or engineCssUrl: no warning", async ({
     page,
     browserName,
@@ -622,7 +629,10 @@ test.describe('WP3-15 real maplibre-gl 6.14 @maplibre-provider', () => {
         code: 'ENGINE_CSS_MISSING',
         level: 'warn',
         fix: expect.stringMatching(
-          /maplibre-gl\/dist\/maplibre-gl\.css.*maplibre-gl@6\.14\.0\/dist\/maplibre-gl\.css/s,
+          new RegExp(
+            String.raw`maplibre-gl/dist/maplibre-gl\.css.*maplibre-gl@${MAPLIBRE_VERSION.replaceAll('.', String.raw`\.`)}/dist/maplibre-gl\.css`,
+            's',
+          ),
         ),
       }),
     ]);
