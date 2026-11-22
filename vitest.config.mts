@@ -40,7 +40,7 @@ export default defineConfig({
           api: { host: '127.0.0.1', port, strictPort: true },
           browser: {
             enabled: true,
-            // Only the headless shells are cached for playwright 1.63.0; headed Chromium would trigger a download.
+            // Only the headless shells are cached for Playwright; headed Chromium would trigger a download.
             headless: true,
             provider: playwright(),
             instances: [{ browser: 'chromium' }, { browser: 'firefox' }, { browser: 'webkit' }],

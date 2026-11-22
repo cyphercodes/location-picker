@@ -31,6 +31,13 @@ afterEach(() => vi.restoreAllMocks());
 const scripts = (): HTMLScriptElement[] => [...document.head.querySelectorAll('script')];
 const local = (path: string): string => new URL(path, location.href).href;
 const firstScript = (): HTMLScriptElement => must(scripts().at(0), 'a script');
+/** jsdom 31 implements adoptedStyleSheets; the tests below cover the `<style>` fallback, so hide it like old engines. */
+const withoutAdoptedStyleSheets = (): void => {
+  for (const proto of [Document.prototype, ShadowRoot.prototype])
+    vi.spyOn(proto, 'adoptedStyleSheets', 'get').mockReturnValue(
+      undefined as unknown as CSSStyleSheet[],
+    );
+};
 const config = (geocoder: Geocoder | false | undefined) =>
   resolveConfig({ geocoder }, { mode: 'class', host: document.createElement('div') }).config;
 
@@ -108,6 +115,7 @@ describe('loadStylesheet', () => {
 
 describe('adoptDocumentRules', () => {
   it('copies matching rules (also inside @media) into the shadow root, with url() made absolute', async () => {
+    withoutAdoptedStyleSheets();
     const style = document.createElement('style');
     style.textContent =
       '.leaflet-pane{position:absolute}.other{color:red}' +
@@ -127,7 +135,8 @@ describe('adoptDocumentRules', () => {
 });
 
 describe('adoptStyles', () => {
-  it('without adoptedStyleSheets (jsdom): one <style> per root and kind, with the nonce', () => {
+  it('without adoptedStyleSheets: one <style> per root and kind, with the nonce', () => {
+    withoutAdoptedStyleSheets();
     adoptStyles(document, 'class', 'n3');
     adoptStyles(document, 'class', 'n3');
     const styles = document.head.querySelectorAll('style');
@@ -229,6 +238,7 @@ describe('WP2-23 two library copies on one page share the store', () => {
   });
 
   it('two copies adopt one sheet per document', async () => {
+    withoutAdoptedStyleSheets();
     vi.resetModules();
     const a = await import('../../src/core/styles.js');
     vi.resetModules();
