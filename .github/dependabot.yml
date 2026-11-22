@@ -3,7 +3,7 @@ updates:
   - package-ecosystem: npm
     directory: '/'
     schedule:
-      interval: weekly
+      interval: monthly
     open-pull-requests-limit: 10
     labels: [dependencies, npm]
     commit-message:
@@ -12,33 +12,19 @@ updates:
     ignore:
       # Pinned on purpose: the routes serve node_modules/leaflet for the SRI-locked jsDelivr 1.9.4 URLs.
       - dependency-name: leaflet
+      # The package supports Node >=22.22, so its types stay on the Node 22 line.
+      - dependency-name: '@types/node'
+        update-types: ['version-update:semver-major']
     groups:
-      # Playwright must move as one (its browser builds are tied to the version).
-      playwright:
-        patterns:
-          ['playwright', '@playwright/*', '@vitest/browser-playwright', '@axe-core/playwright']
-      build:
-        patterns: ['tsdown', '@tsdown/*', 'typescript', 'terser', 'acorn', 'esbuild']
-      test:
-        patterns: ['vitest', '@vitest/*', 'jsdom']
-      lint:
-        patterns: ['oxlint', 'oxlint-tsgolint', 'prettier']
-      package-checks:
-        patterns:
-          [
-            'publint',
-            '@arethetypeswrong/*',
-            'size-limit',
-            '@size-limit/*',
-            '@custom-elements-manifest/*',
-          ]
-      types:
-        patterns: ['@types/*']
+      # One pull request a month for every npm update. A single group also keeps the packages that pin each other
+      # together (the Vitest Playwright provider requires the exact vitest; Playwright's browsers follow its version).
+      npm:
+        patterns: ['*']
 
   - package-ecosystem: github-actions
     directory: '/'
     schedule:
-      interval: weekly
+      interval: monthly
     labels: [dependencies, github-actions]
     commit-message:
       prefix: chore
